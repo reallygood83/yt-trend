@@ -1,19 +1,35 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 개발 서버 설정
+  // 개발 서버 설정 최적화
   experimental: {
     // turbo 옵션 제거 - Next.js 15에서 문제 발생
+    optimizePackageImports: ['lucide-react', 'recharts'],
   },
   
-  // 웹팩 설정
+  // 웹팩 설정 최적화
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
+      // HMR 안정성을 위한 설정 개선
       config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
+        poll: 2000, // 폴링 간격 증가로 CPU 부하 감소
+        aggregateTimeout: 500, // 디바운스 시간 증가
+        ignored: /node_modules/, // node_modules 감시 제외
+      };
+      
+      // 개발 환경 최적화
+      config.optimization = {
+        ...config.optimization,
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
       };
     }
     return config;
+  },
+  
+  // 개발 서버 설정
+  devIndicators: {
+    position: 'bottom-right',
   },
 
   // 이미지 최적화 설정

@@ -45,6 +45,7 @@ export function useTrending(): UseTrendingReturn {
         maxResults: String(filters.maxResults || 50),
       });
 
+      // 기본 필터들
       if (filters.category && filters.category !== '') {
         searchParams.append('category', filters.category);
       }
@@ -52,6 +53,43 @@ export function useTrending(): UseTrendingReturn {
       if (filters.keyword && filters.keyword.trim() !== '') {
         searchParams.append('keyword', filters.keyword.trim());
       }
+
+      // 고급 필터 파라미터들 추가
+      if (filters.publishedAfter) {
+        searchParams.append('publishedAfter', filters.publishedAfter);
+      }
+
+      if (filters.publishedBefore) {
+        searchParams.append('publishedBefore', filters.publishedBefore);
+      }
+
+      if (filters.minViewCount !== undefined) {
+        searchParams.append('minViewCount', String(filters.minViewCount));
+      }
+
+      if (filters.maxViewCount !== undefined) {
+        searchParams.append('maxViewCount', String(filters.maxViewCount));
+      }
+
+      if (filters.minDuration !== undefined) {
+        searchParams.append('minDuration', String(filters.minDuration));
+      }
+
+      if (filters.maxDuration !== undefined) {
+        searchParams.append('maxDuration', String(filters.maxDuration));
+      }
+
+      if (filters.hasSubtitles !== undefined) {
+        searchParams.append('hasSubtitles', String(filters.hasSubtitles));
+      }
+
+      if (filters.channelType && filters.channelType !== 'all') {
+        searchParams.append('channelType', filters.channelType);
+      }
+
+      console.log('=== 고급 필터 API 요청 ===');
+      console.log('요청 URL:', `/api/trending?${searchParams.toString()}`);
+      console.log('필터 파라미터:', filters);
 
       const response = await fetch(`/api/trending?${searchParams}`);
       const result = await response.json();

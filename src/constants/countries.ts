@@ -55,22 +55,3 @@ export const COUNTRIES: CountryOption[] = [
 ];
 
 export const DEFAULT_COUNTRY = 'KR';
-
-export const CATEGORIES = [
-  { id: '0', name: '영화 및 애니메이션' },
-  { id: '1', name: '자동차 및 차량' },
-  { id: '2', name: '음악' },
-  { id: '10', name: '엔터테인먼트' },
-  { id: '15', name: '애완동물 및 동물' },
-  { id: '17', name: '스포츠' },
-  { id: '19', name: '여행 및 이벤트' },
-  { id: '20', name: '게임' },
-  { id: '22', name: '사람 및 블로그' },
-  { id: '23', name: '코미디' },
-  { id: '24', name: '엔터테인먼트' },
-  { id: '25', name: '뉴스 및 정치' },
-  { id: '26', name: '하우투 및 스타일' },
-  { id: '27', name: '교육' },
-  { id: '28', name: '과학 및 기술' },
-  { id: '29', name: '비영리 및 행동주의' }
-];

@@ -2,6 +2,7 @@
 export interface AIApiKeys {
   openai?: string;
   gemini?: string;
+  anthropic?: string;
 }
 
 const AI_API_KEYS_STORAGE_KEY = 'youtube-trend-explorer-ai-keys';
@@ -15,6 +16,9 @@ export function saveAIApiKeys(keys: AIApiKeys): void {
     }
     if (keys.gemini?.trim()) {
       sanitizedKeys.gemini = keys.gemini.trim();
+    }
+    if (keys.anthropic?.trim()) {
+      sanitizedKeys.anthropic = keys.anthropic.trim();
     }
     localStorage.setItem(AI_API_KEYS_STORAGE_KEY, JSON.stringify(sanitizedKeys));
   } catch (error) {
@@ -41,7 +45,7 @@ export function getAIApiKeys(): AIApiKeys {
 }
 
 // 특정 AI API 키 가져오기
-export function getAIApiKey(provider: 'openai' | 'gemini'): string | undefined {
+export function getAIApiKey(provider: 'openai' | 'gemini' | 'anthropic'): string | undefined {
   const keys = getAIApiKeys();
   return keys[provider];
 }
@@ -56,7 +60,7 @@ export function clearAIApiKeys(): void {
 }
 
 // AI API 키 유효성 검증 (기본적인 형식 체크)
-export function validateAIApiKey(key: string, provider: 'openai' | 'gemini'): boolean {
+export function validateAIApiKey(key: string, provider: 'openai' | 'gemini' | 'anthropic'): boolean {
   if (!key || typeof key !== 'string') return false;
   
   const trimmedKey = key.trim();
@@ -68,6 +72,9 @@ export function validateAIApiKey(key: string, provider: 'openai' | 'gemini'): bo
     case 'gemini':
       // Gemini API 키는 영문자와 숫자, 하이픈으로 구성되고 적절한 길이여야 함
       return /^[A-Za-z0-9_-]+$/.test(trimmedKey) && trimmedKey.length > 10;
+    case 'anthropic':
+      // Anthropic API 키는 sk-ant-로 시작하고 길이가 적절해야 함
+      return trimmedKey.startsWith('sk-ant-') && trimmedKey.length > 20;
     default:
       return false;
   }
@@ -76,5 +83,5 @@ export function validateAIApiKey(key: string, provider: 'openai' | 'gemini'): bo
 // 사용 가능한 AI API 키가 있는지 확인
 export function hasValidAIApiKey(): boolean {
   const keys = getAIApiKeys();
-  return !!(keys.openai || keys.gemini);
+  return !!(keys.openai || keys.gemini || keys.anthropic);
 }

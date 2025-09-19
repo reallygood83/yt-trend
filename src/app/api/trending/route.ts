@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { YouTubeTrendingResponse, YouTubeSearchItem, YouTubeVideo } from '@/types/youtube';
+import { CATEGORIES } from '@/constants/categories';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +10,17 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || '';
     const keyword = searchParams.get('keyword') || '';
     const maxResults = parseInt(searchParams.get('maxResults') || '50');
+    
+    // 고급 필터 파라미터들
+    const publishedAfter = searchParams.get('publishedAfter');
+    const publishedBefore = searchParams.get('publishedBefore');
+    const minViewCount = searchParams.get('minViewCount') ? parseInt(searchParams.get('minViewCount')!) : undefined;
+    const maxViewCount = searchParams.get('maxViewCount') ? parseInt(searchParams.get('maxViewCount')!) : undefined;
+    const minDuration = searchParams.get('minDuration') ? parseInt(searchParams.get('minDuration')!) : undefined;
+    const maxDuration = searchParams.get('maxDuration') ? parseInt(searchParams.get('maxDuration')!) : undefined;
+    const videoDuration = searchParams.get('videoDuration');
+    const hasSubtitles = searchParams.get('hasSubtitles') === 'true';
+    const channelType = searchParams.get('channelType');
 
     if (!apiKey) {
       return NextResponse.json(
@@ -17,16 +29,78 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 로그 기록 개선
+    console.log('=== YouTube API 요청 시작 ===');
+    console.log('기본 필터:', { country, category, keyword, maxResults });
+    console.log('고급 필터:', { 
+      publishedAfter, 
+      publishedBefore, 
+      minViewCount, 
+      maxViewCount, 
+      minDuration, 
+      maxDuration, 
+      videoDuration,
+      hasSubtitles, 
+      channelType 
+    });
+
     let apiUrl = '';
     
-    // 키워드 검색과 트렌드 검색 분기
-    if (keyword && keyword.trim() !== '') {
+    // 고급 필터 사용 여부 확인
+    const hasAdvancedFilters = 
+      publishedAfter ||
+      publishedBefore ||
+      minViewCount !== undefined ||
+      maxViewCount !== undefined ||
+      minDuration !== undefined ||
+      maxDuration !== undefined ||
+      videoDuration ||
+      hasSubtitles ||
+      (channelType && channelType !== 'all');
+    
+    // 고급 필터나 키워드가 있으면 Search API 사용
+    if (hasAdvancedFilters || (keyword && keyword.trim() !== '')) {
+      let searchQuery = keyword && keyword.trim() !== '' ? keyword.trim() : '';
+      
+      // 키워드가 없으면 카테고리 이름을 기본 검색어로 사용
+      if (!searchQuery) {
+        const categoryInfo = CATEGORIES.find(c => c.id === category);
+        searchQuery = categoryInfo && categoryInfo.id !== '0' ? categoryInfo.name : 'youtube';
+      }
+      
       // 키워드 검색 - Search API 사용
-      apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(keyword)}&regionCode=${country}&maxResults=${maxResults}&order=relevance&key=${apiKey}`;
+      apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(searchQuery)}&regionCode=${country}&maxResults=${maxResults}&order=relevance&key=${apiKey}`;
       
       if (category && category !== '' && category !== '0') {
         apiUrl += `&videoCategoryId=${category}`;
       }
+      
+      // 날짜 필터 추가 (Search API 지원)
+      if (publishedAfter) {
+        apiUrl += `&publishedAfter=${new Date(publishedAfter).toISOString()}`;
+      }
+      if (publishedBefore) {
+        apiUrl += `&publishedBefore=${new Date(publishedBefore).toISOString()}`;
+      }
+      
+      // 영상 길이 필터 추가 (Search API 지원)
+      if (videoDuration) {
+        apiUrl += `&videoDuration=${videoDuration}`;
+      } else if (minDuration !== undefined || maxDuration !== undefined) {
+        if (minDuration !== undefined && minDuration >= 1200) {
+          apiUrl += `&videoDuration=long`; // 20분 이상
+        } else if (maxDuration !== undefined && maxDuration <= 240) {
+          apiUrl += `&videoDuration=short`; // 4분 이하
+        } else {
+          apiUrl += `&videoDuration=medium`; // 4-20분
+        }
+      }
+      
+      // 자막 필터 추가
+      if (hasSubtitles) {
+        apiUrl += `&videoCaption=closedCaption`;
+      }
+      
     } else {
       // 트렌드 검색 - Videos API 사용
       apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${country}&maxResults=${maxResults}&key=${apiKey}`;
@@ -34,6 +108,8 @@ export async function GET(request: NextRequest) {
       if (category && category !== '' && category !== '0') {
         apiUrl += `&videoCategoryId=${category}`;
       }
+      
+      // 트렌드 검색에서는 날짜 필터를 클라이언트 사이드에서 처리
     }
 
     // 디버깅용 로그 추가
@@ -140,17 +216,64 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 클라이언트 사이드 필터링 적용
+    let filteredItems = processedItems;
+    
+    // 날짜 필터링 (트렌드 검색에서 주로 사용)
+    if (publishedAfter || publishedBefore) {
+      filteredItems = filteredItems.filter(video => {
+        const publishedDate = new Date(video.snippet.publishedAt);
+        
+        if (publishedAfter) {
+          const afterDate = new Date(publishedAfter);
+          if (publishedDate < afterDate) return false;
+        }
+        
+        if (publishedBefore) {
+          const beforeDate = new Date(publishedBefore);
+          beforeDate.setHours(23, 59, 59, 999); // 해당 날짜 끝까지 포함
+          if (publishedDate > beforeDate) return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // 조회수 필터링
+    if (minViewCount !== undefined || maxViewCount !== undefined) {
+      filteredItems = filteredItems.filter(video => {
+        const viewCount = parseInt(video.statistics.viewCount || '0');
+        
+        if (minViewCount !== undefined && viewCount < minViewCount) return false;
+        if (maxViewCount !== undefined && viewCount > maxViewCount) return false;
+        
+        return true;
+      });
+    }
+    
+    // 필터링 결과 로그
+    if (process.env.NODE_ENV === 'development') {
+      console.log('필터링 전 영상 수:', processedItems.length);
+      console.log('필터링 후 영상 수:', filteredItems.length);
+      if (publishedAfter || publishedBefore) {
+        console.log('날짜 필터 적용:', { publishedAfter, publishedBefore });
+      }
+      if (minViewCount !== undefined || maxViewCount !== undefined) {
+        console.log('조회수 필터 적용:', { minViewCount, maxViewCount });
+      }
+    }
+
     // 썸네일 데이터 디버깅 (개발환경에서만)
-    if (process.env.NODE_ENV === 'development' && processedItems.length > 0) {
+    if (process.env.NODE_ENV === 'development' && filteredItems.length > 0) {
       console.log('========== 썸네일 디버깅 정보 ==========');
       console.log('첫 번째 영상의 썸네일 정보:', {
-        videoId: processedItems[0].id,
-        title: processedItems[0].snippet.title.substring(0, 50) + '...',
-        thumbnails: processedItems[0].snippet.thumbnails
+        videoId: filteredItems[0].id,
+        title: filteredItems[0].snippet.title.substring(0, 50) + '...',
+        thumbnails: filteredItems[0].snippet.thumbnails
       });
       
       // 썸네일 URL 유효성 체크
-      const thumbnails = processedItems[0].snippet.thumbnails;
+      const thumbnails = filteredItems[0].snippet.thumbnails;
       console.log('썸네일 URL 목록:');
       if (thumbnails.maxres) console.log('- maxres:', thumbnails.maxres.url);
       if (thumbnails.standard) console.log('- standard:', thumbnails.standard.url);
@@ -164,22 +287,43 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        items: processedItems,
+        items: filteredItems,
         pageInfo: data.pageInfo,
-        totalResults: data.pageInfo?.totalResults || processedItems.length,
+        totalResults: filteredItems.length,
+        originalTotalResults: data.pageInfo?.totalResults || processedItems.length,
         country,
         category: category || 'all',
         keyword: keyword || null,
         searchType: keyword ? 'keyword' : 'trending',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        filtersApplied: {
+          publishedAfter,
+          publishedBefore,
+          minViewCount,
+          maxViewCount,
+          minDuration,
+          maxDuration,
+          videoDuration,
+          hasSubtitles,
+          channelType
+        }
       }
     });
 
   } catch (error) {
-    console.error('트렌드 검색 오류:', error);
+    console.error('=== YouTube API 오류 발생 ===');
+    console.error('오류 타입:', error instanceof Error ? error.name : typeof error);
+    console.error('오류 메시지:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+      console.error('스택 트레이스:', error.stack);
+    }
+    console.error('===============================');
     
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { 
+        error: '서버 오류가 발생했습니다.',
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      },
       { status: 500 }
     );
   }

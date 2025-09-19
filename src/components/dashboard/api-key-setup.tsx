@@ -16,6 +16,7 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
   const [apiKey, setApiKey] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
+  const [anthropicKey, setAnthropicKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
     
     setOpenaiKey(existingAIKeys.openai || '');
     setGeminiKey(existingAIKeys.gemini || '');
+    setAnthropicKey(existingAIKeys.anthropic || '');
     
     if (existingKey) {
       onSuccess();
@@ -70,8 +72,8 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
     setAiError(null);
     
     // 최소한 하나의 AI API 키가 입력되어야 함
-    if (!openaiKey.trim() && !geminiKey.trim()) {
-      setAiError('OpenAI 또는 Gemini API 키 중 하나 이상을 입력해주세요.');
+    if (!openaiKey.trim() && !geminiKey.trim() && !anthropicKey.trim()) {
+      setAiError('OpenAI, Gemini 또는 Anthropic API 키 중 하나 이상을 입력해주세요.');
       return;
     }
 
@@ -85,6 +87,10 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
     if (geminiKey.trim() && !validateAIApiKey(geminiKey.trim(), 'gemini')) {
       errors.push('Gemini API 키 형식이 올바르지 않습니다.');
     }
+    
+    if (anthropicKey.trim() && !validateAIApiKey(anthropicKey.trim(), 'anthropic')) {
+      errors.push('Anthropic API 키 형식이 올바르지 않습니다.');
+    }
 
     if (errors.length > 0) {
       setAiError(errors.join(' '));
@@ -93,7 +99,7 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
 
     // AI API 키 저장
     try {
-      const keysToSave: { openai?: string; gemini?: string } = {};
+      const keysToSave: { openai?: string; gemini?: string; anthropic?: string } = {};
       
       if (openaiKey.trim()) {
         keysToSave.openai = openaiKey.trim();
@@ -101,6 +107,10 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
       
       if (geminiKey.trim()) {
         keysToSave.gemini = geminiKey.trim();
+      }
+      
+      if (anthropicKey.trim()) {
+        keysToSave.anthropic = anthropicKey.trim();
       }
 
       saveAIApiKeys(keysToSave);
@@ -233,6 +243,20 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
               />
             </div>
 
+            {/* Anthropic API 키 입력 */}
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">
+                Anthropic Claude API 키 (선택사항)
+              </label>
+              <Input
+                type="password"
+                value={anthropicKey}
+                onChange={(e) => setAnthropicKey(e.target.value)}
+                placeholder="sk-ant-..."
+                className="text-sm sm:text-base"
+              />
+            </div>
+
             {aiError && (
               <div className="flex items-center gap-2 text-red-600 text-sm">
                 <AlertCircle className="w-4 h-4" />
@@ -244,7 +268,7 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
             <div className="space-y-3">
               <Button
                 onClick={handleAIKeySave}
-                disabled={!openaiKey.trim() && !geminiKey.trim()}
+                disabled={!openaiKey.trim() && !geminiKey.trim() && !anthropicKey.trim()}
                 variant="outline"
                 className="w-full h-10 sm:h-12 text-sm sm:text-base"
                 size="lg"
@@ -266,8 +290,8 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
             <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
               <h4 className="text-sm sm:text-base font-semibold text-blue-900 mb-2">💡 AI API 키 안내</h4>
               <ul className="text-blue-800 text-xs sm:text-sm space-y-1">
-                <li>• OpenAI 또는 Gemini API 키 중 하나만 입력해도 AI 분석이 작동합니다</li>
-                <li>• 두 API 키를 모두 입력하면 더욱 안정적인 분석이 가능합니다</li>
+                <li>• OpenAI, Gemini, Anthropic API 키 중 하나만 입력해도 AI 분석이 작동합니다</li>
+                <li>• 여러 API 키를 입력하면 더욱 안정적인 분석이 가능합니다</li>
                 <li>• AI 분석 기능은 선택사항이며, 없어도 기본 기능을 모두 사용할 수 있습니다</li>
               </ul>
             </div>
@@ -327,6 +351,29 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
                     <li className="flex gap-2">
                       <span className="flex-shrink-0 w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
                       <span className="text-purple-600">생성된 API 키 복사</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="bg-indigo-50 p-3 sm:p-4 rounded-lg">
+                  <h4 className="text-sm sm:text-base font-semibold text-indigo-900 mb-2">🤖 Anthropic Claude API 키 발급</h4>
+                  <ol className="space-y-2 text-xs sm:text-sm text-indigo-800">
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                      <div>
+                        <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-medium">
+                          Anthropic Console
+                        </a>
+                        <span className="text-indigo-600"> 접속</span>
+                      </div>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                      <span className="text-indigo-600">&quot;API Keys&quot; 메뉴에서 &quot;Create Key&quot; 클릭</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                      <span className="text-indigo-600">생성된 API 키 복사 (sk-ant-로 시작)</span>
                     </li>
                   </ol>
                 </div>

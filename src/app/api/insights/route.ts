@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
     body = await request.json();
     
     if (!body) {
+      console.error('[인사이트 API] 요청 바디가 없음');
       return NextResponse.json(
         { error: '요청 데이터가 없습니다.' },
         { status: 400 }
@@ -154,14 +155,19 @@ export async function POST(request: NextRequest) {
     const { videos, filters } = body;
 
     if (!videos || videos.length === 0) {
+      console.error('[인사이트 API] 영상 데이터 없음:', { videos: videos?.length || 0 });
       return NextResponse.json(
         { error: '분석할 영상 데이터가 없습니다.' },
         { status: 400 }
       );
     }
 
+    console.log(`[인사이트 API] AI 분석 시작 - 영상 ${videos.length}개, 필터:`, filters);
+
     // AI 기반 인사이트 생성
     const insights = await generateAIInsights({ videos, filters });
+
+    console.log(`[인사이트 API] AI 분석 완료 - 인사이트 ${insights.length}개 생성`);
 
     return NextResponse.json({
       success: true,
@@ -171,23 +177,31 @@ export async function POST(request: NextRequest) {
           totalVideos: videos.length,
           analysisTime: new Date().toISOString(),
           filters: filters || {},
-          aiProvider: process.env.DEFAULT_AI_PROVIDER || 'openai'
+          aiProvider: process.env.DEFAULT_AI_PROVIDER || 'auto-detect'
         }
       }
     });
 
   } catch (error) {
-    console.error('AI 인사이트 분석 오류:', error);
+    console.error('[인사이트 API] AI 분석 오류:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      videosCount: body?.videos?.length || 0
+    });
     
     // AI 실패 시 기본 분석으로 fallback (body가 파싱된 경우에만)
     if (body && body.videos && body.videos.length > 0) {
       try {
+        console.log('[인사이트 API] Fallback 분석으로 전환');
+        
         const fallbackInsights = [
           analyzeViewPatterns(body.videos),
           analyzeEngagementRates(body.videos),
           analyzeContentTrends(body.videos, body.filters?.keyword as string),
           analyzeChannelPerformance(body.videos)
         ];
+
+        console.log(`[인사이트 API] Fallback 분석 완료 - ${fallbackInsights.length}개 인사이트 생성`);
 
         return NextResponse.json({
           success: true,
@@ -198,17 +212,29 @@ export async function POST(request: NextRequest) {
               analysisTime: new Date().toISOString(),
               filters: body.filters || {},
               aiProvider: 'fallback',
-              note: 'AI 분석 실패로 기본 분석을 사용했습니다.'
+              note: 'AI 분석이 불가능하여 기본 분석을 사용했습니다.',
+              errorReason: error instanceof Error ? error.message : 'Unknown error'
             }
           }
         });
       } catch (fallbackError) {
-        console.error('Fallback 분석도 실패:', fallbackError);
+        console.error('[인사이트 API] Fallback 분석도 실패:', fallbackError);
       }
     }
     
+    const errorMessage = error instanceof Error 
+      ? `AI 분석 실패: ${error.message}` 
+      : 'AI 인사이트 분석 중 알 수 없는 오류가 발생했습니다.';
+    
     return NextResponse.json(
-      { error: 'AI 인사이트 분석 중 오류가 발생했습니다. AI API 키를 확인해주세요.' },
+      { 
+        error: errorMessage,
+        debug: process.env.NODE_ENV === 'development' ? {
+          originalError: error instanceof Error ? error.message : String(error),
+          hasVideos: Boolean(body?.videos?.length),
+          videosCount: body?.videos?.length || 0
+        } : undefined
+      },
       { status: 500 }
     );
   }

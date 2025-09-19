@@ -20,111 +20,186 @@ export type AIProvider = 'openai' | 'anthropic' | 'google';
 
 // OpenAI API 클라이언트
 async function callOpenAI(prompt: string): Promise<string> {
-  const apiKey = getAIApiKey('openai');
+  // 서버사이드에서는 환경변수 우선, 없으면 클라이언트 키 확인 불가
+  const isServerSide = typeof window === 'undefined';
+  let apiKey: string | undefined;
+  
+  if (isServerSide) {
+    apiKey = process.env.OPENAI_API_KEY;
+  } else {
+    apiKey = getAIApiKey('openai');
+  }
+  
   if (!apiKey) {
-    throw new Error('OpenAI API 키가 설정되지 않았습니다.');
+    const location = isServerSide ? '서버 환경변수(OPENAI_API_KEY)' : '브라우저 localStorage';
+    throw new Error(`OpenAI API 키가 ${location}에 설정되지 않았습니다.`);
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a YouTube trend analysis expert. Provide detailed insights in Korean about video trends, audience engagement, and content strategies.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 2000,
-      temperature: 0.7,
-    }),
-  });
+  console.log('[OpenAI] API 호출 시작');
 
-  if (!response.ok) {
-    throw new Error(`OpenAI API 오류: ${response.status}`);
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a YouTube trend analysis expert. Provide detailed insights in Korean about video trends, audience engagement, and content strategies.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      }),
+    });
+
+    console.log(`[OpenAI] HTTP 응답 상태: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[OpenAI] API 오류 응답:`, errorText);
+      throw new Error(`OpenAI API 오류: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const result = data.choices[0]?.message?.content || '';
+    
+    console.log(`[OpenAI] 응답 성공, 길이: ${result.length}자`);
+    return result;
+    
+  } catch (error) {
+    console.error('[OpenAI] API 호출 중 오류:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.choices[0]?.message?.content || '';
 }
 
 // Anthropic Claude API 클라이언트
 async function callAnthropic(prompt: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // 서버사이드에서는 환경변수 우선, 없으면 클라이언트 키 확인 불가
+  const isServerSide = typeof window === 'undefined';
+  let apiKey: string | undefined;
+  
+  if (isServerSide) {
+    apiKey = process.env.ANTHROPIC_API_KEY;
+  } else {
+    apiKey = getAIApiKey('anthropic');
+  }
+  
   if (!apiKey) {
-    throw new Error('Anthropic API 키가 설정되지 않았습니다.');
+    const location = isServerSide ? '서버 환경변수(ANTHROPIC_API_KEY)' : '브라우저 localStorage';
+    throw new Error(`Anthropic API 키가 ${location}에 설정되지 않았습니다.`);
   }
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 2000,
-      messages: [
-        {
-          role: 'user',
-          content: `YouTube 트렌드 분석 전문가로서 다음 데이터를 분석해주세요:\n\n${prompt}`
-        }
-      ],
-    }),
-  });
+  console.log('[Anthropic] API 호출 시작');
 
-  if (!response.ok) {
-    throw new Error(`Anthropic API 오류: ${response.status}`);
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2000,
+        messages: [
+          {
+            role: 'user',
+            content: `YouTube 트렌드 분석 전문가로서 다음 데이터를 분석해주세요:\n\n${prompt}`
+          }
+        ],
+      }),
+    });
+
+    console.log(`[Anthropic] HTTP 응답 상태: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Anthropic] API 오류 응답:`, errorText);
+      throw new Error(`Anthropic API 오류: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const result = data.content[0]?.text || '';
+    
+    console.log(`[Anthropic] 응답 성공, 길이: ${result.length}자`);
+    return result;
+    
+  } catch (error) {
+    console.error('[Anthropic] API 호출 중 오류:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.content[0]?.text || '';
 }
 
 // Google Gemini API 클라이언트
 async function callGemini(prompt: string): Promise<string> {
-  const apiKey = getAIApiKey('gemini');
+  // 서버사이드에서는 환경변수 우선, 없으면 클라이언트 키 확인 불가
+  const isServerSide = typeof window === 'undefined';
+  let apiKey: string | undefined;
+  
+  if (isServerSide) {
+    apiKey = process.env.GEMINI_API_KEY;
+  } else {
+    apiKey = getAIApiKey('gemini');
+  }
+  
   if (!apiKey) {
-    throw new Error('Google AI API 키가 설정되지 않았습니다.');
+    const location = isServerSide ? '서버 환경변수(GEMINI_API_KEY)' : '브라우저 localStorage';
+    throw new Error(`Google AI API 키가 ${location}에 설정되지 않았습니다.`);
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: `YouTube 트렌드 분석 전문가로서 한국어로 상세한 인사이트를 제공해주세요:\n\n${prompt}`
-            }
-          ]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2000,
+  console.log('[Gemini] API 호출 시작');
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    }),
-  });
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `YouTube 트렌드 분석 전문가로서 한국어로 상세한 인사이트를 제공해주세요:\n\n${prompt}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Gemini API 오류: ${response.status}`);
+    console.log(`[Gemini] HTTP 응답 상태: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Gemini] API 오류 응답:`, errorText);
+      throw new Error(`Gemini API 오류: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const result = data.candidates[0]?.content?.parts[0]?.text || '';
+    
+    console.log(`[Gemini] 응답 성공, 길이: ${result.length}자`);
+    return result;
+    
+  } catch (error) {
+    console.error('[Gemini] API 호출 중 오류:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.candidates[0]?.content?.parts[0]?.text || '';
 }
 
 // AI 제공업체별 API 호출 함수
@@ -134,45 +209,85 @@ async function callAI(prompt: string, provider?: AIProvider): Promise<string> {
   
   let openaiKey: string | undefined;
   let geminiKey: string | undefined;
+  let anthropicKey: string | undefined;
   
   if (isServerSide) {
     // 서버 사이드: 환경변수 사용
     openaiKey = process.env.OPENAI_API_KEY;
     geminiKey = process.env.GEMINI_API_KEY;
+    anthropicKey = process.env.ANTHROPIC_API_KEY;
+    
+    console.log('[AI Client] 서버사이드 API 키 상태:', {
+      openai: openaiKey ? `설정됨 (${openaiKey.length}자)` : '없음',
+      gemini: geminiKey ? `설정됨 (${geminiKey.length}자)` : '없음',
+      anthropic: anthropicKey ? `설정됨 (${anthropicKey.length}자)` : '없음'
+    });
   } else {
     // 클라이언트 사이드: localStorage 사용
     openaiKey = getAIApiKey('openai');
     geminiKey = getAIApiKey('gemini');
+    anthropicKey = getAIApiKey('anthropic');
+    
+    console.log('[AI Client] 클라이언트사이드 API 키 상태:', {
+      openai: openaiKey ? `설정됨 (${openaiKey.length}자)` : '없음',
+      gemini: geminiKey ? `설정됨 (${geminiKey.length}자)` : '없음',
+      anthropic: anthropicKey ? `설정됨 (${anthropicKey.length}자)` : '없음'
+    });
   }
   
-  // 우선순위: 명시적 지정 > OpenAI > Gemini
+  // 우선순위: 명시적 지정 > OpenAI > Gemini > Anthropic
   let selectedProvider = provider;
   if (!selectedProvider) {
     if (openaiKey) {
       selectedProvider = 'openai';
     } else if (geminiKey) {
       selectedProvider = 'google';
+    } else if (anthropicKey) {
+      selectedProvider = 'anthropic';
     } else {
       const location = isServerSide ? '환경변수' : '설정';
-      throw new Error(`AI API 키가 설정되지 않았습니다. ${location}에서 OpenAI 또는 Gemini API 키를 입력해주세요.`);
+      const detailedError = `AI API 키가 설정되지 않았습니다. ${location}에서 다음 중 하나를 설정해주세요:
+        - OPENAI_API_KEY (서버) 또는 localStorage의 openai 키 (클라이언트)
+        - GEMINI_API_KEY (서버) 또는 localStorage의 gemini 키 (클라이언트)  
+        - ANTHROPIC_API_KEY (서버) 또는 localStorage의 anthropic 키 (클라이언트)`;
+      console.error('[AI Client] API 키 없음:', detailedError);
+      throw new Error(detailedError);
     }
   }
+  
+  console.log(`[AI Client] 선택된 AI 제공업체: ${selectedProvider}`);
 
   try {
+    console.log(`[AI Client] ${selectedProvider} API 호출 시작`);
+    let result: string;
+    
     switch (selectedProvider) {
       case 'openai':
-        return await callOpenAI(prompt);
+        result = await callOpenAI(prompt);
+        break;
       case 'anthropic':
-        return await callAnthropic(prompt);
+        result = await callAnthropic(prompt);
+        break;
       case 'google':
-        return await callGemini(prompt);
+        result = await callGemini(prompt);
+        break;
       default:
         throw new Error(`지원하지 않는 AI 제공업체: ${selectedProvider}`);
     }
+    
+    console.log(`[AI Client] ${selectedProvider} API 호출 성공, 응답 길이: ${result.length}자`);
+    return result;
+    
   } catch (error) {
+    console.error(`[AI Client] ${selectedProvider} API 호출 실패:`, {
+      provider: selectedProvider,
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error instanceof Error ? error.constructor.name : typeof error
+    });
+    
     // 기본 제공업체 실패 시 다른 제공업체로 fallback
     if (provider === undefined) {
-      console.warn(`${selectedProvider} 실패, fallback 시도:`, error);
+      console.warn(`[AI Client] ${selectedProvider} 실패, fallback 시도중...`);
       
       // 사용 가능한 fallback 제공업체만 시도
       const availableFallbacks: AIProvider[] = [];
@@ -182,14 +297,24 @@ async function callAI(prompt: string, provider?: AIProvider): Promise<string> {
       if (geminiKey && selectedProvider !== 'google') {
         availableFallbacks.push('google');
       }
+      if (anthropicKey && selectedProvider !== 'anthropic') {
+        availableFallbacks.push('anthropic');
+      }
+      
+      console.log(`[AI Client] 사용 가능한 fallback 제공업체:`, availableFallbacks);
       
       for (const fallbackProvider of availableFallbacks) {
         try {
-          return await callAI(prompt, fallbackProvider);
+          console.log(`[AI Client] ${fallbackProvider} fallback 시도`);
+          const fallbackResult = await callAI(prompt, fallbackProvider);
+          console.log(`[AI Client] ${fallbackProvider} fallback 성공`);
+          return fallbackResult;
         } catch (fallbackError) {
-          console.warn(`${fallbackProvider} fallback 실패:`, fallbackError);
+          console.warn(`[AI Client] ${fallbackProvider} fallback 실패:`, fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
         }
       }
+      
+      console.error('[AI Client] 모든 fallback 제공업체 실패');
     }
     
     throw error;
