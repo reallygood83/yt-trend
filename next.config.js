@@ -1,5 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 개발 서버 설정
+  experimental: {
+    // turbo 옵션 제거 - Next.js 15에서 문제 발생
+  },
+  
+  // 웹팩 설정
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+    return config;
+  },
+
   // 이미지 최적화 설정
   images: {
     remotePatterns: [

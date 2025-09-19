@@ -43,17 +43,29 @@ export function VideoCard({
   const videoUrl = `https://www.youtube.com/watch?v=${id}`;
   const channelUrl = `https://www.youtube.com/channel/${video.snippet.channelId}`;
   
-  // 직접 YouTube 썸네일 URL 사용
+  // YouTube API에서 받아온 검증된 썸네일 URL 사용 + 수동 fallback
   const [retryCount, setRetryCount] = React.useState(0);
   const thumbnailUrl = React.useMemo(() => {
-    if (retryCount === 0) {
-      return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
-    } else if (retryCount === 1) {
+    const thumbnails = video.snippet.thumbnails;
+    
+    if (retryCount === 0 && thumbnails.maxres) {
+      return thumbnails.maxres.url;
+    } else if (retryCount === 1 && thumbnails.standard) {
+      return thumbnails.standard.url;
+    } else if (retryCount === 2 && thumbnails.high) {
+      return thumbnails.high.url;
+    } else if (retryCount === 3 && thumbnails.medium) {
+      return thumbnails.medium.url;
+    } else if (retryCount === 4 && thumbnails.default) {
+      return thumbnails.default.url;
+    } else if (retryCount === 5) {
+      // API 썸네일이 모두 실패한 경우 수동 URL fallback
       return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
     } else {
+      // 최후의 fallback
       return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
     }
-  }, [id, retryCount]);
+  }, [video.snippet.thumbnails, retryCount, id]);
 
   // 설명 텍스트 정리
   const cleanDescription = description
@@ -75,7 +87,20 @@ export function VideoCard({
   const handleImageError = () => {
     console.log(`썸네일 로딩 실패: ${thumbnailUrl}, 재시도 횟수: ${retryCount}`);
     setImageLoading(false);
-    if (retryCount < 2) {
+    const thumbnails = video.snippet.thumbnails;
+    
+    // API 썸네일 + 수동 fallback까지 포함한 최대 재시도 횟수 계산
+    const apiThumbnailCount = [
+      thumbnails.maxres,
+      thumbnails.standard, 
+      thumbnails.high,
+      thumbnails.medium,
+      thumbnails.default
+    ].filter(Boolean).length;
+    
+    const maxRetries = apiThumbnailCount + 2; // API 썸네일 + 수동 fallback 2개
+    
+    if (retryCount < maxRetries - 1) {
       setRetryCount(prev => prev + 1);
       setImageError(false);
       setImageLoading(true);
@@ -117,15 +142,20 @@ export function VideoCard({
                 </div>
                 <p className="text-sm">{imageError ? '썸네일 로딩 실패' : '썸네일 없음'}</p>
                 {imageError && (
-                  <button 
-                    onClick={() => {
-                      setImageError(false);
-                      setImageLoading(true);
-                    }}
-                    className="mt-2 text-xs text-red-600 hover:underline"
-                  >
-                    다시 시도
-                  </button>
+                  <>
+                    <p className="text-xs text-gray-400 mt-1">재시도 {retryCount + 1}/7</p>
+                    <button 
+                      onClick={() => {
+                        console.log('썸네일 수동 재시도, 현재 URL:', thumbnailUrl);
+                        setRetryCount(0);
+                        setImageError(false);
+                        setImageLoading(true);
+                      }}
+                      className="mt-2 text-xs text-red-600 hover:underline"
+                    >
+                      다시 시도
+                    </button>
+                  </>
                 )}
               </div>
             </div>

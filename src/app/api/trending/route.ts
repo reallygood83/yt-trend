@@ -142,10 +142,22 @@ export async function GET(request: NextRequest) {
 
     // 썸네일 데이터 디버깅 (개발환경에서만)
     if (process.env.NODE_ENV === 'development' && processedItems.length > 0) {
+      console.log('========== 썸네일 디버깅 정보 ==========');
       console.log('첫 번째 영상의 썸네일 정보:', {
         videoId: processedItems[0].id,
+        title: processedItems[0].snippet.title.substring(0, 50) + '...',
         thumbnails: processedItems[0].snippet.thumbnails
       });
+      
+      // 썸네일 URL 유효성 체크
+      const thumbnails = processedItems[0].snippet.thumbnails;
+      console.log('썸네일 URL 목록:');
+      if (thumbnails.maxres) console.log('- maxres:', thumbnails.maxres.url);
+      if (thumbnails.standard) console.log('- standard:', thumbnails.standard.url);
+      if (thumbnails.high) console.log('- high:', thumbnails.high.url);
+      if (thumbnails.medium) console.log('- medium:', thumbnails.medium.url);
+      if (thumbnails.default) console.log('- default:', thumbnails.default.url);
+      console.log('=======================================');
     }
 
     // 클라이언트에 응답
