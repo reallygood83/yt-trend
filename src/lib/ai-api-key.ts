@@ -25,6 +25,11 @@ export function saveAIApiKeys(keys: AIApiKeys): void {
 // AI API 키 불러오기
 export function getAIApiKeys(): AIApiKeys {
   try {
+    // 서버 사이드에서는 localStorage가 없으므로 빈 객체 반환
+    if (typeof window === 'undefined') {
+      return {};
+    }
+    
     const stored = localStorage.getItem(AI_API_KEYS_STORAGE_KEY);
     if (stored) {
       return JSON.parse(stored) as AIApiKeys;

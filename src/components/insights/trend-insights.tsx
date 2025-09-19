@@ -61,9 +61,34 @@ export function TrendInsights({ videos, className = '' }: TrendInsightsProps) {
       if (result.success) {
         setAiInsights(result.data.insights);
         setShowAiInsights(true);
+        
+        // AI API 키가 설정되지 않은 경우 사용자에게 알림
+        if (result.data.meta?.aiProvider === 'fallback') {
+          console.warn('AI API 키가 설정되지 않아 기본 분석을 사용했습니다.');
+        }
+      } else {
+        // API 오류 처리
+        setAiInsights([
+          {
+            type: 'trend',
+            title: '⚠️ AI 분석 오류',
+            description: result.error || '인사이트 분석 중 오류가 발생했습니다.',
+            recommendation: 'AI API 키를 확인하거나 잠시 후 다시 시도해주세요.'
+          }
+        ]);
+        setShowAiInsights(true);
       }
     } catch (error) {
       console.error('AI 인사이트 생성 실패:', error);
+      setAiInsights([
+        {
+          type: 'trend',
+          title: '🔧 연결 오류',
+          description: 'AI 분석 서버에 연결할 수 없습니다.',
+          recommendation: '인터넷 연결을 확인하고 다시 시도해주세요.'
+        }
+      ]);
+      setShowAiInsights(true);
     } finally {
       setInsightsLoading(false);
     }
@@ -243,7 +268,10 @@ export function TrendInsights({ videos, className = '' }: TrendInsightsProps) {
           {!showAiInsights && !insightsLoading && (
             <div className="text-center py-8 text-gray-500">
               <Brain className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>AI 분석을 시작하여 트렌드에 대한 깊이 있는 인사이트를 받아보세요.</p>
+              <p className="mb-2">AI 분석을 시작하여 트렌드에 대한 깊이 있는 인사이트를 받아보세요.</p>
+              <p className="text-xs text-gray-400">
+                💡 더 정확한 분석을 위해서는 상단의 AI API 키를 설정해주세요.
+              </p>
             </div>
           )}
           

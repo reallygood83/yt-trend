@@ -1,20 +1,29 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { YouTubeVideo } from '@/types/youtube';
 import { formatViewCount, formatDate } from '@/lib/utils';
-import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User } from 'lucide-react';
+import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check } from 'lucide-react';
 
 interface VideoCardProps {
   video: YouTubeVideo;
   className?: string;
   style?: React.CSSProperties;
+  onVideoSelect?: (video: YouTubeVideo) => void;
+  isSelected?: boolean;
+  showCompareOption?: boolean;
 }
 
-export function VideoCard({ video, className = '', style }: VideoCardProps) {
+export function VideoCard({ 
+  video, 
+  className = '', 
+  style,
+  onVideoSelect,
+  isSelected = false,
+  showCompareOption = false
+}: VideoCardProps) {
   const {
     id,
     snippet: {
@@ -34,13 +43,17 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
   const videoUrl = `https://www.youtube.com/watch?v=${id}`;
   const channelUrl = `https://www.youtube.com/channel/${video.snippet.channelId}`;
   
-  // 썸네일 URL 선택 (고화질 우선) + fallback
-  const thumbnailUrl = thumbnails?.maxres?.url || 
-                      thumbnails?.standard?.url || 
-                      thumbnails?.high?.url || 
-                      thumbnails?.medium?.url || 
-                      thumbnails?.default?.url ||
-                      `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  // 직접 YouTube 썸네일 URL 사용
+  const [retryCount, setRetryCount] = React.useState(0);
+  const thumbnailUrl = React.useMemo(() => {
+    if (retryCount === 0) {
+      return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
+    } else if (retryCount === 1) {
+      return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    } else {
+      return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+    }
+  }, [id, retryCount]);
 
   // 설명 텍스트 정리
   const cleanDescription = description
@@ -60,13 +73,15 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
   const [imageLoading, setImageLoading] = React.useState(true);
 
   const handleImageError = () => {
-    console.log('썸네일 로딩 실패:', {
-      videoId: id,
-      thumbnailUrl,
-      thumbnails
-    });
-    setImageError(true);
+    console.log(`썸네일 로딩 실패: ${thumbnailUrl}, 재시도 횟수: ${retryCount}`);
     setImageLoading(false);
+    if (retryCount < 2) {
+      setRetryCount(prev => prev + 1);
+      setImageError(false);
+      setImageLoading(true);
+    } else {
+      setImageError(true);
+    }
   };
 
   const handleImageLoad = () => {
@@ -87,16 +102,12 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
           )}
           
           {thumbnailUrl && !imageError ? (
-            <Image
+            <img
               src={thumbnailUrl}
               alt={title}
-              fill
-              className="object-cover transition-transform duration-200 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
+              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
               onError={handleImageError}
               onLoad={handleImageLoad}
-              unoptimized={true}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-300">
@@ -126,6 +137,23 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
               <div className="w-0 h-0 border-l-[16px] border-l-white border-y-[10px] border-y-transparent ml-1"></div>
             </div>
           </div>
+
+          {/* 비교 선택 버튼 */}
+          {showCompareOption && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onVideoSelect?.(video);
+              }}
+              className={`absolute top-2 left-2 sm:top-3 sm:left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                isSelected 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-black bg-opacity-50 text-white hover:bg-black hover:bg-opacity-70'
+              }`}
+            >
+              {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            </button>
+          )}
 
           {/* 조회수 배지 */}
           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black bg-opacity-70 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1">

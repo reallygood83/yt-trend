@@ -129,9 +129,21 @@ async function callGemini(prompt: string): Promise<string> {
 
 // AI 제공업체별 API 호출 함수
 async function callAI(prompt: string, provider?: AIProvider): Promise<string> {
-  // 사용 가능한 API 키 확인
-  const openaiKey = getAIApiKey('openai');
-  const geminiKey = getAIApiKey('gemini');
+  // 서버 사이드에서는 환경변수를 우선 확인
+  const isServerSide = typeof window === 'undefined';
+  
+  let openaiKey: string | undefined;
+  let geminiKey: string | undefined;
+  
+  if (isServerSide) {
+    // 서버 사이드: 환경변수 사용
+    openaiKey = process.env.OPENAI_API_KEY;
+    geminiKey = process.env.GEMINI_API_KEY;
+  } else {
+    // 클라이언트 사이드: localStorage 사용
+    openaiKey = getAIApiKey('openai');
+    geminiKey = getAIApiKey('gemini');
+  }
   
   // 우선순위: 명시적 지정 > OpenAI > Gemini
   let selectedProvider = provider;
@@ -141,7 +153,8 @@ async function callAI(prompt: string, provider?: AIProvider): Promise<string> {
     } else if (geminiKey) {
       selectedProvider = 'google';
     } else {
-      throw new Error('AI API 키가 설정되지 않았습니다. 설정에서 OpenAI 또는 Gemini API 키를 입력해주세요.');
+      const location = isServerSide ? '환경변수' : '설정';
+      throw new Error(`AI API 키가 설정되지 않았습니다. ${location}에서 OpenAI 또는 Gemini API 키를 입력해주세요.`);
     }
   }
 

@@ -139,8 +139,10 @@ function analyzeChannelPerformance(videos: YouTubeVideo[]): GeneratedInsight {
 }
 
 export async function POST(request: NextRequest) {
+  let body: AIAnalysisRequest;
+  
   try {
-    const body: AIAnalysisRequest = await request.json();
+    body = await request.json();
     const { videos, filters } = body;
 
     if (!videos || videos.length === 0) {
@@ -169,36 +171,37 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('AI 인사이트 분석 오류:', error);
     
-    // AI 실패 시 기본 분석으로 fallback
-    try {
-      const body: AIAnalysisRequest = await request.json();
-      const fallbackInsights = [
-        analyzeViewPatterns(body.videos),
-        analyzeEngagementRates(body.videos),
-        analyzeContentTrends(body.videos, body.filters?.keyword as string),
-        analyzeChannelPerformance(body.videos)
-      ];
+    // AI 실패 시 기본 분석으로 fallback (이미 파싱된 body 사용)
+    if (body?.videos) {
+      try {
+        const fallbackInsights = [
+          analyzeViewPatterns(body.videos),
+          analyzeEngagementRates(body.videos),
+          analyzeContentTrends(body.videos, body.filters?.keyword as string),
+          analyzeChannelPerformance(body.videos)
+        ];
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          insights: fallbackInsights,
-          meta: {
-            totalVideos: body.videos.length,
-            analysisTime: new Date().toISOString(),
-            filters: body.filters || {},
-            aiProvider: 'fallback',
-            note: 'AI 분석 실패로 기본 분석을 사용했습니다.'
+        return NextResponse.json({
+          success: true,
+          data: {
+            insights: fallbackInsights,
+            meta: {
+              totalVideos: body.videos.length,
+              analysisTime: new Date().toISOString(),
+              filters: body.filters || {},
+              aiProvider: 'fallback',
+              note: 'AI 분석 실패로 기본 분석을 사용했습니다.'
+            }
           }
-        }
-      });
-    } catch (fallbackError) {
-      console.error('Fallback 분석도 실패:', fallbackError);
-      
-      return NextResponse.json(
-        { error: 'AI 인사이트 분석 중 오류가 발생했습니다. AI API 키를 확인해주세요.' },
-        { status: 500 }
-      );
+        });
+      } catch (fallbackError) {
+        console.error('Fallback 분석도 실패:', fallbackError);
+      }
     }
+    
+    return NextResponse.json(
+      { error: 'AI 인사이트 분석 중 오류가 발생했습니다. AI API 키를 확인해주세요.' },
+      { status: 500 }
+    );
   }
 }

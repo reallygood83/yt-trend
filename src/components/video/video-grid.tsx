@@ -10,9 +10,18 @@ interface VideoGridProps {
   loading?: boolean;
   error?: string | null;
   totalResults?: number;
+  onVideoSelect?: (video: YouTubeVideo) => void;
+  selectedVideos?: YouTubeVideo[];
 }
 
-export function VideoGrid({ videos, loading = false, error, totalResults }: VideoGridProps) {
+export function VideoGrid({ 
+  videos, 
+  loading = false, 
+  error, 
+  totalResults,
+  onVideoSelect,
+  selectedVideos = []
+}: VideoGridProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -100,6 +109,9 @@ export function VideoGrid({ videos, loading = false, error, totalResults }: Vide
             style={{
               animationDelay: `${index * 50}ms`
             } as React.CSSProperties}
+            onVideoSelect={onVideoSelect}
+            isSelected={selectedVideos.some(v => v.id === video.id)}
+            showCompareOption={!!onVideoSelect}
           />
         ))}
       </div>
