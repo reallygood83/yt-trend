@@ -1,7 +1,7 @@
 import { CategoryOption } from '@/types/youtube';
 
 export const CATEGORIES: CategoryOption[] = [
-  { id: '', name: '전체 카테고리' },
+  { id: '0', name: '전체 카테고리' },
   { id: '1', name: '영화 & 애니메이션' },
   { id: '2', name: '자동차 & 교통' },
   { id: '10', name: '음악' },
@@ -21,4 +21,4 @@ export const CATEGORIES: CategoryOption[] = [
   { id: '29', name: '비영리 & 사회활동' }
 ];
 
-export const DEFAULT_CATEGORY = '';
+export const DEFAULT_CATEGORY = '0';

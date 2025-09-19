@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // YouTube API URL 구성
     let apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${country}&maxResults=${maxResults}&key=${apiKey}`;
     
-    if (category && category !== '') {
+    if (category && category !== '' && category !== '0') {
       apiUrl += `&videoCategoryId=${category}`;
     }
 
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     // YouTube API URL 구성
     let apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=${country}&maxResults=${maxResults}&key=${apiKey}`;
     
-    if (category && category !== '') {
+    if (category && category !== '' && category !== '0') {
       apiUrl += `&videoCategoryId=${category}`;
     }
 
