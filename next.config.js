@@ -1,13 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Vercel 배포 최적화
-  experimental: {
-    // 서버 액션 활성화 (필요한 경우)
-    serverActions: {
-      allowedOrigins: ['*']
-    },
-  },
-  
   // 이미지 최적화 설정
   images: {
     domains: [
@@ -46,9 +38,6 @@ const nextConfig = {
     NEXT_PUBLIC_APP_NAME: 'YouTube Trend Explorer',
     NEXT_PUBLIC_APP_DESCRIPTION: '전 세계 YouTube 트렌드를 실시간으로 분석하고 탐색할 수 있는 웹 애플리케이션'
   },
-  
-  // 출력 설정
-  output: 'standalone',
   
   // TypeScript 설정
   typescript: {
