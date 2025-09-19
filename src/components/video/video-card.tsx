@@ -34,12 +34,13 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
   const videoUrl = `https://www.youtube.com/watch?v=${id}`;
   const channelUrl = `https://www.youtube.com/channel/${video.snippet.channelId}`;
   
-  // 썸네일 URL 선택 (고화질 우선)
-  const thumbnailUrl = thumbnails.maxres?.url || 
-                      thumbnails.standard?.url || 
-                      thumbnails.high?.url || 
-                      thumbnails.medium?.url || 
-                      thumbnails.default?.url;
+  // 썸네일 URL 선택 (고화질 우선) + fallback
+  const thumbnailUrl = thumbnails?.maxres?.url || 
+                      thumbnails?.standard?.url || 
+                      thumbnails?.high?.url || 
+                      thumbnails?.medium?.url || 
+                      thumbnails?.default?.url ||
+                      `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
 
   // 설명 텍스트 정리
   const cleanDescription = description
@@ -55,19 +56,40 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
     window.open(channelUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const handleImageError = () => {
+    console.log('썸네일 로딩 실패:', {
+      videoId: id,
+      thumbnailUrl,
+      thumbnails
+    });
+  };
+
   return (
     <Card className={`group hover:shadow-lg transition-all duration-200 cursor-pointer ${className}`} style={style}>
       <CardContent className="p-0">
         {/* 썸네일 섹션 */}
-        <div className="relative aspect-video overflow-hidden rounded-t-lg">
-          <Image
-            src={thumbnailUrl}
-            alt={title}
-            fill
-            className="object-cover transition-transform duration-200 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority={false}
-          />
+        <div className="relative aspect-video overflow-hidden rounded-t-lg bg-gray-200">
+          {thumbnailUrl ? (
+            <Image
+              src={thumbnailUrl}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-200 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
+              onError={handleImageError}
+              unoptimized={true}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-300">
+              <div className="text-gray-500 text-center">
+                <div className="w-16 h-16 mx-auto mb-2 bg-gray-400 rounded-lg flex items-center justify-center">
+                  📹
+                </div>
+                <p className="text-sm">썸네일 없음</p>
+              </div>
+            </div>
+          )}
           
           {/* 호버시 재생 버튼 효과 */}
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">

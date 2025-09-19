@@ -62,6 +62,26 @@ export function TrendFiltersComponent({ onSearch, loading = false, onRefresh }: 
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* 키워드 검색 섹션 */}
+        <div className="mb-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              키워드 검색 (선택사항)
+            </label>
+            <Input
+              type="text"
+              placeholder="검색할 키워드를 입력하세요 (예: AI, 교육, 코딩)"
+              value={filters.keyword || ''}
+              onChange={(e) => handleFilterChange('keyword', e.target.value || undefined)}
+              onKeyPress={handleKeyPress}
+              className="text-sm"
+            />
+            <p className="text-xs text-gray-500">
+              키워드를 입력하면 해당 키워드와 관련된 영상을 검색합니다. 비워두면 트렌드 영상을 표시합니다.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
           {/* 국가 선택 */}
           <div className="space-y-2">
@@ -305,7 +325,8 @@ export function TrendFiltersComponent({ onSearch, loading = false, onRefresh }: 
                       category: DEFAULT_CATEGORY,
                       maxResults: 50,
                       sortBy: 'viewCount',
-                      sortOrder: 'desc'
+                      sortOrder: 'desc',
+                      keyword: undefined
                     });
                   }}
                   className="text-xs"

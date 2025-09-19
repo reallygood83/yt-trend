@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { YouTubeVideo, TrendInsight, VideoInsight } from '@/types/youtube';
 import { CATEGORIES } from '@/constants/categories';
@@ -16,15 +16,58 @@ import {
   Target,
   BarChart3,
   Lightbulb,
-  Star
+  Star,
+  Brain,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TrendInsightsProps {
   videos: YouTubeVideo[];
   className?: string;
 }
 
+interface AIInsight {
+  type: 'trend' | 'performance' | 'audience' | 'content';
+  title: string;
+  description: string;
+  data?: any;
+  recommendation?: string;
+}
+
 export function TrendInsights({ videos, className = '' }: TrendInsightsProps) {
+  const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [showAiInsights, setShowAiInsights] = useState(false);
+
+  const generateAIInsights = async () => {
+    if (videos.length === 0) return;
+    
+    setInsightsLoading(true);
+    try {
+      const response = await fetch('/api/insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videos,
+          filters: {} // 필요시 필터 정보도 전달 가능
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setAiInsights(result.data.insights);
+        setShowAiInsights(true);
+      }
+    } catch (error) {
+      console.error('AI 인사이트 생성 실패:', error);
+    } finally {
+      setInsightsLoading(false);
+    }
+  };
   const insights = useMemo(() => {
     if (videos.length === 0) return null;
 
@@ -156,8 +199,79 @@ export function TrendInsights({ videos, className = '' }: TrendInsightsProps) {
     .sort((a, b) => b.engagementRate - a.engagementRate)
     .slice(0, 3);
 
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'trend': return <TrendingUp className="w-5 h-5 text-purple-600" />;
+      case 'performance': return <BarChart3 className="w-5 h-5 text-blue-600" />;
+      case 'audience': return <Users className="w-5 h-5 text-green-600" />;
+      case 'content': return <Star className="w-5 h-5 text-orange-600" />;
+      default: return <Brain className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* AI 인사이트 섹션 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-purple-600" />
+              AI 트렌드 인사이트
+            </CardTitle>
+            <Button
+              onClick={generateAIInsights}
+              disabled={insightsLoading || videos.length === 0}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              {insightsLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  분석 중...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  AI 분석 시작
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!showAiInsights && !insightsLoading && (
+            <div className="text-center py-8 text-gray-500">
+              <Brain className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>AI 분석을 시작하여 트렌드에 대한 깊이 있는 인사이트를 받아보세요.</p>
+            </div>
+          )}
+          
+          {showAiInsights && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {aiInsights.map((insight, index) => (
+                <div key={index} className="p-4 border rounded-lg bg-gradient-to-br from-white to-gray-50">
+                  <div className="flex items-center gap-2 mb-3">
+                    {getInsightIcon(insight.type)}
+                    <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3 leading-relaxed">
+                    {insight.description}
+                  </p>
+                  {insight.recommendation && (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <p className="text-sm text-blue-800">
+                        <strong>💡 추천:</strong> {insight.recommendation}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* 주요 지표 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>

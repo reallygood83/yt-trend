@@ -60,6 +60,7 @@ export interface TrendFilters {
   maxResults: number;
   sortBy: 'viewCount' | 'likeCount' | 'publishedAt' | 'title' | 'commentCount' | 'engagementRate';
   sortOrder: 'asc' | 'desc';
+  keyword?: string; // 키워드 검색
   // 고급 필터 옵션들
   publishedAfter?: string; // 업로드 날짜 필터
   publishedBefore?: string;

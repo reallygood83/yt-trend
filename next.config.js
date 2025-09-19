@@ -3,17 +3,10 @@ const nextConfig = {
   // 이미지 최적화 설정
   images: {
     remotePatterns: [
+      // YouTube 썸네일 도메인들
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'yt3.ggpht.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i9.ytimg.com',
       },
       {
         protocol: 'https',
@@ -35,8 +28,43 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i4.ytimg.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'i5.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i6.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i7.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i8.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i9.ytimg.com',
+      },
+      // YouTube 채널 아바타
+      {
+        protocol: 'https',
+        hostname: 'yt3.ggpht.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yt3.googleusercontent.com',
+      },
+      // 추가적인 YouTube 도메인들
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      }
     ],
-    unoptimized: false,
+    // 개발 중에는 unoptimized true로 설정하여 이미지 최적화 우회
+    unoptimized: process.env.NODE_ENV === 'development',
   },
   
   // API 라우트 설정

@@ -49,6 +49,10 @@ export function useTrending(): UseTrendingReturn {
         searchParams.append('category', filters.category);
       }
 
+      if (filters.keyword && filters.keyword.trim() !== '') {
+        searchParams.append('keyword', filters.keyword.trim());
+      }
+
       const response = await fetch(`/api/trending?${searchParams}`);
       const result = await response.json();
 
