@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { saveApiKey, validateApiKey, getApiKey } from '@/lib/api-key';
-import { ExternalLink, Key, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { saveAIApiKeys, getAIApiKeys, validateAIApiKey } from '@/lib/ai-api-key';
+import { ExternalLink, Key, CheckCircle, AlertCircle, Loader2, Brain } from 'lucide-react';
 
 interface ApiKeySetupProps {
   onSuccess: () => void;
@@ -13,13 +14,22 @@ interface ApiKeySetupProps {
 
 export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
   const [apiKey, setApiKey] = useState('');
+  const [openaiKey, setOpenaiKey] = useState('');
+  const [geminiKey, setGeminiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showAIGuide, setShowAIGuide] = useState(false);
 
   useEffect(() => {
     // 이미 저장된 API 키가 있는지 확인
     const existingKey = getApiKey();
+    const existingAIKeys = getAIApiKeys();
+    
+    setOpenaiKey(existingAIKeys.openai || '');
+    setGeminiKey(existingAIKeys.gemini || '');
+    
     if (existingKey) {
       onSuccess();
     }
@@ -53,6 +63,57 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleValidateAndSave();
+    }
+  };
+
+  const handleAIKeySave = async () => {
+    setAiError(null);
+    
+    // 최소한 하나의 AI API 키가 입력되어야 함
+    if (!openaiKey.trim() && !geminiKey.trim()) {
+      setAiError('OpenAI 또는 Gemini API 키 중 하나 이상을 입력해주세요.');
+      return;
+    }
+
+    // 입력된 키들의 유효성 검증
+    const errors: string[] = [];
+    
+    if (openaiKey.trim() && !validateAIApiKey(openaiKey.trim(), 'openai')) {
+      errors.push('OpenAI API 키 형식이 올바르지 않습니다.');
+    }
+    
+    if (geminiKey.trim() && !validateAIApiKey(geminiKey.trim(), 'gemini')) {
+      errors.push('Gemini API 키 형식이 올바르지 않습니다.');
+    }
+
+    if (errors.length > 0) {
+      setAiError(errors.join(' '));
+      return;
+    }
+
+    // AI API 키 저장
+    try {
+      const keysToSave: { openai?: string; gemini?: string } = {};
+      
+      if (openaiKey.trim()) {
+        keysToSave.openai = openaiKey.trim();
+      }
+      
+      if (geminiKey.trim()) {
+        keysToSave.gemini = geminiKey.trim();
+      }
+
+      saveAIApiKeys(keysToSave);
+      
+      // 성공 메시지 표시 후 자동으로 사라지게 설정
+      setAiError(null);
+      
+      // 간단한 성공 피드백
+      const successMessage = `AI API 키가 저장되었습니다: ${Object.keys(keysToSave).join(', ')}`;
+      alert(successMessage);
+      
+    } catch {
+      setAiError('AI API 키 저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -128,6 +189,151 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* AI API 키 설정 카드 */}
+        <Card className="shadow-lg">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <Brain className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+            <CardTitle className="text-xl sm:text-2xl text-gray-900">AI 분석 기능 (선택사항)</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              더 정확한 트렌드 분석을 위해 AI API 키를 설정하세요
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* OpenAI API 키 입력 */}
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">
+                OpenAI API 키 (선택사항)
+              </label>
+              <Input
+                type="password"
+                value={openaiKey}
+                onChange={(e) => setOpenaiKey(e.target.value)}
+                placeholder="sk-..."
+                className="text-sm sm:text-base"
+              />
+            </div>
+
+            {/* Gemini API 키 입력 */}
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-medium text-gray-700">
+                Google Gemini API 키 (선택사항)
+              </label>
+              <Input
+                type="password"
+                value={geminiKey}
+                onChange={(e) => setGeminiKey(e.target.value)}
+                placeholder="AIza..."
+                className="text-sm sm:text-base"
+              />
+            </div>
+
+            {aiError && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {aiError}
+              </div>
+            )}
+
+            {/* AI API 키 저장 버튼 */}
+            <div className="space-y-3">
+              <Button
+                onClick={handleAIKeySave}
+                disabled={!openaiKey.trim() && !geminiKey.trim()}
+                variant="outline"
+                className="w-full h-10 sm:h-12 text-sm sm:text-base"
+                size="lg"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                AI API 키 저장하기
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowAIGuide(!showAIGuide)}
+                className="w-full text-sm sm:text-base"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                AI API 키 발급 방법 {showAIGuide ? '숨기기' : '보기'}
+              </Button>
+            </div>
+
+            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+              <h4 className="text-sm sm:text-base font-semibold text-blue-900 mb-2">💡 AI API 키 안내</h4>
+              <ul className="text-blue-800 text-xs sm:text-sm space-y-1">
+                <li>• OpenAI 또는 Gemini API 키 중 하나만 입력해도 AI 분석이 작동합니다</li>
+                <li>• 두 API 키를 모두 입력하면 더욱 안정적인 분석이 가능합니다</li>
+                <li>• AI 분석 기능은 선택사항이며, 없어도 기본 기능을 모두 사용할 수 있습니다</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI API 키 발급 가이드 */}
+        {showAIGuide && (
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Brain className="w-4 sm:w-5 h-4 sm:h-5" />
+                AI API 키 발급 방법
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+                  <h4 className="text-sm sm:text-base font-semibold text-green-900 mb-2">🤖 OpenAI API 키 발급</h4>
+                  <ol className="space-y-2 text-xs sm:text-sm text-green-800">
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                      <div>
+                        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline font-medium">
+                          OpenAI API Keys 페이지
+                        </a>
+                        <span className="text-green-600"> 접속</span>
+                      </div>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                      <span className="text-green-600">&quot;Create new secret key&quot; 클릭</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                      <span className="text-green-600">생성된 API 키 복사 (sk-로 시작)</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="bg-purple-50 p-3 sm:p-4 rounded-lg">
+                  <h4 className="text-sm sm:text-base font-semibold text-purple-900 mb-2">🧠 Google Gemini API 키 발급</h4>
+                  <ol className="space-y-2 text-xs sm:text-sm text-purple-800">
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                      <div>
+                        <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline font-medium">
+                          Google AI Studio
+                        </a>
+                        <span className="text-purple-600"> 접속</span>
+                      </div>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                      <span className="text-purple-600">&quot;Create API Key&quot; 버튼 클릭</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                      <span className="text-purple-600">생성된 API 키 복사</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* API 키 발급 가이드 */}
         {showGuide && (

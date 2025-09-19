@@ -1,5 +1,6 @@
 // AI API 클라이언트 - OpenAI, Anthropic, Google AI 지원
 import { YouTubeVideo } from '@/types/youtube';
+import { getAIApiKey } from '@/lib/ai-api-key';
 
 export interface AIAnalysisRequest {
   videos: YouTubeVideo[];
@@ -19,7 +20,7 @@ export type AIProvider = 'openai' | 'anthropic' | 'google';
 
 // OpenAI API 클라이언트
 async function callOpenAI(prompt: string): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = getAIApiKey('openai');
   if (!apiKey) {
     throw new Error('OpenAI API 키가 설정되지 않았습니다.');
   }
@@ -91,7 +92,7 @@ async function callAnthropic(prompt: string): Promise<string> {
 
 // Google Gemini API 클라이언트
 async function callGemini(prompt: string): Promise<string> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  const apiKey = getAIApiKey('gemini');
   if (!apiKey) {
     throw new Error('Google AI API 키가 설정되지 않았습니다.');
   }
@@ -128,7 +129,21 @@ async function callGemini(prompt: string): Promise<string> {
 
 // AI 제공업체별 API 호출 함수
 async function callAI(prompt: string, provider?: AIProvider): Promise<string> {
-  const selectedProvider = provider || (process.env.DEFAULT_AI_PROVIDER as AIProvider) || 'openai';
+  // 사용 가능한 API 키 확인
+  const openaiKey = getAIApiKey('openai');
+  const geminiKey = getAIApiKey('gemini');
+  
+  // 우선순위: 명시적 지정 > OpenAI > Gemini
+  let selectedProvider = provider;
+  if (!selectedProvider) {
+    if (openaiKey) {
+      selectedProvider = 'openai';
+    } else if (geminiKey) {
+      selectedProvider = 'google';
+    } else {
+      throw new Error('AI API 키가 설정되지 않았습니다. 설정에서 OpenAI 또는 Gemini API 키를 입력해주세요.');
+    }
+  }
 
   try {
     switch (selectedProvider) {
@@ -146,10 +161,16 @@ async function callAI(prompt: string, provider?: AIProvider): Promise<string> {
     if (provider === undefined) {
       console.warn(`${selectedProvider} 실패, fallback 시도:`, error);
       
-      const fallbackProviders: AIProvider[] = ['openai', 'anthropic', 'google'];
-      const remainingProviders = fallbackProviders.filter(p => p !== selectedProvider);
+      // 사용 가능한 fallback 제공업체만 시도
+      const availableFallbacks: AIProvider[] = [];
+      if (openaiKey && selectedProvider !== 'openai') {
+        availableFallbacks.push('openai');
+      }
+      if (geminiKey && selectedProvider !== 'google') {
+        availableFallbacks.push('google');
+      }
       
-      for (const fallbackProvider of remainingProviders) {
+      for (const fallbackProvider of availableFallbacks) {
         try {
           return await callAI(prompt, fallbackProvider);
         } catch (fallbackError) {
