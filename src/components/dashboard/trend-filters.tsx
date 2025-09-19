@@ -4,10 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { COUNTRIES, DEFAULT_COUNTRY } from '@/constants/countries';
 import { CATEGORIES, DEFAULT_CATEGORY } from '@/constants/categories';
 import { TrendFilters } from '@/types/youtube';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, ChevronDown, Settings2 } from 'lucide-react';
 
 interface TrendFiltersProps {
   onSearch: (filters: TrendFilters) => void;
@@ -16,6 +19,7 @@ interface TrendFiltersProps {
 }
 
 export function TrendFiltersComponent({ onSearch, loading = false, onRefresh }: TrendFiltersProps) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [filters, setFilters] = useState<TrendFilters>({
     country: DEFAULT_COUNTRY,
     category: DEFAULT_CATEGORY,
@@ -29,7 +33,7 @@ export function TrendFiltersComponent({ onSearch, loading = false, onRefresh }: 
     onSearch(filters);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleFilterChange = (key: keyof TrendFilters, value: string | number) => {
+  const handleFilterChange = (key: keyof TrendFilters, value: string | number | undefined) => {
     setFilters(prev => ({
       ...prev,
       [key]: value
@@ -167,6 +171,151 @@ export function TrendFiltersComponent({ onSearch, loading = false, onRefresh }: 
             </Select>
           </div>
         </div>
+
+        {/* 고급 필터 섹션 */}
+        <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-between mt-4 p-0 h-auto font-medium text-gray-700 hover:text-gray-900"
+            >
+              <span className="flex items-center gap-2">
+                <Settings2 className="w-4 h-4" />
+                고급 필터 (유튜버/마케터용)
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+              {/* 게시 날짜 범위 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">게시 시작일</label>
+                <Input
+                  type="date"
+                  value={filters.publishedAfter || ''}
+                  onChange={(e) => handleFilterChange('publishedAfter', e.target.value || undefined)}
+                  className="text-sm"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">게시 종료일</label>
+                <Input
+                  type="date"
+                  value={filters.publishedBefore || ''}
+                  onChange={(e) => handleFilterChange('publishedBefore', e.target.value || undefined)}
+                  className="text-sm"
+                />
+              </div>
+
+              {/* 조회수 범위 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">최소 조회수</label>
+                <Input
+                  type="number"
+                  placeholder="예: 10000"
+                  value={filters.minViewCount || ''}
+                  onChange={(e) => handleFilterChange('minViewCount', e.target.value ? parseInt(e.target.value) : undefined)}
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">최대 조회수</label>
+                <Input
+                  type="number"
+                  placeholder="예: 1000000"
+                  value={filters.maxViewCount || ''}
+                  onChange={(e) => handleFilterChange('maxViewCount', e.target.value ? parseInt(e.target.value) : undefined)}
+                  className="text-sm"
+                />
+              </div>
+
+              {/* 영상 길이 범위 (초 단위) */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">최소 길이 (초)</label>
+                <Input
+                  type="number"
+                  placeholder="예: 60"
+                  value={filters.minDuration || ''}
+                  onChange={(e) => handleFilterChange('minDuration', e.target.value ? parseInt(e.target.value) : undefined)}
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">최대 길이 (초)</label>
+                <Input
+                  type="number"
+                  placeholder="예: 3600"
+                  value={filters.maxDuration || ''}
+                  onChange={(e) => handleFilterChange('maxDuration', e.target.value ? parseInt(e.target.value) : undefined)}
+                  className="text-sm"
+                />
+              </div>
+
+              {/* 채널 타입 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">채널 타입</label>
+                <Select 
+                  value={filters.channelType || 'all'} 
+                  onValueChange={(value) => handleFilterChange('channelType', value === 'all' ? undefined : value as 'verified' | 'partner')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">모든 채널</SelectItem>
+                    <SelectItem value="verified">인증된 채널</SelectItem>
+                    <SelectItem value="partner">파트너 채널</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 자막 여부 */}
+              <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                <label className="text-sm font-medium text-gray-700">필터 옵션</label>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="hasSubtitles"
+                    checked={filters.hasSubtitles || false}
+                    onCheckedChange={(checked) => {
+                      setFilters(prev => ({
+                        ...prev,
+                        hasSubtitles: checked === true ? true : undefined
+                      }));
+                    }}
+                  />
+                  <label htmlFor="hasSubtitles" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    자막 있는 영상만
+                  </label>
+                </div>
+              </div>
+
+              {/* 필터 초기화 버튼 */}
+              <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFilters({
+                      country: DEFAULT_COUNTRY,
+                      category: DEFAULT_CATEGORY,
+                      maxResults: 50,
+                      sortBy: 'viewCount',
+                      sortOrder: 'desc'
+                    });
+                  }}
+                  className="text-xs"
+                >
+                  고급 필터 초기화
+                </Button>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* 액션 버튼들 */}
         <div className="flex flex-col sm:flex-row gap-3 mt-6">

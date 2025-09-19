@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { TrendFiltersComponent } from './trend-filters';
 import { VideoGrid } from '@/components/video/video-grid';
+import { TrendInsights } from '@/components/insights/trend-insights';
 import { useTrending } from '@/hooks/use-trending';
 import { TrendFilters } from '@/types/youtube';
 import { removeApiKey } from '@/lib/api-key';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, Settings, RefreshCw } from 'lucide-react';
+import { TrendingUp, Settings, RefreshCw, Grid3X3, BarChart3 } from 'lucide-react';
 
 interface MainDashboardProps {
   onApiKeyRemoved: () => void;
@@ -17,6 +18,7 @@ interface MainDashboardProps {
 export function MainDashboard({ onApiKeyRemoved }: MainDashboardProps) {
   const { videos, loading, error, totalResults, lastUpdated, fetchTrending, refetch, clearError } = useTrending();
   const [currentFilters, setCurrentFilters] = useState<TrendFilters | null>(null);
+  const [currentView, setCurrentView] = useState<'videos' | 'insights'>('videos');
 
   const handleSearch = async (filters: TrendFilters) => {
     setCurrentFilters(filters);
@@ -132,13 +134,49 @@ export function MainDashboard({ onApiKeyRemoved }: MainDashboardProps) {
           </div>
         )}
 
-        {/* 영상 그리드 */}
-        <VideoGrid 
-          videos={videos}
-          loading={loading}
-          error={error}
-          totalResults={totalResults}
-        />
+        {/* 탭 네비게이션 */}
+        {videos.length > 0 && !loading && (
+          <div className="mb-6">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setCurrentView('videos')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    currentView === 'videos'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Grid3X3 className="w-4 h-4 inline mr-2" />
+                  영상 목록
+                </button>
+                <button
+                  onClick={() => setCurrentView('insights')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    currentView === 'insights'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4 inline mr-2" />
+                  트렌드 인사이트
+                </button>
+              </nav>
+            </div>
+          </div>
+        )}
+
+        {/* 콘텐츠 영역 */}
+        {currentView === 'videos' ? (
+          <VideoGrid 
+            videos={videos}
+            loading={loading}
+            error={error}
+            totalResults={totalResults}
+          />
+        ) : (
+          <TrendInsights videos={videos} />
+        )}
       </main>
 
       {/* 푸터 */}

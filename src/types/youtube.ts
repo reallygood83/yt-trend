@@ -58,6 +58,42 @@ export interface TrendFilters {
   country: string;
   category: string;
   maxResults: number;
-  sortBy: 'viewCount' | 'likeCount' | 'publishedAt' | 'title';
+  sortBy: 'viewCount' | 'likeCount' | 'publishedAt' | 'title' | 'commentCount' | 'engagementRate';
   sortOrder: 'asc' | 'desc';
+  // 고급 필터 옵션들
+  publishedAfter?: string; // 업로드 날짜 필터
+  publishedBefore?: string;
+  minViewCount?: number; // 최소 조회수
+  maxViewCount?: number; // 최대 조회수
+  minDuration?: number; // 최소 영상 길이 (초)
+  maxDuration?: number; // 최대 영상 길이 (초)
+  hasSubtitles?: boolean; // 자막 유무
+  channelType?: 'all' | 'verified' | 'partner'; // 채널 타입
+}
+
+// 인사이트 분석을 위한 추가 타입들
+export interface VideoInsight {
+  video: YouTubeVideo;
+  engagementRate: number; // 참여율 (좋아요+댓글)/조회수
+  viewsPerHour: number; // 시간당 평균 조회수
+  commentsRatio: number; // 댓글 비율
+  likesRatio: number; // 좋아요 비율
+  trendScore: number; // 트렌드 점수
+  competitiveScore: number; // 경쟁력 점수
+}
+
+export interface TrendInsight {
+  totalVideos: number;
+  avgViewCount: number;
+  avgLikeCount: number;
+  avgCommentCount: number;
+  avgEngagementRate: number;
+  topCategories: Array<{ category: string; count: number; percentage: number }>;
+  topChannels: Array<{ channel: string; videoCount: number; totalViews: number }>;
+  engagementTrends: Array<{ timeSlot: string; avgEngagement: number }>;
+  contentInsights: {
+    avgTitleLength: number;
+    commonKeywords: Array<{ keyword: string; frequency: number }>;
+    optimalUploadTimes: Array<{ hour: number; performance: number }>;
+  };
 }

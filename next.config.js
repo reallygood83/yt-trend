@@ -2,10 +2,39 @@
 const nextConfig = {
   // 이미지 최적화 설정
   images: {
-    domains: [
-      'i.ytimg.com',
-      'yt3.ggpht.com',
-      'i9.ytimg.com'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yt3.ggpht.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i9.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i1.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i2.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i3.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i4.ytimg.com',
+      },
     ],
     unoptimized: false,
   },
