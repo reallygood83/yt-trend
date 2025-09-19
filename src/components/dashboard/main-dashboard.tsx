@@ -144,7 +144,7 @@ export function MainDashboard({ onApiKeyRemoved }: MainDashboardProps) {
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* 탭 네비게이션 */}
-        <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)} className="mb-6">
+        <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as 'dashboard' | 'videos' | 'insights' | 'comparison' | 'filters' | 'influencers')} className="mb-6">
           <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
