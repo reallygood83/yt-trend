@@ -56,12 +56,22 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
     window.open(channelUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const [imageError, setImageError] = React.useState(false);
+  const [imageLoading, setImageLoading] = React.useState(true);
+
   const handleImageError = () => {
     console.log('썸네일 로딩 실패:', {
       videoId: id,
       thumbnailUrl,
       thumbnails
     });
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+    setImageError(false);
   };
 
   return (
@@ -69,7 +79,14 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
       <CardContent className="p-0">
         {/* 썸네일 섹션 */}
         <div className="relative aspect-video overflow-hidden rounded-t-lg bg-gray-200">
-          {thumbnailUrl ? (
+          {/* 로딩 스피너 */}
+          {imageLoading && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            </div>
+          )}
+          
+          {thumbnailUrl && !imageError ? (
             <Image
               src={thumbnailUrl}
               alt={title}
@@ -78,6 +95,7 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority={false}
               onError={handleImageError}
+              onLoad={handleImageLoad}
               unoptimized={true}
             />
           ) : (
@@ -86,7 +104,18 @@ export function VideoCard({ video, className = '', style }: VideoCardProps) {
                 <div className="w-16 h-16 mx-auto mb-2 bg-gray-400 rounded-lg flex items-center justify-center">
                   📹
                 </div>
-                <p className="text-sm">썸네일 없음</p>
+                <p className="text-sm">{imageError ? '썸네일 로딩 실패' : '썸네일 없음'}</p>
+                {imageError && (
+                  <button 
+                    onClick={() => {
+                      setImageError(false);
+                      setImageLoading(true);
+                    }}
+                    className="mt-2 text-xs text-red-600 hover:underline"
+                  >
+                    다시 시도
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { YouTubeVideo, TrendInsight, VideoInsight } from '@/types/youtube';
 import { CATEGORIES } from '@/constants/categories';
@@ -32,7 +32,7 @@ interface AIInsight {
   type: 'trend' | 'performance' | 'audience' | 'content';
   title: string;
   description: string;
-  data?: any;
+  data?: Record<string, unknown>;
   recommendation?: string;
 }
 
@@ -440,7 +440,7 @@ export function TrendInsights({ videos, className = '' }: TrendInsightsProps) {
                 인기 키워드
               </h4>
               <div className="flex flex-wrap gap-2">
-                {insights.contentInsights.commonKeywords.slice(0, 6).map((keyword, index) => (
+                {insights.contentInsights.commonKeywords.slice(0, 6).map((keyword) => (
                   <span 
                     key={keyword.keyword}
                     className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium"

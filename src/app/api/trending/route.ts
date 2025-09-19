@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { YouTubeTrendingResponse } from '@/types/youtube';
+import { YouTubeTrendingResponse, YouTubeSearchItem, YouTubeVideo } from '@/types/youtube';
 
 export async function GET(request: NextRequest) {
   try {
@@ -71,14 +71,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let processedItems = data.items;
+    let processedItems: YouTubeVideo[] = data.items;
 
     // 키워드 검색인 경우 Search API 응답을 처리
     if (keyword && keyword.trim() !== '') {
-      // Search API는 id가 객체 형태로 반환되므로 변환
-      processedItems = data.items.map(item => ({
-        ...item,
-        id: item.id?.videoId || item.id,
+      // Search API는 다른 응답 구조를 가지므로 타입 캐스팅 후 변환
+      const searchItems = data.items as unknown as YouTubeSearchItem[];
+      
+      // Search API 응답을 Videos API 형태로 변환
+      processedItems = searchItems.map(item => ({
+        id: item.id.videoId,
+        snippet: {
+          ...item.snippet,
+          categoryId: '0', // Search API는 categoryId를 제공하지 않음
+          tags: [] // Search API는 tags를 제공하지 않음
+        },
         statistics: item.statistics || {
           viewCount: '0',
           likeCount: '0',

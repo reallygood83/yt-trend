@@ -1,3 +1,4 @@
+// YouTube Videos API 응답 타입 (트렌드 검색용)
 export interface YouTubeVideo {
   id: string;
   snippet: {
@@ -17,6 +18,33 @@ export interface YouTubeVideo {
     tags?: string[];
   };
   statistics: {
+    viewCount: string;
+    likeCount: string;
+    commentCount: string;
+  };
+}
+
+// YouTube Search API 응답 타입 (키워드 검색용)
+export interface YouTubeSearchItem {
+  id: {
+    kind: string;
+    videoId: string;
+  };
+  snippet: {
+    title: string;
+    description: string;
+    channelTitle: string;
+    publishedAt: string;
+    thumbnails: {
+      default: { url: string; width: number; height: number };
+      medium: { url: string; width: number; height: number };
+      high: { url: string; width: number; height: number };
+      standard?: { url: string; width: number; height: number };
+      maxres?: { url: string; width: number; height: number };
+    };
+    channelId: string;
+  };
+  statistics?: {
     viewCount: string;
     likeCount: string;
     commentCount: string;

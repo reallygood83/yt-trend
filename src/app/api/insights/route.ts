@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { generateAIInsights, AIAnalysisRequest } from '@/lib/ai-client';
 import { YouTubeVideo } from '@/types/youtube';
-
-interface InsightRequest {
-  videos: YouTubeVideo[];
-  filters?: {
-    keyword?: string;
-    country?: string;
-    category?: string;
-  };
-}
 
 interface GeneratedInsight {
   type: 'trend' | 'performance' | 'audience' | 'content';
   title: string;
   description: string;
-  data?: any;
+  data?: Record<string, unknown>;
   recommendation?: string;
 }
 
@@ -148,7 +140,7 @@ function analyzeChannelPerformance(videos: YouTubeVideo[]): GeneratedInsight {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: InsightRequest = await request.json();
+    const body: AIAnalysisRequest = await request.json();
     const { videos, filters } = body;
 
     if (!videos || videos.length === 0) {
@@ -158,13 +150,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 다양한 인사이트 생성
-    const insights: GeneratedInsight[] = [
-      analyzeViewPatterns(videos),
-      analyzeEngagementRates(videos),
-      analyzeContentTrends(videos, filters?.keyword),
-      analyzeChannelPerformance(videos)
-    ];
+    // AI 기반 인사이트 생성
+    const insights = await generateAIInsights({ videos, filters });
 
     return NextResponse.json({
       success: true,
@@ -173,17 +160,45 @@ export async function POST(request: NextRequest) {
         meta: {
           totalVideos: videos.length,
           analysisTime: new Date().toISOString(),
-          filters: filters || {}
+          filters: filters || {},
+          aiProvider: process.env.DEFAULT_AI_PROVIDER || 'openai'
         }
       }
     });
 
   } catch (error) {
-    console.error('인사이트 분석 오류:', error);
+    console.error('AI 인사이트 분석 오류:', error);
     
-    return NextResponse.json(
-      { error: '인사이트 분석 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    // AI 실패 시 기본 분석으로 fallback
+    try {
+      const body: AIAnalysisRequest = await request.json();
+      const fallbackInsights = [
+        analyzeViewPatterns(body.videos),
+        analyzeEngagementRates(body.videos),
+        analyzeContentTrends(body.videos, body.filters?.keyword as string),
+        analyzeChannelPerformance(body.videos)
+      ];
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          insights: fallbackInsights,
+          meta: {
+            totalVideos: body.videos.length,
+            analysisTime: new Date().toISOString(),
+            filters: body.filters || {},
+            aiProvider: 'fallback',
+            note: 'AI 분석 실패로 기본 분석을 사용했습니다.'
+          }
+        }
+      });
+    } catch (fallbackError) {
+      console.error('Fallback 분석도 실패:', fallbackError);
+      
+      return NextResponse.json(
+        { error: 'AI 인사이트 분석 중 오류가 발생했습니다. AI API 키를 확인해주세요.' },
+        { status: 500 }
+      );
+    }
   }
 }
