@@ -1,36 +1,170 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube Trend Explorer
 
-## Getting Started
+전 세계 YouTube 트렌드를 실시간으로 분석하고 탐색할 수 있는 웹 애플리케이션입니다.
 
-First, run the development server:
+## 🎯 주요 기능
 
+- **국가별 트렌드 분석**: 50개 이상의 국가별 YouTube 트렌드 데이터 조회
+- **카테고리 필터링**: 음악, 게임, 스포츠 등 다양한 카테고리별 필터링
+- **실시간 통계**: 총 영상 수, 평균 조회수, 최고 조회수, 활성 채널 수 등 실시간 통계
+- **반응형 디자인**: 모바일, 태블릿, 데스크톱 모든 기기에서 최적화된 사용자 경험
+- **사용자 API 키 관리**: 개인의 YouTube Data API 키를 안전하게 관리
+
+## 🚀 기술 스택
+
+- **프레임워크**: Next.js 15 (App Router)
+- **언어**: TypeScript
+- **스타일링**: Tailwind CSS 4
+- **UI 컴포넌트**: Radix UI
+- **아이콘**: Lucide React
+- **API**: YouTube Data API v3
+
+## 📱 반응형 디자인
+
+### 모바일 (< 640px)
+- 간소화된 네비게이션
+- 세로형 레이아웃
+- 터치 친화적 버튼 크기
+- 축약된 텍스트 라벨
+
+### 태블릿 (640px - 1024px)
+- 2열 그리드 레이아웃
+- 적절한 패딩과 간격
+- 중간 크기 아이콘과 텍스트
+
+### 데스크톱 (> 1024px)
+- 4열 그리드 레이아웃
+- 전체 기능 표시
+- 최대 화면 활용
+
+## 🛠️ 설치 및 실행
+
+### 1. 프로젝트 클론
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/youtube-trend-explorer.git
+cd youtube-trend-explorer
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 의존성 설치
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. 개발 서버 실행
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+브라우저에서 `http://localhost:3000`으로 접속하여 확인할 수 있습니다.
 
-## Learn More
+## 🔑 YouTube API 키 설정
 
-To learn more about Next.js, take a look at the following resources:
+### API 키 발급 방법
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. [Google Cloud Console](https://console.cloud.google.com)에 접속
+2. 새 프로젝트 생성 또는 기존 프로젝트 선택
+3. "API 및 서비스" → "라이브러리" → "YouTube Data API v3" 검색 후 활성화
+4. "API 및 서비스" → "사용자 인증 정보" → "+ 사용자 인증 정보 만들기" → "API 키"
+5. 생성된 API 키를 애플리케이션에 입력
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 보안 주의사항
+- API 키는 브라우저 로컬 스토리지에 안전하게 저장됩니다
+- 외부로 전송되지 않으며 개인 사용 목적입니다
+- 공개된 장소에서는 API 키 입력을 주의하세요
 
-## Deploy on Vercel
+## 📊 사용 방법
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **API 키 설정**: 첫 방문 시 YouTube Data API 키를 입력
+2. **필터 설정**: 국가, 카테고리, 결과 수, 정렬 기준 선택
+3. **검색 실행**: "검색하기" 버튼 클릭
+4. **결과 확인**: 트렌드 영상 목록과 통계 확인
+5. **영상 시청**: 카드 클릭으로 YouTube에서 직접 시청
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 디자인 시스템
+
+### 색상 팔레트
+- **Primary**: Red-600 (#dc2626)
+- **Secondary**: Gray-50 ~ Gray-900
+- **Accent**: Blue, Yellow (정보성 메시지)
+
+### 타이포그래피
+- **제목**: text-xl ~ text-2xl, font-bold
+- **본문**: text-sm ~ text-base
+- **캡션**: text-xs ~ text-sm
+
+### 간격 시스템
+- **패딩**: 3 ~ 8 (12px ~ 32px)
+- **마진**: 2 ~ 6 (8px ~ 24px)
+- **간격**: 2 ~ 4 (8px ~ 16px)
+
+## 📦 빌드 및 배포
+
+### 프로덕션 빌드
+```bash
+npm run build
+```
+
+### 빌드 시작
+```bash
+npm start
+```
+
+### Vercel 배포
+```bash
+# Vercel CLI 설치
+npm install -g vercel
+
+# 개발 배포
+npm run deploy
+
+# 프로덕션 배포
+npm run deploy:prod
+```
+
+자세한 배포 가이드는 [DEPLOYMENT.md](./DEPLOYMENT.md)를 참고하세요.
+
+## 🧪 테스트
+
+### 반응형 테스트
+1. 브라우저 개발자 도구 열기 (F12)
+2. 디바이스 시뮬레이션 모드 활성화
+3. 다양한 화면 크기에서 테스트
+   - iPhone SE (375px)
+   - iPad (768px)
+   - Desktop (1024px+)
+
+### 기능 테스트
+- [ ] API 키 입력 및 검증
+- [ ] 국가별 필터링
+- [ ] 카테고리별 필터링
+- [ ] 정렬 기능
+- [ ] 반응형 레이아웃
+- [ ] 영상 카드 상호작용
+
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 제공됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+
+## 👨‍💻 제작자
+
+**원작자**: 안양 박달초등학교 김문정
+
+- 유튜브: [@배우는사람](https://www.youtube.com/@%EB%B0%B0%EC%9A%B0%EB%8A%94%EC%82%AC%EB%9E%8C-p5v)
+- 이메일: 문의사항은 GitHub Issues를 이용해주세요
+
+## 🙏 감사의 말
+
+이 프로젝트는 Google Apps Script를 웹 애플리케이션으로 전환하면서 시작되었습니다. 
+YouTube Data API와 모든 오픈소스 라이브러리에 감사드립니다.
+
+---
+
+© 2025 YouTube Trend Explorer. All rights reserved.
