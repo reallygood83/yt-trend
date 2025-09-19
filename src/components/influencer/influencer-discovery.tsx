@@ -379,7 +379,7 @@ export function InfluencerDiscovery({ videos, onChannelSelect }: InfluencerDisco
 
               <div className="space-y-2">
                 <Label>정렬 기준</Label>
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'engagement' | 'growth' | 'potential' | 'subscribers')}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

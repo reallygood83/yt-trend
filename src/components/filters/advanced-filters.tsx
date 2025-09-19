@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   Filter,
@@ -11,16 +10,10 @@ import {
   Clock,
   Users,
   TrendingUp,
-  Star,
-  Globe,
-  Tag,
   Eye,
   ThumbsUp,
-  MessageCircle,
   Settings2,
   X,
-  Plus,
-  Minus,
   ChevronDown,
   Save,
   RefreshCw,
@@ -147,7 +140,7 @@ export function AdvancedFilters({
     ]);
   }, [filters]);
 
-  const updateFilter = (key: keyof TrendFilters, value: any) => {
+  const updateFilter = (key: keyof TrendFilters, value: string | number | boolean | undefined) => {
     onFiltersChange({
       ...filters,
       [key]: value

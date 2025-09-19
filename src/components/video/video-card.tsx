@@ -30,7 +30,6 @@ export function VideoCard({
       title,
       channelTitle,
       publishedAt,
-      thumbnails,
       description
     },
     statistics: {

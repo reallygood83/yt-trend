@@ -1,32 +1,27 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, 
   BarChart3, 
-  Target, 
+  Target,
   Users, 
   Clock, 
   Star,
   DollarSign,
   Eye,
   ThumbsUp,
-  MessageCircle,
-  Calendar,
   Zap,
   Lightbulb,
   Award,
-  TrendingDown,
   ArrowUpRight,
   Activity,
   Trophy
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { YouTubeVideo } from '@/types/youtube';
-import { formatViewCount, formatDate } from '@/lib/utils';
+import { formatViewCount } from '@/lib/utils';
 
 interface EnhancedDashboardProps {
   videos: YouTubeVideo[];
@@ -45,9 +40,7 @@ interface TrendMetrics {
 }
 
 export function EnhancedDashboard({ videos, userType, onUserTypeChange }: EnhancedDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'insights'>('overview');
   const [metrics, setMetrics] = useState<TrendMetrics | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     if (videos.length > 0) {

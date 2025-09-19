@@ -23,8 +23,6 @@ import {
   GitCompare,
   Users,
   Filter,
-  Target,
-  Star,
   Zap,
   Moon,
   Sun
