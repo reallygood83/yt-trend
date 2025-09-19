@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
   TrendingUp, 
   BarChart3, 
@@ -148,9 +149,7 @@ export function EnhancedDashboard({ videos, userType, onUserTypeChange }: Enhanc
     .slice(0, 5);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
-    }`}>
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 text-gray-900">
       {/* 헤더 - 사용자 타입 선택 */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-6 py-4">

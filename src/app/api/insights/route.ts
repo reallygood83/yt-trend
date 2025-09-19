@@ -139,10 +139,18 @@ function analyzeChannelPerformance(videos: YouTubeVideo[]): GeneratedInsight {
 }
 
 export async function POST(request: NextRequest) {
-  let body: AIAnalysisRequest;
+  let body: AIAnalysisRequest | null = null;
   
   try {
     body = await request.json();
+    
+    if (!body) {
+      return NextResponse.json(
+        { error: '요청 데이터가 없습니다.' },
+        { status: 400 }
+      );
+    }
+    
     const { videos, filters } = body;
 
     if (!videos || videos.length === 0) {
@@ -171,8 +179,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('AI 인사이트 분석 오류:', error);
     
-    // AI 실패 시 기본 분석으로 fallback (이미 파싱된 body 사용)
-    if (body?.videos) {
+    // AI 실패 시 기본 분석으로 fallback (body가 파싱된 경우에만)
+    if (body && body.videos && body.videos.length > 0) {
       try {
         const fallbackInsights = [
           analyzeViewPatterns(body.videos),
