@@ -158,15 +158,13 @@ export function MainDashboard({ onApiKeyRemoved }: MainDashboardProps) {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs sm:text-sm text-gray-500">
               <span>© 2025 YouTube Trend Explorer</span>
               <span className="hidden sm:inline">•</span>
-              <span>원작자: 안양 박달초 김문정</span>
-              <span className="hidden sm:inline">•</span>
               <a 
-                href="https://www.youtube.com/@%EB%B0%B0%EC%9A%B0%EB%8A%94%EC%82%AC%EB%9E%8C-p5v" 
+                href="https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="hover:text-red-600 transition-colors"
+                className="hover:text-red-600 transition-colors font-medium"
               >
-                유튜브 채널
+                배움의 달인 유튜브 채널
               </a>
             </div>
           </div>

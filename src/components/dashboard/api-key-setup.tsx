@@ -199,7 +199,17 @@ export function ApiKeySetup({ onSuccess }: ApiKeySetupProps) {
 
         {/* 푸터 */}
         <div className="text-center text-xs sm:text-sm text-gray-500">
-          <p>© 2025 YouTube Trend Explorer. 원작자: 안양 박달초 김문정</p>
+          <p>© 2025 YouTube Trend Explorer</p>
+          <p className="mt-1">
+            <a 
+              href="https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-red-600 hover:text-red-700 hover:underline font-medium"
+            >
+              배움의 달인 유튜브 채널
+            </a>
+          </p>
         </div>
       </div>
     </div>
