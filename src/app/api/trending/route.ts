@@ -78,25 +78,65 @@ export async function GET(request: NextRequest) {
       // Search API는 다른 응답 구조를 가지므로 타입 캐스팅 후 변환
       const searchItems = data.items as unknown as YouTubeSearchItem[];
       
-      // Search API 응답을 Videos API 형태로 변환
-      processedItems = searchItems.map(item => ({
-        id: item.id.videoId,
-        snippet: {
-          ...item.snippet,
-          categoryId: '0', // Search API는 categoryId를 제공하지 않음
-          tags: [] // Search API는 tags를 제공하지 않음
-        },
-        statistics: item.statistics || {
-          viewCount: '0',
-          likeCount: '0',
-          commentCount: '0'
-        }
-      }));
-
-      // 키워드 검색의 경우 추가로 statistics 정보를 가져올 수 있지만
-      // API 할당량 절약을 위해 기본값으로 설정
+      // 비디오 ID 목록 추출
+      const videoIds = searchItems.map(item => item.id.videoId).join(',');
+      
+      // Videos API로 statistics 정보 추가 요청
+      const statisticsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${apiKey}`;
+      
       if (process.env.NODE_ENV === 'development') {
-        console.log('키워드 검색 결과 처리 완료:', processedItems.length, '개');
+        console.log('Statistics API 요청:', statisticsUrl);
+      }
+      
+      try {
+        const statisticsResponse = await fetch(statisticsUrl);
+        const statisticsData: YouTubeTrendingResponse = await statisticsResponse.json();
+        
+        // Statistics 데이터를 맵으로 변환
+        const statisticsMap: Record<string, Record<string, unknown>> = {};
+        if (statisticsData.items) {
+          statisticsData.items.forEach(item => {
+            statisticsMap[item.id] = item.statistics;
+          });
+        }
+        
+        // Search API 응답을 Videos API 형태로 변환 (실제 statistics 포함)
+        processedItems = searchItems.map(item => ({
+          id: item.id.videoId,
+          snippet: {
+            ...item.snippet,
+            categoryId: '0', // Search API는 categoryId를 제공하지 않음
+            tags: [] // Search API는 tags를 제공하지 않음
+          },
+          statistics: (statisticsMap[item.id.videoId] as { viewCount: string; likeCount: string; commentCount: string; } | undefined) || {
+            viewCount: '0',
+            likeCount: '0',
+            commentCount: '0'
+          }
+        }));
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('키워드 검색 + Statistics 결과:', processedItems.length, '개');
+          console.log('첫 번째 영상 통계:', processedItems[0]?.statistics);
+        }
+        
+      } catch (statisticsError) {
+        console.error('Statistics API 요청 실패:', statisticsError);
+        
+        // Statistics 요청 실패 시 기본값으로 처리
+        processedItems = searchItems.map(item => ({
+          id: item.id.videoId,
+          snippet: {
+            ...item.snippet,
+            categoryId: '0',
+            tags: []
+          },
+          statistics: {
+            viewCount: '0',
+            likeCount: '0',
+            commentCount: '0'
+          }
+        }));
       }
     }
 
