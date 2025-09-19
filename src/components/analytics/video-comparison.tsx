@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -12,9 +11,6 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
@@ -24,12 +20,9 @@ import {
 import { 
   GitCompare,
   TrendingUp,
-  TrendingDown,
   Eye,
   ThumbsUp,
   MessageCircle,
-  Clock,
-  Calendar,
   Users,
   Target,
   Zap,
@@ -45,7 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { YouTubeVideo } from '@/types/youtube';
-import { formatViewCount, formatDate } from '@/lib/utils';
+import { formatViewCount } from '@/lib/utils';
 
 interface VideoComparisonProps {
   videos: YouTubeVideo[];
@@ -71,8 +64,21 @@ export function VideoComparison({
   onClearAll 
 }: VideoComparisonProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'engagement' | 'insights'>('overview');
-  const [comparisonData, setComparisonData] = useState<any[]>([]);
-  const [engagementData, setEngagementData] = useState<any[]>([]);
+  const [comparisonData, setComparisonData] = useState<{
+    name: string;
+    title: string;
+    views: number;
+    likes: number;
+    comments: number;
+    engagement: number;
+    publishedDays: number;
+  }[]>([]);
+  const [engagementData, setEngagementData] = useState<{
+    name: string;
+    '좋아요율': number;
+    '댓글율': number;
+    '전체참여율': number;
+  }[]>([]);
   const [performanceMetrics, setPerformanceMetrics] = useState<ComparisonMetrics[]>([]);
 
   useEffect(() => {
@@ -81,7 +87,7 @@ export function VideoComparison({
     }
   }, [selectedVideos]);
 
-  const prepareComparisonData = () => {
+  const prepareComparisonData = useCallback(() => {
     // 비교 데이터 준비
     const data = selectedVideos.map((video, index) => {
       const views = parseInt(video.statistics.viewCount || '0');
@@ -135,7 +141,7 @@ export function VideoComparison({
     });
 
     setPerformanceMetrics(metrics);
-  };
+  }, [selectedVideos]);
 
   const exportToCSV = () => {
     const csvData = comparisonData.map(item => ({
@@ -236,11 +242,8 @@ export function VideoComparison({
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {selectedVideos.map((video, index) => (
-              <motion.div
+              <div
                 key={video.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
                 className="relative p-4 border rounded-lg hover:shadow-md transition-shadow"
               >
                 <button
@@ -276,7 +279,7 @@ export function VideoComparison({
                     {formatViewCount(video.statistics.commentCount || '0')}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </CardContent>
@@ -293,7 +296,7 @@ export function VideoComparison({
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
@@ -308,14 +311,8 @@ export function VideoComparison({
       </div>
 
       {/* 탭 콘텐츠 */}
-      <AnimatePresence mode="wait">
         {activeTab === 'overview' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 조회수 비교 */}
             <Card>
               <CardHeader>
@@ -328,7 +325,7 @@ export function VideoComparison({
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip 
-                      formatter={(value, name) => [formatViewCount(String(value)), '조회수']}
+                      formatter={(value) => [formatViewCount(String(value)), '조회수']}
                       labelFormatter={(label) => `${label}`}
                     />
                     <Bar dataKey="views" fill="#dc2626" radius={[4, 4, 0, 0]} />
@@ -367,16 +364,11 @@ export function VideoComparison({
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'performance' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {performanceMetrics.map((metrics, index) => (
               <Card key={index}>
                 <CardHeader>
@@ -412,16 +404,11 @@ export function VideoComparison({
                 </CardContent>
               </Card>
             ))}
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'engagement' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
-          >
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>세부 참여도 분석</CardTitle>
@@ -485,16 +472,11 @@ export function VideoComparison({
                 </CardContent>
               </Card>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'insights' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
-          >
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 승자 분석 */}
               <Card>
@@ -604,9 +586,8 @@ export function VideoComparison({
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* 영상 추가 섹션 */}
       <Card>

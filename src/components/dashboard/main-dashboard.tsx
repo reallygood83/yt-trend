@@ -41,7 +41,7 @@ export function MainDashboard({ onApiKeyRemoved }: MainDashboardProps) {
   const [userType, setUserType] = useState<'creator' | 'marketer' | 'all'>('all');
   const [selectedVideos, setSelectedVideos] = useState<YouTubeVideo[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [savedFilters, setSavedFilters] = useState<any[]>([]);
+  const [savedFilters, setSavedFilters] = useState<{ id: string; name: string; filters: TrendFilters; createdAt: Date; }[]>([]);
 
   const handleSearch = async (filters: TrendFilters) => {
     setCurrentFilters(filters);
