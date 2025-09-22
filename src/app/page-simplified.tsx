@@ -5,7 +5,7 @@ import { SimplifiedApiSetup } from '@/components/simplified-api-setup';
 import { SimplifiedDashboard } from '@/components/simplified-dashboard';
 import { getApiKey } from '@/lib/api-key';
 
-export default function Home() {
+export default function SimplifiedHome() {
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
 
   useEffect(() => {
