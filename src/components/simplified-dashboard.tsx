@@ -40,6 +40,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
   const [maxViewCount, setMaxViewCount] = useState('');
   const [sortBy, setSortBy] = useState<'viewCount' | 'likeCount' | 'commentCount' | 'publishedAt'>('viewCount');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [maxVideos, setMaxVideos] = useState(20); // 기본 20개
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [aiInsights, setAiInsights] = useState<string[]>([]);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
@@ -71,7 +72,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          videos: videos.slice(0, 10), // 상위 10개 영상 분석
+          videos: videos.slice(0, Math.min(maxVideos, videos.length)), // 사용자 설정 개수만큼 분석
           keyword,
           country,
           totalVideos,
@@ -201,7 +202,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
         avgViews,
         topChannels,
         insights,
-        videos: videos.slice(0, 6) // 상위 6개 영상만 표시
+        videos: videos.slice(0, Math.min(maxVideos, videos.length)) // 사용자 설정 개수만큼 표시
       });
 
       setIsAnalyzing(false);
@@ -315,7 +316,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
         avgViews,
         topChannels,
         insights,
-        videos: videos.slice(0, 6) // 상위 6개 영상만 표시
+        videos: videos.slice(0, Math.min(maxVideos, videos.length)) // 사용자 설정 개수만큼 표시
       });
 
       setIsAnalyzing(false);
@@ -443,6 +444,23 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                             <option value="FR">🇫🇷 프랑스</option>
                             <option value="IN">🇮🇳 인도</option>
                             <option value="BR">🇧🇷 브라질</option>
+                          </select>
+                        </div>
+                        
+                        {/* 영상 개수 설정 */}
+                        <div>
+                          <label className="block text-sm font-medium text-blue-900 mb-2">
+                            분석할 영상 개수
+                          </label>
+                          <select
+                            value={maxVideos}
+                            onChange={(e) => setMaxVideos(parseInt(e.target.value))}
+                            className="w-full h-10 px-3 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value={10}>10개 (빠른 분석)</option>
+                            <option value={20}>20개 (권장)</option>
+                            <option value={30}>30개 (상세 분석)</option>
+                            <option value={50}>50개 (전체 분석)</option>
                           </select>
                         </div>
                       </div>
