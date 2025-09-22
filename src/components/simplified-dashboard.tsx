@@ -16,7 +16,6 @@ import {
   Sparkles,
   Target,
   CheckCircle,
-  ArrowRight,
   Play
 } from 'lucide-react';
 
@@ -31,7 +30,13 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
   const [keyword, setKeyword] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<{
+    keyword: string;
+    totalVideos: number;
+    avgViews: number;
+    topChannels: string[];
+    insights: string[];
+  } | null>(null);
 
   const handleApiKeyRemove = () => {
     removeApiKey();
@@ -210,7 +215,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
             <Card className="shadow-lg">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl text-gray-900 mb-2">
-                  "{keyword}" 트렌드 분석 중...
+                  &ldquo;{keyword}&rdquo; 트렌드 분석 중...
                 </CardTitle>
                 <p className="text-gray-600">
                   YouTube에서 데이터를 수집하고 분석하고 있습니다
@@ -268,7 +273,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                   <CardHeader>
                     <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
                       <BarChart3 className="w-6 h-6 text-red-600" />
-                      "{results.keyword}" 분석 결과
+                      &ldquo;{results.keyword}&rdquo; 분석 결과
                     </CardTitle>
                   </CardHeader>
                   

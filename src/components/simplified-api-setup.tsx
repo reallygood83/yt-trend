@@ -176,7 +176,7 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
                     <span className="font-semibold text-blue-900">YouTube API 활성화</span>
                   </div>
                   <p className="text-sm text-blue-700 ml-8">
-                    "API 및 서비스" → "라이브러리" → "YouTube Data API v3" 검색 후 활성화
+                    &ldquo;API 및 서비스&rdquo; → &ldquo;라이브러리&rdquo; → &ldquo;YouTube Data API v3&rdquo; 검색 후 활성화
                   </p>
                 </div>
 
@@ -186,7 +186,7 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
                     <span className="font-semibold text-purple-900">API 키 생성</span>
                   </div>
                   <p className="text-sm text-purple-700 ml-8">
-                    "사용자 인증 정보" → "API 키 만들기" → 생성된 키 복사
+                    &ldquo;사용자 인증 정보&rdquo; → &ldquo;API 키 만들기&rdquo; → 생성된 키 복사
                   </p>
                 </div>
 
