@@ -29,6 +29,126 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 테스트용 더미 데이터 (개발 및 데모용)
+    if (apiKey === 'test' || apiKey === 'demo') {
+      console.log('=== 테스트 모드: 더미 데이터 반환 ===');
+      
+      const dummyVideos: YouTubeVideo[] = [
+        {
+          id: 'dQw4w9WgXcQ',
+          snippet: {
+            title: `${keyword || '한국 트렌드'} 관련 영상 #1 - 최신 동향 분석`,
+            description: `${keyword || '트렌드'}에 대한 상세한 분석과 최신 동향을 다룬 영상입니다. 전문가의 깊이 있는 인사이트와 함께 미래 전망까지 살펴보세요.`,
+            channelTitle: 'TechTalk Korea',
+            publishedAt: '2024-01-15T10:00:00Z',
+            thumbnails: {
+              default: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg', width: 120, height: 90 },
+              medium: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg', width: 320, height: 180 },
+              high: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg', width: 480, height: 360 },
+              standard: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/sddefault.jpg', width: 640, height: 480 },
+              maxres: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg', width: 1280, height: 720 }
+            },
+            channelId: 'UC-9-kyTW8ZkZNDHQJ6FgpwQ',
+            categoryId: '27',
+            tags: [keyword || '트렌드', '분석', '최신동향']
+          },
+          statistics: {
+            viewCount: '1250000',
+            likeCount: '45000',
+            commentCount: '3200'
+          }
+        },
+        {
+          id: 'M7lc1UVf-VE',
+          snippet: {
+            title: `${keyword || '인기 주제'} 실전 가이드 - 초보자도 쉽게!`,
+            description: `초보자부터 전문가까지 모두가 이해할 수 있는 ${keyword || '주제'} 실전 가이드입니다.`,
+            channelTitle: 'EasyLearn 쉬운학습',
+            publishedAt: '2024-01-10T14:30:00Z',
+            thumbnails: {
+              default: { url: 'https://img.youtube.com/vi/M7lc1UVf-VE/default.jpg', width: 120, height: 90 },
+              medium: { url: 'https://img.youtube.com/vi/M7lc1UVf-VE/mqdefault.jpg', width: 320, height: 180 },
+              high: { url: 'https://img.youtube.com/vi/M7lc1UVf-VE/hqdefault.jpg', width: 480, height: 360 }
+            },
+            channelId: 'UC-8-kyTW8ZkZNDHQJ6FgpwQ',
+            categoryId: '27',
+            tags: [keyword || '가이드', '초보자', '실전']
+          },
+          statistics: {
+            viewCount: '892000',
+            likeCount: '32100',
+            commentCount: '1890'
+          }
+        },
+        {
+          id: 'jNQXAC9IVRw',
+          snippet: {
+            title: `${keyword || '핫이슈'} 전문가 토론 - 미래 전망은?`,
+            description: `업계 전문가들이 모여 ${keyword || '핫이슈'}의 미래를 예측하고 토론합니다.`,
+            channelTitle: '전문가포럼',
+            publishedAt: '2024-01-08T09:15:00Z',
+            thumbnails: {
+              default: { url: 'https://img.youtube.com/vi/jNQXAC9IVRw/default.jpg', width: 120, height: 90 },
+              medium: { url: 'https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg', width: 320, height: 180 },
+              high: { url: 'https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg', width: 480, height: 360 }
+            },
+            channelId: 'UC-7-kyTW8ZkZNDHQJ6FgpwQ',
+            categoryId: '25',
+            tags: [keyword || '전문가', '토론', '미래전망']
+          },
+          statistics: {
+            viewCount: '567000',
+            likeCount: '28900',
+            commentCount: '2340'
+          }
+        }
+      ];
+
+      // 필터 적용 시뮬레이션
+      let filteredVideos = dummyVideos;
+      
+      if (minViewCount) {
+        filteredVideos = filteredVideos.filter(video => 
+          parseInt(video.statistics.viewCount) >= minViewCount
+        );
+      }
+      
+      if (maxViewCount) {
+        filteredVideos = filteredVideos.filter(video => 
+          parseInt(video.statistics.viewCount) <= maxViewCount
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          items: filteredVideos,
+          pageInfo: {
+            totalResults: filteredVideos.length,
+            resultsPerPage: filteredVideos.length
+          },
+          totalResults: filteredVideos.length,
+          originalTotalResults: dummyVideos.length,
+          country,
+          category: category || 'all',
+          keyword: keyword || null,
+          searchType: keyword ? 'keyword' : 'trending',
+          timestamp: new Date().toISOString(),
+          filtersApplied: {
+            publishedAfter,
+            publishedBefore,
+            minViewCount,
+            maxViewCount,
+            minDuration,
+            maxDuration,
+            videoDuration,
+            hasSubtitles,
+            channelType
+          }
+        }
+      });
+    }
+
     // 로그 기록 개선
     console.log('=== YouTube API 요청 시작 ===');
     console.log('기본 필터:', { country, category, keyword, maxResults });

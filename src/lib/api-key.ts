@@ -2,6 +2,8 @@ import { ApiKeyConfig } from '@/types/youtube';
 
 const API_KEY_STORAGE = 'youtube_api_key';
 const API_CONFIG_STORAGE = 'youtube_api_config';
+const GEMINI_API_KEY_STORAGE = 'gemini_api_key';
+const GEMINI_API_CONFIG_STORAGE = 'gemini_api_config';
 
 export function saveApiKey(apiKey: string): void {
   try {
@@ -84,6 +86,63 @@ export async function validateApiKey(apiKey: string): Promise<{ valid: boolean; 
         error: errorData.error?.message || 'API 키 검증에 실패했습니다.' 
       };
     }
+  } catch {
+    return { 
+      valid: false, 
+      error: '네트워크 오류가 발생했습니다.' 
+    };
+  }
+}
+
+// Gemini API 키 관리 함수들
+export function saveGeminiApiKey(apiKey: string): void {
+  try {
+    const encoded = btoa(apiKey);
+    localStorage.setItem(GEMINI_API_KEY_STORAGE, encoded);
+    
+    const config = {
+      apiKey: apiKey,
+      isValid: true,
+      lastChecked: new Date()
+    };
+    localStorage.setItem(GEMINI_API_CONFIG_STORAGE, JSON.stringify(config));
+  } catch (error) {
+    console.error('Failed to save Gemini API key:', error);
+  }
+}
+
+export function getGeminiApiKey(): string | null {
+  try {
+    const encoded = localStorage.getItem(GEMINI_API_KEY_STORAGE);
+    return encoded ? atob(encoded) : null;
+  } catch (error) {
+    console.error('Failed to get Gemini API key:', error);
+    return null;
+  }
+}
+
+export function removeGeminiApiKey(): void {
+  try {
+    localStorage.removeItem(GEMINI_API_KEY_STORAGE);
+    localStorage.removeItem(GEMINI_API_CONFIG_STORAGE);
+  } catch (error) {
+    console.error('Failed to remove Gemini API key:', error);
+  }
+}
+
+export async function validateGeminiApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+  try {
+    // Gemini API 키 검증을 위한 간단한 테스트 요청
+    const response = await fetch('/api/validate-gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ apiKey })
+    });
+    
+    const result = await response.json();
+    return result;
   } catch {
     return { 
       valid: false, 
