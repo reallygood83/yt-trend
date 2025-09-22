@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// 타입 정의
+interface VideoStatistics {
+  viewCount?: string;
+  likeCount?: string;
+  commentCount?: string;
+}
+
+interface VideoSnippet {
+  title: string;
+  channelTitle: string;
+  publishedAt: string;
+  description?: string;
+}
+
+interface Video {
+  snippet: VideoSnippet;
+  statistics: VideoStatistics;
+}
+
+interface ChannelPerformance {
+  count: number;
+  totalViews: number;
+  avgViews: number;
+}
+
+interface ChannelPerformanceMap {
+  [channel: string]: ChannelPerformance;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { videos, keyword, country, totalVideos, avgViews, geminiApiKey } = await request.json();
@@ -21,7 +50,7 @@ export async function POST(request: NextRequest) {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // 영상 데이터 상세 분석을 위한 요약 생성 (최대 15개)
-    const videoSummary = videos.slice(0, Math.min(15, videos.length)).map((video: { snippet: { title: string; channelTitle: string; publishedAt: string; description?: string }, statistics: { viewCount?: string; likeCount?: string; commentCount?: string } }, index: number) => {
+    const videoSummary = videos.slice(0, Math.min(15, videos.length)).map((video: Video, index: number) => {
       const views = parseInt(video.statistics.viewCount || '0');
       const likes = parseInt(video.statistics.likeCount || '0');
       const comments = parseInt(video.statistics.commentCount || '0');
@@ -38,7 +67,7 @@ export async function POST(request: NextRequest) {
     const countryName = country === 'KR' ? '한국' : country === 'US' ? '미국' : country === 'JP' ? '일본' : country;
 
     // 채널별 성과 분석 및 트렌드 패턴 계산
-    const channelPerformance = videos.reduce((acc: any, video: any) => {
+    const channelPerformance = videos.reduce((acc: ChannelPerformanceMap, video: Video) => {
       const channel = video.snippet.channelTitle;
       const views = parseInt(video.statistics.viewCount || '0');
       if (!acc[channel]) {
@@ -50,13 +79,13 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {});
 
-    const topChannels = Object.entries(channelPerformance)
-      .sort(([,a]: any, [,b]: any) => b.avgViews - a.avgViews)
+    const topChannels = (Object.entries(channelPerformance) as [string, ChannelPerformance][])
+      .sort(([,a], [,b]) => b.avgViews - a.avgViews)
       .slice(0, 5)
-      .map(([channel, data]: any) => `${channel} (평균 ${Math.round(data.avgViews / 1000)}K 조회수)`)
+      .map(([channel, data]) => `${channel} (평균 ${Math.round(data.avgViews / 1000)}K 조회수)`)
       .join(', ');
 
-    const avgEngagement = videos.reduce((sum: number, video: any) => {
+    const avgEngagement = videos.reduce((sum: number, video: Video) => {
       const views = parseInt(video.statistics.viewCount || '0');
       const likes = parseInt(video.statistics.likeCount || '0');
       const comments = parseInt(video.statistics.commentCount || '0');
@@ -125,7 +154,7 @@ ${videoSummary}
           line.length > 20) {
         
         // 불필요한 마크다운 기호 제거하고 정리
-        let cleanLine = line
+        const cleanLine = line
           .replace(/^(💡|📊|🎯|🔥|🎬|💰|📈|\d+\.|-)?\s*/, '')
           .replace(/\*\*/g, '')
           .replace(/#{1,6}\s*/g, '')

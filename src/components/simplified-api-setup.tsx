@@ -20,8 +20,8 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
   const [geminiError, setGeminiError] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [currentStep, setCurrentStep] = useState<'youtube' | 'gemini'>('youtube');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [youtubeKeyValid, setYoutubeKeyValid] = useState(false);
-  // youtubeKeyValid is used for state management
 
   useEffect(() => {
     const existingYouTubeKey = getApiKey();
