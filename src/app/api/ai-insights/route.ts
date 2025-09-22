@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // 영상 데이터 요약 생성
-    const videoSummary = videos.slice(0, 10).map((video: any, index: number) => `
+    const videoSummary = videos.slice(0, 10).map((video: { snippet: { title: string; channelTitle: string; publishedAt: string; description?: string }, statistics: { viewCount?: string; likeCount?: string; commentCount?: string } }, index: number) => `
 ${index + 1}. "${video.snippet.title}"
    - 채널: ${video.snippet.channelTitle}
    - 조회수: ${parseInt(video.statistics.viewCount || '0').toLocaleString()}회

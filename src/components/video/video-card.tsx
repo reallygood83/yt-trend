@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { YouTubeVideo } from '@/types/youtube';
@@ -28,7 +28,7 @@ export function VideoCard({
   const [currentThumbnailUrl, setCurrentThumbnailUrl] = useState<string>('');
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
 
   const {
     id,
@@ -67,7 +67,7 @@ export function VideoCard({
   };
 
   // 썸네일 로드 함수
-  const loadThumbnail = async () => {
+  const loadThumbnail = useCallback(async () => {
     setIsLoading(true);
     setImageError(false);
 
@@ -85,12 +85,12 @@ export function VideoCard({
     setCurrentThumbnailUrl(proxyUrl);
     thumbnailCache.set(id, 'proxy', proxyUrl);
     setIsLoading(false);
-  };
+  }, [id]);
 
   // 컴포넌트 마운트 시 썸네일 로드
   useEffect(() => {
     loadThumbnail();
-  }, [id, retryCount]);
+  }, [id, retryCount, loadThumbnail]);
 
   // 이미지 에러 핸들러
   const handleImageError = () => {

@@ -21,6 +21,7 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
   const [showGuide, setShowGuide] = useState(false);
   const [currentStep, setCurrentStep] = useState<'youtube' | 'gemini'>('youtube');
   const [youtubeKeyValid, setYoutubeKeyValid] = useState(false);
+  // youtubeKeyValid is used for state management
 
   useEffect(() => {
     const existingYouTubeKey = getApiKey();
