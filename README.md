@@ -191,3 +191,4 @@ YouTube Data API와 모든 오픈소스 라이브러리에 감사드립니다.
 # Force new deployment
 # Trigger deployment with all environment variables
 # Updated: 2025-09-23 with complete Firebase environment variables
+# Fixed environment variable formatting issues - removed \n characters
