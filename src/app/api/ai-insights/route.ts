@@ -1,6 +1,127 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// 섹션별 인사이트 추출 헬퍼 함수들
+function extractKeywordInsights(content: string[], keyword: string, totalVideos: number, avgViews: number): string[] {
+  const insights: string[] = [];
+  const cleanContent = content.join(' ').replace(/[*#-]/g, '').trim();
+  
+  if (cleanContent.includes('경쟁도') || cleanContent.includes('competition')) {
+    insights.push(`"${keyword}" 키워드는 ${totalVideos}개 영상으로 경쟁이 활발하며, 평균 조회수 ${avgViews.toLocaleString()}회를 기록하고 있습니다.`);
+  }
+  
+  // 핵심 문장 추출
+  const sentences = cleanContent.split(/[.!?]/).filter(s => s.trim().length > 20);
+  insights.push(...sentences.slice(0, 2).map(s => s.trim()));
+  
+  return insights.filter(insight => insight.length > 10);
+}
+
+function extractTitleInsights(content: string[]): string[] {
+  const insights: string[] = [];
+  const titlePattern = /["']([^"']{10,}?)["']/g;
+  
+  for (const line of content) {
+    const matches = line.match(titlePattern);
+    if (matches) {
+      insights.push(...matches.slice(0, 3).map(match => `추천 제목: ${match.replace(/["']/g, '')}`));
+    }
+    
+    // 제목 관련 조언 추출
+    if (line.includes('제목') && line.length > 20 && !line.includes('##')) {
+      insights.push(line.replace(/[*#-]/g, '').trim());
+    }
+  }
+  
+  return insights.slice(0, 4);
+}
+
+function extractThumbnailInsights(content: string[]): string[] {
+  const insights: string[] = [];
+  
+  for (const line of content) {
+    if ((line.includes('썸네일') || line.includes('이미지') || line.includes('시각적')) && 
+        line.length > 15 && !line.includes('##')) {
+      insights.push(line.replace(/[*#-]/g, '').trim());
+    }
+  }
+  
+  return insights.slice(0, 3);
+}
+
+function extractCompetitionInsights(content: string[], topChannels: string): string[] {
+  const insights: string[] = [];
+  
+  for (const line of content) {
+    if ((line.includes('채널') || line.includes('경쟁') || line.includes('분석')) && 
+        line.length > 20 && !line.includes('##')) {
+      insights.push(line.replace(/[*#-]/g, '').trim());
+    }
+  }
+  
+  if (topChannels.length > 0) {
+    insights.push(`상위 채널 ${topChannels.split(',')[0]?.trim() || '분석 대상'}의 성과를 벤치마킹하여 콘텐츠 전략을 수립하세요.`);
+  }
+  
+  return insights.slice(0, 3);
+}
+
+function extractGuideInsights(content: string[], avgEngagement: number): string[] {
+  const insights: string[] = [];
+  
+  for (const line of content) {
+    if ((line.includes('제작') || line.includes('전략') || line.includes('가이드') || line.includes('팁')) && 
+        line.length > 20 && !line.includes('##')) {
+      insights.push(line.replace(/[*#-]/g, '').trim());
+    }
+  }
+  
+  if (avgEngagement > 0) {
+    insights.push(`평균 참여도 ${avgEngagement.toFixed(1)}%를 목표로 인터랙티브한 콘텐츠를 제작하세요.`);
+  }
+  
+  return insights.slice(0, 4);
+}
+
+function extractGeneralInsights(content: string[]): string[] {
+  const insights: string[] = [];
+  
+  for (const line of content) {
+    if (line.length > 20 && !line.includes('##') && !line.includes('분석') && !line.includes('요구사항')) {
+      const cleanLine = line.replace(/[*#-]/g, '').trim();
+      if (cleanLine.length > 15) {
+        insights.push(cleanLine);
+      }
+    }
+  }
+  
+  return insights.slice(0, 3);
+}
+
+function extractAdditionalInsights(text: string, keyword: string, avgViews: number, avgEngagement: number, topChannels: string): string[] {
+  const insights: string[] = [];
+  const lines = text.split('\n').filter(line => line.trim().length > 20);
+  
+  // 기본 통계 기반 인사이트
+  insights.push(`"${keyword}" 관련 콘텐츠의 평균 조회수는 ${avgViews.toLocaleString()}회입니다.`);
+  
+  if (avgEngagement > 0) {
+    insights.push(`참여도 ${avgEngagement.toFixed(1)}%를 달성하기 위해 댓글 유도 요소를 포함하세요.`);
+  }
+  
+  // 텍스트에서 핵심 문장 추출
+  for (const line of lines) {
+    if (line.includes('💡') || line.includes('🎯') || line.includes('📈')) {
+      const cleanLine = line.replace(/[💡🎯📈*#-]/g, '').trim();
+      if (cleanLine.length > 15) {
+        insights.push(cleanLine);
+      }
+    }
+  }
+  
+  return insights.slice(0, 6);
+}
+
 // 타입 정의
 interface VideoStatistics {
   viewCount?: string;
@@ -34,12 +155,23 @@ export async function POST(request: NextRequest) {
   try {
     const { videos, keyword, country, totalVideos, avgViews, geminiApiKey } = await request.json();
 
+    console.log('[AI Insights] 요청 데이터:', {
+      videosCount: videos?.length || 0,
+      keyword,
+      country,
+      totalVideos,
+      avgViews,
+      hasGeminiKey: !!geminiApiKey
+    });
+
     // Gemini API 키 확인
     if (!geminiApiKey) {
+      console.log('[AI Insights] Gemini API 키가 없음');
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Gemini API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.' 
+          error: 'Gemini API 키가 설정되지 않았습니다. 설정 페이지에서 Gemini API 키를 입력해주세요.',
+          needsApiKey: true
         },
         { status: 400 }
       );
@@ -93,8 +225,7 @@ export async function POST(request: NextRequest) {
     }, 0) / videos.length;
 
     const prompt = `
-당신은 유튜브 콘텐츠 기획 및 트렌드 분석 전문가입니다. 
-주어진 실제 YouTube 데이터를 바탕으로 포괄적이고 실행 가능한 인사이트를 제공해주세요.
+당신은 유튜브 콘텐츠 기획 전문가입니다. 주어진 "${keyword}" 주제에 대한 포괄적인 유튜브 콘텐츠 분석과 최적화된 제안을 제공해주세요.
 
 📊 **분석 데이터 요약**:
 🔍 검색 키워드: "${keyword}"
@@ -107,51 +238,37 @@ export async function POST(request: NextRequest) {
 📺 **상위 성과 영상 분석**:
 ${videoSummary}
 
-🎯 **종합 분석 요구사항**
-다음 6개 영역에 대해 체계적이고 실행 가능한 분석을 제공해주세요:
+다음 구조로 체계적인 분석 리포트를 작성해주세요:
 
-## 1. 🔍 키워드 경쟁도 분석 (Keyword Competition Analysis)
-- "${keyword}" 키워드의 경쟁강도를 1-10점 척도로 평가하고 근거 제시
-- 관련 키워드들의 검색량 추정과 시즌성 분석
-- 진입 난이도와 성공 가능성 평가
-- 대안 키워드 3-5개 제안 (경쟁도가 낮으면서 수요가 있는)
+# ${keyword} 콘텐츠 분석 리포트
 
-## 2. 🔥 트렌드 패턴 분석 (Trend Pattern Analysis)
-- 현재 ${keyword} 관련 콘텐츠의 핫한 키워드와 패턴
-- 성공하는 영상들의 공통 특징 (제목 패턴, 길이, 업로드 시기 등)
-- 참여율이 높은 콘텐츠의 특성과 수치적 근거
-- 트렌드 지속성과 변화 예측
+## 📊 키워드 분석 요약
+"${keyword}" 키워드의 경쟁강도를 1-10점 척도로 평가하고, 검색량과 시즌성을 분석해주세요. 관련 키워드 3-5개를 제안하고 각각의 경쟁도와 기회를 설명해주세요.
 
-## 3. 🎬 콘텐츠 제작 전략 (Content Creation Strategy)
-- 클릭률이 높을 것으로 예상되는 제목 3개 생성 (각각의 강점 설명 포함)
-- 최적의 영상 길이, 업로드 시간, 썸네일 스타일 권장사항
-- 참여율 향상을 위한 구체적인 콘텐츠 구성 방법
-- 시청자 유지율을 높이는 스토리텔링 기법
+## 🎯 추천 제목 3선
+클릭률이 높을 것으로 예상되는 제목 3개를 생성하고, 각각의 강점과 예상 효과를 구체적으로 설명해주세요.
 
-## 4. 🖼️ 썸네일 최적화 전략 (Thumbnail Optimization)
-- 호기심을 자극하는 썸네일 카피 문구 3-4개 제안
-- 감정적 어필이 강한 썸네일 텍스트 3-4개 제안
-- 시급성/혜택을 강조하는 썸네일 문구 2-3개 제안
-- 색상, 폰트, 레이아웃 권장사항
+## 🖼️ 썸네일 카피 제안
+다음 카테고리별로 강력한 썸네일 문구를 제안해주세요:
+- 호기심 자극형 (3-4개)
+- 감정적 어필형 (3-4개) 
+- 혜택/시급성 강조형 (2-3개)
 
-## 5. 💰 수익화 및 경쟁 분석 (Monetization & Competition Analysis)
-- 이 트렌드에서 발견되는 구체적인 비즈니스 모델과 수익 창출 방법
-- 경쟁이 적지만 수요가 있는 틈새 콘텐츠 영역 제안
-- 상위 노출 콘텐츠의 패턴과 틈새 기회 분석
-- 협업이나 스폰서십 기회가 높은 채널 유형
+## 📈 경쟁 분석 결과
+상위 노출 콘텐츠의 패턴을 분석하고, 틈새 기회와 차별화 포인트를 제시해주세요. 수익화 방법과 협업 기회도 포함해주세요.
 
-## 6. 📈 미래 예측 및 실행 가이드 (Future Forecast & Action Guide)
-- 향후 3-6개월 내 이 키워드 트렌드의 구체적인 변화 예상
-- 새롭게 부상할 관련 키워드와 콘텐츠 방향 제안
-- 선점하면 유리한 콘텐츠 영역과 그 이유
-- 단계별 콘텐츠 제작 로드맵 (1개월, 3개월, 6개월)
+## 💡 콘텐츠 제작 가이드
+이 주제로 콘텐츠를 제작할 때 참고할 핵심 포인트를 제시해주세요:
+- 최적 영상 길이와 구성
+- 업로드 시간과 빈도
+- 참여율 향상 방법
+- 향후 3-6개월 트렌드 예측과 실행 로드맵
 
-**💡 답변 형식 요구사항:**
-- 각 포인트는 구체적인 수치나 실제 사례를 반드시 포함
+**답변 형식 요구사항:**
+- 각 섹션은 명확한 헤딩(##)으로 구분
+- 구체적인 수치와 실제 사례 포함
 - 실행 가능한 액션 플랜 형태로 작성
-- 1-2문장으로 간결하되 핵심이 명확해야 함
-- 💡, 📊, 🎯, 🔍, 🎬, 🖼️ 등 이모지로 가독성 향상
-- 막연한 조언이 아닌 실전 적용 가능한 구체적 방법론 제시
+- 이모지를 활용한 가독성 향상
 - 키워드 경쟁도는 반드시 점수(1-10)로 명시
 - 제목과 썸네일 문구는 구체적인 예시로 제공
 `;
@@ -161,72 +278,48 @@ ${videoSummary}
     const response = await result.response;
     const text = response.text();
 
-    // 고도화된 인사이트 파싱 - 6개 카테고리별 구조화
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    // 개선된 섹션별 통합 파싱 로직
+    const sections = text.split(/##\s+/).filter(section => section.trim().length > 0);
     const insights: string[] = [];
-    const categories = {
-      competition: [] as string[],
-      trends: [] as string[],
-      content: [] as string[],
-      thumbnail: [] as string[],
-      monetization: [] as string[],
-      forecast: [] as string[]
-    };
     
-    let currentCategory = '';
-    
-    // 카테고리별 인사이트 분류 및 추출
-    for (const line of lines) {
-      // 카테고리 헤더 감지
-      if (line.includes('키워드 경쟁도 분석') || line.includes('Keyword Competition')) {
-        currentCategory = 'competition';
-        continue;
-      } else if (line.includes('트렌드 패턴 분석') || line.includes('Trend Pattern')) {
-        currentCategory = 'trends';
-        continue;
-      } else if (line.includes('콘텐츠 제작 전략') || line.includes('Content Creation')) {
-        currentCategory = 'content';
-        continue;
-      } else if (line.includes('썸네일 최적화') || line.includes('Thumbnail Optimization')) {
-        currentCategory = 'thumbnail';
-        continue;
-      } else if (line.includes('수익화') || line.includes('Monetization')) {
-        currentCategory = 'monetization';
-        continue;
-      } else if (line.includes('미래 예측') || line.includes('Future Forecast')) {
-        currentCategory = 'forecast';
-        continue;
-      }
+    // 각 섹션을 통합적으로 처리
+    for (const section of sections) {
+      const lines = section.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      if (lines.length === 0) continue;
       
-      // 인사이트 라인 식별: 이모지, 번호, 하이픈으로 시작하는 내용
-      if (line.match(/^(💡|📊|🎯|🔍|🔥|🎬|🖼️|💰|📈|\d+\.|-)/) && 
-          !line.match(/^(##|#|\*\*|분석|요구사항|형식|답변)/) &&
-          line.length > 20) {
-        
-        // 불필요한 마크다운 기호 제거하고 정리
-        const cleanLine = line
-          .replace(/^(💡|📊|🎯|🔍|🔥|🎬|🖼️|💰|📈|\d+\.|-)?\s*/, '')
-          .replace(/\*\*/g, '')
-          .replace(/#{1,6}\s*/g, '')
-          .trim();
-        
-        if (cleanLine.length > 15 && !insights.includes(cleanLine)) {
-          // 카테고리별로 분류
-          if (currentCategory && categories[currentCategory as keyof typeof categories]) {
-            categories[currentCategory as keyof typeof categories].push(cleanLine);
-          }
-          insights.push(cleanLine);
-        }
-      }
-    }
-
-    // 카테고리별 균형잡힌 인사이트 선별 (최대 18개: 각 카테고리당 3개)
-    const balancedInsights: string[] = [];
-    Object.values(categories).forEach(categoryInsights => {
-      balancedInsights.push(...categoryInsights.slice(0, 3));
-    });
+      const sectionTitle = lines[0];
+      const sectionContent = lines.slice(1);
+      
+      // 섹션별 핵심 내용 추출 및 통합
+       if (sectionTitle.includes('키워드 분석') || sectionTitle.includes('📊')) {
+         const keywordInsights = extractKeywordInsights(sectionContent, keyword, totalVideos, avgViews);
+         insights.push(...keywordInsights);
+       } else if (sectionTitle.includes('추천 제목') || sectionTitle.includes('🎯')) {
+         const titleInsights = extractTitleInsights(sectionContent);
+         insights.push(...titleInsights);
+       } else if (sectionTitle.includes('썸네일') || sectionTitle.includes('🖼️')) {
+         const thumbnailInsights = extractThumbnailInsights(sectionContent);
+         insights.push(...thumbnailInsights);
+       } else if (sectionTitle.includes('경쟁 분석') || sectionTitle.includes('📈')) {
+         const competitionInsights = extractCompetitionInsights(sectionContent, topChannels);
+         insights.push(...competitionInsights);
+       } else if (sectionTitle.includes('제작 가이드') || sectionTitle.includes('💡')) {
+         const guideInsights = extractGuideInsights(sectionContent, avgEngagement);
+         insights.push(...guideInsights);
+       } else {
+         // 기타 섹션의 핵심 내용 추출
+         const generalInsights = extractGeneralInsights(sectionContent);
+         insights.push(...generalInsights.slice(0, 2));
+       }
+     }
+     
+     // 인사이트가 부족한 경우 전체 텍스트에서 추가 추출
+     if (insights.length < 12) {
+       const additionalInsights = extractAdditionalInsights(text, keyword, avgViews, avgEngagement, topChannels);
+       insights.push(...additionalInsights);
+     }
     
-    const finalInsights = balancedInsights.length > 0 ? balancedInsights : insights.slice(0, 18);
+    const finalInsights = insights.slice(0, 18); // 최대 18개로 제한
 
     return NextResponse.json({
       success: true,

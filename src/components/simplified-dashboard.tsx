@@ -105,6 +105,8 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
       // Gemini API 키 가져오기
       const geminiApiKey = getGeminiApiKey();
       
+      console.log('[Client] Gemini API 키 상태:', geminiApiKey ? '설정됨' : '없음');
+      
       const response = await fetch('/api/ai-insights', {
         method: 'POST',
         headers: {
@@ -120,22 +122,32 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
         })
       });
 
-      if (!response.ok) {
-        throw new Error('AI 인사이트 생성에 실패했습니다.');
-      }
-
       const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('AI 인사이트 API 오류:', data);
+        throw new Error(data.error || 'AI 인사이트 생성에 실패했습니다.');
+      }
       
       if (data.success) {
         setAiInsights(data.insights);
       } else {
-        throw new Error(data.error || 'AI 인사이트 생성에 실패했습니다.');
+        if (data.needsApiKey) {
+          setAiInsights([
+            '🔑 Gemini API 키가 설정되지 않았습니다.',
+            '💡 상단의 "설정" 버튼을 클릭하여 Gemini API 키를 입력해주세요.',
+            '🆓 Google AI Studio에서 무료로 발급받을 수 있습니다.',
+            '⚡ API 키 설정 후 다시 분석을 시도해주세요.'
+          ]);
+        } else {
+          throw new Error(data.error || 'AI 인사이트 생성에 실패했습니다.');
+        }
       }
     } catch (error) {
       console.error('AI 인사이트 생성 오류:', error);
       setAiInsights([
-        '이 키워드는 현재 상승 트렌드를 보이고 있어 콘텐츠 제작 기회가 많습니다.',
-        '주요 채널들의 성공 패턴을 분석하여 유사한 접근 방식을 시도해볼 수 있습니다.',
+        '⚠️ AI 인사이트 생성 중 오류가 발생했습니다.',
+        '🔧 Gemini API 키가 올바르게 설정되었는지 확인해주세요.',
         '평균 조회수 대비 높은 참여율을 보이는 영상들의 특징을 주목해보세요.',
         '이 트렌드는 지속적인 관심을 받을 것으로 예상되므로 장기적 콘텐츠 전략 수립이 권장됩니다.'
       ]);
