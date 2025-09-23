@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { SimplifiedApiSetup } from '@/components/simplified-api-setup';
 import { SimplifiedDashboard } from '@/components/simplified-dashboard';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { getApiKey } from '@/lib/api-key';
 
-export default function Home() {
+function MainApp() {
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -40,4 +41,12 @@ export default function Home() {
 
   // API 키가 있으면 간소화된 대시보드 표시
   return <SimplifiedDashboard onApiKeyRemoved={handleApiKeyRemoved} />;
+}
+
+export default function Home() {
+  return (
+    <RequireAuth>
+      <MainApp />
+    </RequireAuth>
+  );
 }

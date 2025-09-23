@@ -79,10 +79,10 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {});
 
-    const topChannels = (Object.entries(channelPerformance) as [string, ChannelPerformance][])
-      .sort(([,a], [,b]) => b.avgViews - a.avgViews)
+    const topChannels = Object.entries(channelPerformance)
+      .sort(([, a], [, b]) => (b as ChannelPerformance).avgViews - (a as ChannelPerformance).avgViews)
       .slice(0, 5)
-      .map(([channel, data]) => `${channel} (평균 ${Math.round(data.avgViews / 1000)}K 조회수)`)
+      .map(([channel, data]) => `${channel} (평균 ${Math.round((data as ChannelPerformance).avgViews / 1000)}K 조회수)`)
       .join(', ');
 
     const avgEngagement = videos.reduce((sum: number, video: Video) => {

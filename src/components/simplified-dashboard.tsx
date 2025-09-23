@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { UserProfile } from '@/components/auth/UserProfile';
 
 interface SimplifiedDashboardProps {
   onApiKeyRemoved: () => void;
@@ -351,15 +352,18 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                 YouTube 트렌드 분석기
               </h1>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleApiKeyRemove}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              설정
-            </Button>
+            <div className="flex items-center gap-3">
+              <UserProfile />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleApiKeyRemove}
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                설정
+              </Button>
+            </div>
           </div>
         </div>
       </header>
