@@ -22,6 +22,9 @@ export interface YouTubeVideo {
     likeCount: string;
     commentCount: string;
   };
+  contentDetails?: {
+    duration: string; // ISO 8601 format (예: PT1H2M10S)
+  };
 }
 
 // YouTube Search API 응답 타입 (키워드 검색용)

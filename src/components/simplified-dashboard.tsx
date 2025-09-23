@@ -42,6 +42,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
   const [sortBy, setSortBy] = useState<'viewCount' | 'likeCount' | 'commentCount' | 'publishedAt'>('viewCount');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [maxVideos, setMaxVideos] = useState(20); // 기본 20개
+  const [longFormOnly, setLongFormOnly] = useState(false); // 롱폼 필터 상태 추가
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [aiInsights, setAiInsights] = useState<string[]>([]);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
@@ -127,6 +128,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
       
       if (minViewCount) apiUrl += `&minViewCount=${minViewCount}`;
       if (maxViewCount) apiUrl += `&maxViewCount=${maxViewCount}`;
+      if (longFormOnly) apiUrl += `&longFormOnly=true`;
       
       const response = await fetch(apiUrl);
       setAnalysisProgress(50);
@@ -240,6 +242,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
       
       if (minViewCount) apiUrl += `&minViewCount=${minViewCount}`;
       if (maxViewCount) apiUrl += `&maxViewCount=${maxViewCount}`;
+      if (longFormOnly) apiUrl += `&longFormOnly=true`;
       
       const response = await fetch(apiUrl);
       setAnalysisProgress(50);
@@ -469,6 +472,25 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                         </div>
                       </div>
                       
+                      {/* 롱폼 필터 옵션 */}
+                      <div className="bg-white p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="longFormOnly"
+                            checked={longFormOnly}
+                            onChange={(e) => setLongFormOnly(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                          <label htmlFor="longFormOnly" className="text-sm font-medium text-blue-900 cursor-pointer">
+                            🎬 롱폼 영상만 검색 (60초 이상)
+                          </label>
+                        </div>
+                        <p className="text-xs text-blue-700 mt-2 ml-7">
+                          체크하면 쇼츠(60초 이하)는 제외하고 롱폼 영상만 분석합니다
+                        </p>
+                      </div>
+                      
                       {/* 정렬 옵션 */}
                       <div>
                         <label className="block text-sm font-medium text-blue-900 mb-2">
@@ -551,12 +573,23 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                         setKeyword('');
                         handleTrendingSearch();
                       }}
-                      variant="outline"
-                      className="h-14 text-lg font-semibold"
+                      className="h-14 text-lg font-semibold bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0 relative overflow-hidden group"
                       size="lg"
                     >
-                      <TrendingUp className="w-6 h-6 mr-2" />
-                      인기 트렌드 보기
+                      {/* 배경 애니메이션 효과 */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-yellow-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                      
+                      {/* 번쩍이는 효과 */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-10 transform skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                      
+                      {/* 아이콘과 텍스트 */}
+                      <div className="relative flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 mr-2 animate-pulse" />
+                        <span className="font-bold">🔥 실시간 인기 트렌드</span>
+                        <div className="ml-2 text-xs bg-yellow-400 text-red-700 px-2 py-1 rounded-full font-bold animate-bounce">
+                          HOT
+                        </div>
+                      </div>
                     </Button>
                   </div>
                 </div>

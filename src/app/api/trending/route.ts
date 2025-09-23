@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { YouTubeTrendingResponse, YouTubeSearchItem, YouTubeVideo } from '@/types/youtube';
 import { CATEGORIES } from '@/constants/categories';
 
+// YouTube duration을 초로 변환하는 헬퍼 함수
+// 예: PT1H2M10S -> 3730초, PT5M30S -> 330초, PT45S -> 45초
+function parseDuration(duration: string): number {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  
+  const hours = parseInt(match[1] || '0');
+  const minutes = parseInt(match[2] || '0');
+  const seconds = parseInt(match[3] || '0');
+  
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -21,6 +34,7 @@ export async function GET(request: NextRequest) {
     const videoDuration = searchParams.get('videoDuration');
     const hasSubtitles = searchParams.get('hasSubtitles') === 'true';
     const channelType = searchParams.get('channelType');
+    const longFormOnly = searchParams.get('longFormOnly') === 'true';
 
     if (!apiKey) {
       return NextResponse.json(
@@ -118,6 +132,12 @@ export async function GET(request: NextRequest) {
           parseInt(video.statistics.viewCount) <= maxViewCount
         );
       }
+      
+      // 롱폼 필터 시뮬레이션 (테스트 데이터는 모두 롱폼으로 간주)
+      if (longFormOnly) {
+        console.log('테스트 모드: 롱폼 필터 적용 (모든 더미 영상은 롱폼으로 처리)');
+        // 더미 데이터는 모두 롱폼으로 간주하므로 필터링하지 않음
+      }
 
       return NextResponse.json({
         success: true,
@@ -143,7 +163,8 @@ export async function GET(request: NextRequest) {
             maxDuration,
             videoDuration,
             hasSubtitles,
-            channelType
+            channelType,
+            longFormOnly
           }
         }
       });
@@ -161,7 +182,8 @@ export async function GET(request: NextRequest) {
       maxDuration, 
       videoDuration,
       hasSubtitles, 
-      channelType 
+      channelType,
+      longFormOnly
     });
 
     let apiUrl = '';
@@ -176,7 +198,8 @@ export async function GET(request: NextRequest) {
       maxDuration !== undefined ||
       videoDuration ||
       hasSubtitles ||
-      (channelType && channelType !== 'all');
+      (channelType && channelType !== 'all') ||
+      longFormOnly;
     
     // 고급 필터나 키워드가 있으면 Search API 사용
     if (hasAdvancedFilters || (keyword && keyword.trim() !== '')) {
@@ -204,7 +227,10 @@ export async function GET(request: NextRequest) {
       }
       
       // 영상 길이 필터 추가 (Search API 지원)
-      if (videoDuration) {
+      if (longFormOnly) {
+        // 롱폼 필터 시 medium이나 long 영상만 가져오기
+        apiUrl += `&videoDuration=medium`; // 4-20분, 나중에 클라이언트에서 60초 이상 필터링
+      } else if (videoDuration) {
         apiUrl += `&videoDuration=${videoDuration}`;
       } else if (minDuration !== undefined || maxDuration !== undefined) {
         if (minDuration !== undefined && minDuration >= 1200) {
@@ -336,6 +362,56 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // longFormOnly 필터를 위한 duration 정보 추가
+    if (longFormOnly && processedItems.length > 0) {
+      try {
+        // 비디오 ID 목록 추출
+        const videoIds = processedItems.map(item => item.id).join(',');
+        
+        // Videos API로 duration 정보 추가 요청
+        const durationUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`;
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Duration API 요청:', durationUrl);
+        }
+        
+        const durationResponse = await fetch(durationUrl);
+        const durationData: YouTubeTrendingResponse = await durationResponse.json();
+        
+        // Duration 데이터를 맵으로 변환
+        const durationMap: Record<string, string> = {};
+        if (durationData.items) {
+          durationData.items.forEach(item => {
+            if (item.contentDetails?.duration) {
+              durationMap[item.id] = item.contentDetails.duration;
+            }
+          });
+        }
+        
+        // duration 정보를 processedItems에 추가
+        processedItems = processedItems.map(item => ({
+          ...item,
+          contentDetails: {
+            duration: durationMap[item.id] || 'PT0S'
+          }
+        }));
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Duration 정보 추가 완료. 첫 번째 영상 duration:', processedItems[0]?.contentDetails?.duration);
+        }
+        
+      } catch (durationError) {
+        console.error('Duration API 요청 실패:', durationError);
+        // duration 정보를 가져오지 못한 경우 기본값으로 처리
+        processedItems = processedItems.map(item => ({
+          ...item,
+          contentDetails: {
+            duration: 'PT0S'
+          }
+        }));
+      }
+    }
+
     // 클라이언트 사이드 필터링 적용
     let filteredItems = processedItems;
     
@@ -369,6 +445,25 @@ export async function GET(request: NextRequest) {
         
         return true;
       });
+    }
+    
+    // 롱폼 필터링 (60초 이상)
+    if (longFormOnly) {
+      filteredItems = filteredItems.filter(video => {
+        if (!video.contentDetails?.duration) return false;
+        
+        const durationInSeconds = parseDuration(video.contentDetails.duration);
+        return durationInSeconds > 60; // 60초 초과인 영상만 포함
+      });
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('롱폼 필터 적용: 60초 이상 영상만 선택');
+        console.log('롱폼 필터링 후 영상 수:', filteredItems.length);
+        if (filteredItems.length > 0) {
+          const firstVideoDuration = parseDuration(filteredItems[0].contentDetails?.duration || 'PT0S');
+          console.log('첫 번째 영상 길이:', firstVideoDuration, '초');
+        }
+      }
     }
     
     // 필터링 결과 로그
@@ -425,7 +520,8 @@ export async function GET(request: NextRequest) {
           maxDuration,
           videoDuration,
           hasSubtitles,
-          channelType
+          channelType,
+          longFormOnly
         }
       }
     });
