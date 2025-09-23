@@ -228,8 +228,9 @@ export async function GET(request: NextRequest) {
       
       // 영상 길이 필터 추가 (Search API 지원)
       if (longFormOnly) {
-        // 롱폼 필터 시 medium이나 long 영상만 가져오기
-        apiUrl += `&videoDuration=medium`; // 4-20분, 나중에 클라이언트에서 60초 이상 필터링
+        // 롱폼 필터 시에는 API 필터를 사용하지 않고 클라이언트에서만 필터링
+        // 이유: API의 medium(4분+)보다 더 세밀한 60초+ 필터링이 필요함
+        console.log('롱폼 필터: API 레벨 필터링 건너뛰고 클라이언트에서 처리');
       } else if (videoDuration) {
         apiUrl += `&videoDuration=${videoDuration}`;
       } else if (minDuration !== undefined || maxDuration !== undefined) {
@@ -362,7 +363,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // longFormOnly 필터를 위한 duration 정보 추가
+    // longFormOnly 필터를 위한 duration 정보 추가 (모든 경우에 필요)
     if (longFormOnly && processedItems.length > 0) {
       try {
         // 비디오 ID 목록 추출
@@ -449,6 +450,7 @@ export async function GET(request: NextRequest) {
     
     // 롱폼 필터링 (60초 이상)
     if (longFormOnly) {
+      const originalCount = filteredItems.length;
       filteredItems = filteredItems.filter(video => {
         if (!video.contentDetails?.duration) return false;
         
@@ -456,13 +458,56 @@ export async function GET(request: NextRequest) {
         return durationInSeconds > 60; // 60초 초과인 영상만 포함
       });
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('롱폼 필터 적용: 60초 이상 영상만 선택');
-        console.log('롱폼 필터링 후 영상 수:', filteredItems.length);
-        if (filteredItems.length > 0) {
-          const firstVideoDuration = parseDuration(filteredItems[0].contentDetails?.duration || 'PT0S');
-          console.log('첫 번째 영상 길이:', firstVideoDuration, '초');
+      console.log('롱폼 필터 적용: 60초 이상 영상만 선택');
+      console.log(`필터링 결과: ${originalCount}개 → ${filteredItems.length}개 롱폼 영상`);
+      
+      // 롱폼 영상이 너무 적을 때 (5개 미만) 추가 로딩 시도
+      if (filteredItems.length < 5 && !keyword) {
+        console.log('⚠️ 롱폼 영상 부족 감지: 추가 영상 로딩 시도');
+        
+        try {
+          // 더 많은 인기 영상을 가져와서 롱폼 찾기
+          const expandedMaxResults = Math.min(maxResults * 2, 100); // 최대 100개까지
+          let expandedApiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=${expandedMaxResults}&key=${apiKey}`;
+          
+          if (category && category !== '' && category !== '0') {
+            expandedApiUrl += `&videoCategoryId=${category}`;
+          }
+          
+          console.log(`추가 영상 요청: ${expandedMaxResults}개`);
+          
+          const expandedResponse = await fetch(expandedApiUrl);
+          if (expandedResponse.ok) {
+            const expandedData: YouTubeTrendingResponse = await expandedResponse.json();
+            
+            if (expandedData.items && expandedData.items.length > 0) {
+              // 확장된 결과에서 롱폼만 필터링
+              const expandedLongFormVideos = expandedData.items.filter(video => {
+                if (!video.contentDetails?.duration) return false;
+                const durationInSeconds = parseDuration(video.contentDetails.duration);
+                return durationInSeconds > 60;
+              });
+              
+              console.log(`확장 검색 결과: ${expandedData.items.length}개 중 ${expandedLongFormVideos.length}개 롱폼 발견`);
+              
+              // 기존 결과와 중복 제거 후 합치기
+              const existingIds = new Set(filteredItems.map(item => item.id));
+              const newLongFormVideos = expandedLongFormVideos.filter(video => !existingIds.has(video.id));
+              
+              filteredItems = [...filteredItems, ...newLongFormVideos].slice(0, maxResults);
+              console.log(`최종 롱폼 영상 수: ${filteredItems.length}개`);
+            }
+          }
+        } catch (expandError) {
+          console.error('추가 영상 로딩 실패:', expandError);
         }
+      }
+      
+      if (filteredItems.length > 0) {
+        const firstVideoDuration = parseDuration(filteredItems[0].contentDetails?.duration || 'PT0S');
+        console.log('첫 번째 롱폼 영상 길이:', firstVideoDuration, '초');
+      } else {
+        console.log('⚠️ 조건에 맞는 롱폼 영상을 찾을 수 없습니다.');
       }
     }
     
