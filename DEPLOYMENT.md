@@ -37,9 +37,17 @@ npm start
    - Framework Preset: "Next.js" 자동 감지
    - Deploy 클릭
 
-3. **환경 변수 설정**
+3. **환경 변수 설정 (필수)**
    - Vercel 프로젝트 설정 → Environment Variables
-   - 필요시 환경 변수 추가 (현재는 클라이언트 측 API 키 사용으로 불필요)
+   - 아래 Firebase 환경변수들을 모두 추가해야 합니다:
+     ```
+     NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyAGe9vGD4mzVVkCHfJwojxM6kxVRLpAZlQ
+     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=youtube-trend-explorer-2025.firebaseapp.com
+     NEXT_PUBLIC_FIREBASE_PROJECT_ID=youtube-trend-explorer-2025
+     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=youtube-trend-explorer-2025.appspot.com
+     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789012
+     NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789012:web:abcdef123456789012345678
+     ```
 
 ### 방법 2: Vercel CLI 사용
 
@@ -75,7 +83,28 @@ npm start
 ```
 
 ### 환경 변수
-현재 앱은 사용자가 직접 YouTube API 키를 입력하므로 서버 측 환경 변수는 필요하지 않습니다.
+
+#### 필수 Firebase 환경변수
+Google 인증 기능을 위해 다음 환경변수들이 **반드시** 설정되어야 합니다:
+
+| 환경변수명 | 설명 | 예시값 |
+|-----------|------|--------|
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase API 키 | AIzaSyAGe9vGD4mzVVkCHfJwojxM6kxVRLpAZlQ |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase 인증 도메인 | youtube-trend-explorer-2025.firebaseapp.com |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase 프로젝트 ID | youtube-trend-explorer-2025 |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase 스토리지 버킷 | youtube-trend-explorer-2025.appspot.com |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase 메시징 센더 ID | 123456789012 |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase 앱 ID | 1:123456789012:web:abcdef123456789012345678 |
+
+#### Vercel 환경변수 설정 방법
+1. Vercel Dashboard → 프로젝트 선택 → Settings
+2. Environment Variables 섹션
+3. 각 변수를 `Production`, `Preview`, `Development` 모든 환경에 추가
+4. 설정 완료 후 프로젝트 재배포
+
+#### API 키 관리
+- YouTube API 키와 Gemini AI 키는 사용자가 직접 입력하는 방식 유지
+- Firebase 설정은 환경변수로 보안 관리
 
 ## 📱 도메인 설정
 
@@ -106,12 +135,16 @@ Vercel에서 자동 제공하는 도메인 형식:
 
 ### 기능 테스트 체크리스트
 - [ ] 앱 로딩 및 초기 화면 표시
+- [ ] **Google 로그인 버튼 표시 및 작동**
+- [ ] **Firebase 인증 플로우 완료**
+- [ ] **사용자 프로필 표시 및 로그아웃 기능**
 - [ ] YouTube API 키 입력 및 검증
 - [ ] 국가별 트렌드 검색 기능
 - [ ] 카테고리 필터링 기능
 - [ ] 영상 카드 표시 및 외부 링크
 - [ ] 반응형 디자인 (모바일/태블릿/데스크톱)
 - [ ] 통계 정보 표시
+- [ ] **인증된 사용자만 메인 기능 접근 가능**
 
 ### 성능 테스트
 - Google PageSpeed Insights 점수 확인
@@ -139,6 +172,13 @@ npm run type-check
 **환경 변수 문제**
 - Vercel 대시보드에서 환경 변수 설정 확인
 - 변수명 오타 확인 (`NEXT_PUBLIC_` 접두사)
+- Firebase 환경변수 6개 모두 설정되어 있는지 확인
+- 환경변수 값에 따옴표나 공백이 없는지 확인
+
+**Firebase 인증 문제**
+- Google 로그인 버튼이 표시되지 않는 경우: Firebase 환경변수 확인
+- 인증 에러 발생 시: Firebase Console에서 도메인 승인 설정 확인
+- Authorized domains에 Vercel 도메인 추가: `your-project.vercel.app`
 
 ### 로그 확인
 ```bash
@@ -189,8 +229,9 @@ git push origin main
 ### 기술 스택
 - **프론트엔드**: Next.js 15, React 19, TypeScript
 - **스타일링**: Tailwind CSS 4, Radix UI
+- **인증**: Firebase Authentication (Google OAuth)
 - **배포**: Vercel
-- **API**: YouTube Data API v3
+- **API**: YouTube Data API v3, Google Generative AI (Gemini)
 
 ---
 
