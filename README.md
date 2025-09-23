@@ -189,3 +189,4 @@ YouTube Data API와 모든 오픈소스 라이브러리에 감사드립니다.
 
 © 2025 YouTube Trend Explorer. All rights reserved.
 # Force new deployment
+# Trigger deployment with all environment variables
