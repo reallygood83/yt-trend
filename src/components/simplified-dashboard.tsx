@@ -30,6 +30,40 @@ interface SimplifiedDashboardProps {
 
 type TabValue = 'search' | 'analysis' | 'results';
 
+// 날짜 필터 계산 함수
+const getDateRange = (filter: string, customStart?: string, customEnd?: string) => {
+  const now = new Date();
+  let startDate = '';
+  let endDate = '';
+
+  switch (filter) {
+    case 'today':
+      startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      break;
+    case '3days':
+      startDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      break;
+    case 'week':
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      break;
+    case 'month':
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      break;
+    case 'custom':
+      startDate = customStart || '';
+      endDate = customEnd || '';
+      break;
+    default:
+      return { startDate: '', endDate: '' };
+  }
+
+  if (filter !== 'custom') {
+    endDate = now.toISOString().split('T')[0];
+  }
+
+  return { startDate, endDate };
+};
+
 export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProps) {
   const [currentTab, setCurrentTab] = useState<TabValue>('search');
   const [keyword, setKeyword] = useState('');
@@ -43,6 +77,9 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [maxVideos, setMaxVideos] = useState(20); // 기본 20개
   const [longFormOnly, setLongFormOnly] = useState(false); // 롱폼 필터 상태 추가
+  const [dateFilter, setDateFilter] = useState('all'); // 날짜 필터 상태 추가
+  const [customStartDate, setCustomStartDate] = useState(''); // 사용자 지정 시작 날짜
+  const [customEndDate, setCustomEndDate] = useState(''); // 사용자 지정 종료 날짜
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [aiInsights, setAiInsights] = useState<string[]>([]);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
@@ -123,12 +160,17 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
         throw new Error('API 키를 찾을 수 없습니다.');
       }
 
+      // 날짜 필터 계산
+      const { startDate, endDate } = getDateRange(dateFilter, customStartDate, customEndDate);
+      
       // YouTube 검색 API 호출 - 필터 추가
       let apiUrl = `/api/trending?apiKey=${encodeURIComponent(apiKey)}&keyword=${encodeURIComponent(keyword)}&maxResults=50&country=${country}`;
       
       if (minViewCount) apiUrl += `&minViewCount=${minViewCount}`;
       if (maxViewCount) apiUrl += `&maxViewCount=${maxViewCount}`;
       if (longFormOnly) apiUrl += `&longFormOnly=true`;
+      if (startDate) apiUrl += `&publishedAfter=${startDate}`;
+      if (endDate) apiUrl += `&publishedBefore=${endDate}`;
       
       const response = await fetch(apiUrl);
       setAnalysisProgress(50);
@@ -237,12 +279,17 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
         throw new Error('API 키를 찾을 수 없습니다.');
       }
 
+      // 날짜 필터 계산
+      const { startDate, endDate } = getDateRange(dateFilter, customStartDate, customEndDate);
+      
       // YouTube 트렌드 API 호출 - 키워드 없이 인기 트렌드
       let apiUrl = `/api/trending?apiKey=${encodeURIComponent(apiKey)}&maxResults=50&country=${country}`;
       
       if (minViewCount) apiUrl += `&minViewCount=${minViewCount}`;
       if (maxViewCount) apiUrl += `&maxViewCount=${maxViewCount}`;
       if (longFormOnly) apiUrl += `&longFormOnly=true`;
+      if (startDate) apiUrl += `&publishedAfter=${startDate}`;
+      if (endDate) apiUrl += `&publishedBefore=${endDate}`;
       
       const response = await fetch(apiUrl);
       setAnalysisProgress(50);
@@ -552,6 +599,55 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                         </div>
                         <p className="text-xs text-blue-600 mt-1">
                           💡 조회수 범위를 설정하면 더 정확한 분석이 가능합니다
+                        </p>
+                      </div>
+                      
+                      {/* 날짜 필터 */}
+                      <div>
+                        <label className="block text-sm font-medium text-blue-900 mb-2">
+                          📅 영상 검색 기간
+                        </label>
+                        <div className="space-y-3">
+                          <select
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-full h-10 px-3 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="all">🌐 전체 기간 (YouTube 기본값)</option>
+                            <option value="today">📰 오늘 (최근 24시간)</option>
+                            <option value="3days">🔥 최근 3일</option>
+                            <option value="week">📊 최근 1주일</option>
+                            <option value="month">📈 최근 1개월</option>
+                            <option value="custom">⚙️ 사용자 지정</option>
+                          </select>
+                          
+                          {dateFilter === 'custom' && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                              <div>
+                                <Input
+                                  type="date"
+                                  value={customStartDate}
+                                  onChange={(e) => setCustomStartDate(e.target.value)}
+                                  placeholder="시작 날짜"
+                                  className="h-10"
+                                />
+                                <p className="text-xs text-blue-600 mt-1">시작 날짜</p>
+                              </div>
+                              <div>
+                                <Input
+                                  type="date"
+                                  value={customEndDate}
+                                  onChange={(e) => setCustomEndDate(e.target.value)}
+                                  placeholder="종료 날짜"
+                                  className="h-10"
+                                />
+                                <p className="text-xs text-blue-600 mt-1">종료 날짜</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          ⏰ 특정 기간의 인기 영상만 분석하여 더 정확한 트렌드를 파악할 수 있습니다
                         </p>
                       </div>
                     </div>
