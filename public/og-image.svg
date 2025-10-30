@@ -1,0 +1,64 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <rect width="1200" height="630" fill="url(#gradient)"/>
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF0000"/>
+      <stop offset="50%" stop-color="#DC2626"/>
+      <stop offset="100%" stop-color="#991B1B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Decorative Elements -->
+  <circle cx="100" cy="100" r="150" fill="white" opacity="0.1"/>
+  <circle cx="1100" cy="530" r="120" fill="white" opacity="0.1"/>
+  <rect x="900" y="50" width="250" height="250" rx="20" fill="white" opacity="0.05" transform="rotate(15 1025 175)"/>
+
+  <!-- YouTube Play Button Icon -->
+  <g transform="translate(100, 150)">
+    <rect width="180" height="130" rx="15" fill="white"/>
+    <polygon points="70,40 70,90 120,65" fill="#DC2626"/>
+  </g>
+
+  <!-- Main Title -->
+  <text x="320" y="230" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="white">
+    YouTube 학습노트
+  </text>
+
+  <!-- Subtitle -->
+  <text x="320" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="white" opacity="0.95">
+    AI로 만드는 스마트한 영상 학습
+  </text>
+
+  <!-- Features -->
+  <g transform="translate(320, 340)">
+    <!-- Feature 1 -->
+    <circle cx="0" cy="0" r="12" fill="white"/>
+    <text x="25" y="8" font-family="system-ui" font-size="28" fill="white" opacity="0.9">
+      자동 타임스탬프 정리
+    </text>
+
+    <!-- Feature 2 -->
+    <circle cx="0" cy="60" r="12" fill="white"/>
+    <text x="25" y="68" font-family="system-ui" font-size="28" fill="white" opacity="0.9">
+      구간별 영상 임베드
+    </text>
+
+    <!-- Feature 3 -->
+    <circle cx="0" cy="120" r="12" fill="white"/>
+    <text x="25" y="128" font-family="system-ui" font-size="28" fill="white" opacity="0.9">
+      Firebase 클라우드 저장
+    </text>
+  </g>
+
+  <!-- Bottom Badge -->
+  <rect x="320" y="520" width="560" height="60" rx="30" fill="white" opacity="0.2"/>
+  <text x="600" y="560" font-family="system-ui" font-size="32" font-weight="600" fill="white" text-anchor="middle">
+    🎓 ADHD 친화적 학습 최적화
+  </text>
+
+  <!-- Logo/Creator -->
+  <text x="1100" y="600" font-family="system-ui" font-size="20" fill="white" opacity="0.8" text-anchor="end">
+    by 배움의 달인
+  </text>
+</svg>

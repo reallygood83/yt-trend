@@ -1,7 +1,8 @@
 {
-  "name": "youtube-trend-explorer",
-  "version": "0.1.0",
+  "name": "youtube-learning-note-generator",
+  "version": "1.0.0",
   "private": true,
+  "description": "AI 기반 YouTube 영상 학습 최적화 도구. Google Gemini AI로 영상을 스마트한 학습노트로 자동 변환. 타임스탬프 기반 구간 정리, 영상 임베드, Firebase 클라우드 저장, ADHD 친화적 학습 지원.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
