@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
 
+// Force dynamic rendering for Vercel
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // YouTube Video ID 추출 함수
 function extractVideoId(url: string): string | null {
   const patterns = [
