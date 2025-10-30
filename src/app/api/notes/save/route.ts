@@ -16,7 +16,7 @@ import {
 // 노트 저장 타입
 interface SaveNoteRequest {
   userId: string;
-  noteData: any;
+  noteData: Record<string, unknown>;
   metadata: {
     title: string;
     youtubeUrl: string;

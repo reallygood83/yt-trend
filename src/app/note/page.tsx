@@ -49,6 +49,18 @@ interface TranscriptSegment {
   duration: number;
 }
 
+interface SavedNote {
+  id: string;
+  noteData: Record<string, unknown>;
+  metadata: {
+    title: string;
+    youtubeUrl: string;
+    duration: string;
+    channelTitle: string;
+  };
+  createdAt?: string;
+}
+
 interface Transcript {
   full: string;
   segments: TranscriptSegment[];
@@ -98,7 +110,7 @@ export default function NotePage() {
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
   const [shareId, setShareId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [userNotes, setUserNotes] = useState<any[]>([]);
+  const [userNotes, setUserNotes] = useState<SavedNote[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   // Firebase 익명 인증
@@ -455,7 +467,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                           📺 {note.metadata?.channelTitle} • ⏱️ {note.metadata?.duration}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          저장일: {new Date(note.createdAt).toLocaleDateString('ko-KR')}
+                          저장일: {note.createdAt ? new Date(note.createdAt).toLocaleDateString('ko-KR') : '알 수 없음'}
                         </p>
                       </div>
                       <Button

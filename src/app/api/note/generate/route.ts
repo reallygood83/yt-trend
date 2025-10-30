@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 ${transcript.full}
 
 ## 타임스탬프별 자막 구간 정보
-${transcript.segments ? transcript.segments.slice(0, 30).map((seg: any, idx: number) =>
+${transcript.segments ? transcript.segments.slice(0, 30).map((seg: { start: number; text: string }) =>
   `[${Math.floor(seg.start)}초] ${seg.text}`
 ).join('\n') : ''}
 

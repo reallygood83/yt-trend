@@ -4,10 +4,10 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { shareId: string } }
+  { params }: { params: Promise<{ shareId: string }> }
 ) {
   try {
-    const { shareId } = params;
+    const { shareId } = await params;
 
     if (!shareId) {
       return NextResponse.json(
