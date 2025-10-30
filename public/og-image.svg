@@ -1,64 +1,105 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background Gradient -->
-  <rect width="1200" height="630" fill="url(#gradient)"/>
+  <!-- Background with Modern Gradient -->
+  <rect width="1200" height="630" fill="url(#modernGradient)"/>
   <defs>
-    <linearGradient id="gradient" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FF0000"/>
-      <stop offset="50%" stop-color="#DC2626"/>
-      <stop offset="100%" stop-color="#991B1B"/>
+    <linearGradient id="modernGradient" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="50%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#334155"/>
     </linearGradient>
+
+    <!-- Pattern for texture -->
+    <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="1.5" fill="white" opacity="0.1"/>
+    </pattern>
   </defs>
 
-  <!-- Decorative Elements -->
-  <circle cx="100" cy="100" r="150" fill="white" opacity="0.1"/>
-  <circle cx="1100" cy="530" r="120" fill="white" opacity="0.1"/>
-  <rect x="900" y="50" width="250" height="250" rx="20" fill="white" opacity="0.05" transform="rotate(15 1025 175)"/>
+  <!-- Texture Overlay -->
+  <rect width="1200" height="630" fill="url(#dots)"/>
 
-  <!-- YouTube Play Button Icon -->
-  <g transform="translate(100, 150)">
-    <rect width="180" height="130" rx="15" fill="white"/>
-    <polygon points="70,40 70,90 120,65" fill="#DC2626"/>
+  <!-- Decorative Shapes -->
+  <circle cx="1000" cy="100" r="200" fill="#EF4444" opacity="0.15"/>
+  <circle cx="200" cy="500" r="150" fill="#3B82F6" opacity="0.15"/>
+  <rect x="800" y="400" width="300" height="300" rx="40" fill="#8B5CF6" opacity="0.1" transform="rotate(25 950 550)"/>
+
+  <!-- Large YouTube Logo -->
+  <g transform="translate(80, 200)">
+    <!-- Red Play Button Background -->
+    <rect width="240" height="170" rx="25" fill="#FF0000"/>
+    <!-- White Play Triangle -->
+    <polygon points="90,50 90,120 160,85" fill="white"/>
   </g>
 
-  <!-- Main Title -->
-  <text x="320" y="230" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="white">
-    YouTube 학습노트
-  </text>
-
-  <!-- Subtitle -->
-  <text x="320" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="white" opacity="0.95">
-    AI로 만드는 스마트한 영상 학습
-  </text>
-
-  <!-- Features -->
-  <g transform="translate(320, 340)">
-    <!-- Feature 1 -->
-    <circle cx="0" cy="0" r="12" fill="white"/>
-    <text x="25" y="8" font-family="system-ui" font-size="28" fill="white" opacity="0.9">
-      자동 타임스탬프 정리
+  <!-- Main Content Area -->
+  <g transform="translate(380, 0)">
+    <!-- Top Label -->
+    <rect x="0" y="140" width="200" height="45" rx="22.5" fill="#EF4444"/>
+    <text x="100" y="172" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+          font-size="24" font-weight="700" fill="white" text-anchor="middle">
+      AI 자동화
     </text>
 
-    <!-- Feature 2 -->
-    <circle cx="0" cy="60" r="12" fill="white"/>
-    <text x="25" y="68" font-family="system-ui" font-size="28" fill="white" opacity="0.9">
-      구간별 영상 임베드
+    <!-- Main Title -->
+    <text x="0" y="260" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+          font-size="68" font-weight="900" fill="white" letter-spacing="-0.02em">
+      YouTube 학습노트
     </text>
 
-    <!-- Feature 3 -->
-    <circle cx="0" cy="120" r="12" fill="white"/>
-    <text x="25" y="128" font-family="system-ui" font-size="28" fill="white" opacity="0.9">
-      Firebase 클라우드 저장
+    <!-- Subtitle with Gradient -->
+    <text x="0" y="330" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+          font-size="42" font-weight="600" fill="#94A3B8" letter-spacing="-0.01em">
+      영상을 완벽한 학습자료로
     </text>
+
+    <!-- Feature Pills -->
+    <g transform="translate(0, 380)">
+      <!-- Pill 1 -->
+      <rect x="0" y="0" width="220" height="50" rx="25" fill="#1E293B" stroke="#475569" stroke-width="2"/>
+      <text x="110" y="33" font-family="system-ui" font-size="22" font-weight="600"
+            fill="#E2E8F0" text-anchor="middle">
+        ⏱️ 타임스탬프
+      </text>
+
+      <!-- Pill 2 -->
+      <rect x="240" y="0" width="180" height="50" rx="25" fill="#1E293B" stroke="#475569" stroke-width="2"/>
+      <text x="330" y="33" font-family="system-ui" font-size="22" font-weight="600"
+            fill="#E2E8F0" text-anchor="middle">
+        📺 구간재생
+      </text>
+
+      <!-- Pill 3 -->
+      <rect x="440" y="0" width="160" height="50" rx="25" fill="#1E293B" stroke="#475569" stroke-width="2"/>
+      <text x="520" y="33" font-family="system-ui" font-size="22" font-weight="600"
+            fill="#E2E8F0" text-anchor="middle">
+        ☁️ 클라우드
+      </text>
+    </g>
+
+    <!-- ADHD Badge -->
+    <g transform="translate(0, 460)">
+      <rect x="0" y="0" width="350" height="65" rx="32.5" fill="url(#badgeGradient)"/>
+      <defs>
+        <linearGradient id="badgeGradient" x1="0" y1="0" x2="350" y2="65" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#8B5CF6"/>
+          <stop offset="100%" stop-color="#6366F1"/>
+        </linearGradient>
+      </defs>
+      <text x="175" y="43" font-family="system-ui" font-size="28" font-weight="700"
+            fill="white" text-anchor="middle">
+        🎯 ADHD 친화적 학습
+      </text>
+    </g>
   </g>
 
-  <!-- Bottom Badge -->
-  <rect x="320" y="520" width="560" height="60" rx="30" fill="white" opacity="0.2"/>
-  <text x="600" y="560" font-family="system-ui" font-size="32" font-weight="600" fill="white" text-anchor="middle">
-    🎓 ADHD 친화적 학습 최적화
-  </text>
-
-  <!-- Logo/Creator -->
-  <text x="1100" y="600" font-family="system-ui" font-size="20" fill="white" opacity="0.8" text-anchor="end">
-    by 배움의 달인
-  </text>
+  <!-- Bottom Creator Info -->
+  <g transform="translate(50, 580)">
+    <text x="0" y="0" font-family="system-ui" font-size="22" font-weight="600"
+          fill="#94A3B8">
+      Powered by Google Gemini AI
+    </text>
+    <text x="1100" y="0" font-family="system-ui" font-size="22" font-weight="600"
+          fill="#64748B" text-anchor="end">
+      배움의 달인
+    </text>
+  </g>
 </svg>
