@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://youtube-trend-explorer.vercel.app'),
+  metadataBase: new URL('https://yt-trend.vercel.app'),
   alternates: {
     canonical: '/',
     languages: {
