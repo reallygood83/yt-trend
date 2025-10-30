@@ -22,17 +22,22 @@ const firebaseConfig = {
 if (typeof window !== 'undefined') {
   console.log('Firebase Config:', {
     ...firebaseConfig,
-    apiKey: firebaseConfig.apiKey.substring(0, 10) + '...' // Only log partial API key
+    apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + '...' : 'NOT SET' // Only log partial API key
   });
 }
 
-// Initialize Firebase only if not already initialized
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Check if Firebase config is valid
+const hasValidConfig = firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId;
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+// Initialize Firebase only if not already initialized and config is valid
+const app = hasValidConfig
+  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0])
+  : null;
 
-// Initialize Firestore
-export const db = getFirestore(app);
+// Initialize Firebase Authentication and get a reference to the service (null if no valid config)
+export const auth = app ? getAuth(app) : (null as unknown as ReturnType<typeof getAuth>);
+
+// Initialize Firestore (null if no valid config)
+export const db = app ? getFirestore(app) : (null as unknown as ReturnType<typeof getFirestore>);
 
 export default app;
