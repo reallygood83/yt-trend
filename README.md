@@ -50,7 +50,18 @@ cd youtube-trend-explorer
 npm install
 ```
 
-### 3. 개발 서버 실행
+### 3. 환경 변수 설정
+```bash
+# .env.example 파일을 .env.local로 복사
+cp .env.example .env.local
+
+# .env.local 파일을 열어 Firebase 설정값 입력
+# Firebase Console에서 프로젝트 설정 → 일반 → 내 앱 → 웹 앱 설정 복사
+```
+
+**⚠️ 중요**: `.env.local` 파일은 절대 Git에 커밋하지 마세요!
+
+### 4. 개발 서버 실행
 ```bash
 npm run dev
 ```
