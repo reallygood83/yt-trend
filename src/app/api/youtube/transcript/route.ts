@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { YoutubeTranscript } from 'youtube-transcript';
+import { Innertube } from 'youtubei.js';
 
 // Force dynamic rendering for Vercel
 export const runtime = 'nodejs';
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Video ID 추출 (직접 전달되었으면 그것 사용, 아니면 URL에서 추출)
+    // Video ID 추출
     const videoId = directVideoId || extractVideoId(url);
     if (!videoId) {
       return NextResponse.json(
@@ -43,51 +43,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Transcript 가져오기
-    try {
-      const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
-        lang: lang,
-      });
+    // Initialize YouTube client
+    const youtube = await Innertube.create({
+      lang: lang === 'ko' ? 'ko' : 'en',
+      location: lang === 'ko' ? 'KR' : 'US',
+      retrieve_player: false,
+    });
 
-      // Transcript를 하나의 텍스트로 결합
-      const fullTranscript = transcriptItems
-        .map(item => item.text)
-        .join(' ');
+    // Get video info with transcript
+    const info = await youtube.getInfo(videoId);
 
-      // 타임스탬프 포함 버전 (초 단위로 변환)
-      const segments = transcriptItems.map(item => ({
-        text: item.text,
-        start: item.offset / 1000, // 밀리초 → 초 변환
-        duration: item.duration / 1000, // 밀리초 → 초 변환
-      }));
+    // Try to get transcript
+    const transcriptData = await info.getTranscript();
 
-      return NextResponse.json({
-        full: fullTranscript,
-        segments: segments,
-      });
-    } catch (transcriptError: unknown) {
-      // 한국어 자막이 없는 경우 영어로 재시도
+    if (!transcriptData || !transcriptData.transcript) {
+      // Try English if Korean fails
       if (lang === 'ko') {
-        try {
-          const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
-            lang: 'en',
-          });
+        const youtube_en = await Innertube.create({
+          lang: 'en',
+          location: 'US',
+          retrieve_player: false,
+        });
+        const info_en = await youtube_en.getInfo(videoId);
+        const transcriptData_en = await info_en.getTranscript();
 
-          const fullTranscript = transcriptItems
-            .map(item => item.text)
-            .join(' ');
-
-          const segments = transcriptItems.map(item => ({
-            text: item.text,
-            start: item.offset / 1000, // 밀리초 → 초 변환
-            duration: item.duration / 1000, // 밀리초 → 초 변환
-          }));
-
-          return NextResponse.json({
-            full: fullTranscript,
-            segments: segments,
-          });
-        } catch (enError) {
+        if (!transcriptData_en || !transcriptData_en.transcript) {
           return NextResponse.json(
             {
               error: '자막을 가져올 수 없습니다',
@@ -96,20 +76,68 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           );
         }
+
+        // Process English transcript
+        const content = transcriptData_en.transcript.content;
+        const segments = content?.body?.initial_segments || [];
+
+        const fullTranscript = (segments as unknown[])
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((seg: any) => seg.snippet?.text?.toString() || '')
+          .filter((text: string) => text.length > 0)
+          .join(' ');
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formattedSegments = (segments as unknown[]).map((seg: any) => ({
+          text: seg.snippet?.text?.toString() || '',
+          start: seg.start_ms ? seg.start_ms / 1000 : 0,
+          duration: seg.end_ms && seg.start_ms ? (seg.end_ms - seg.start_ms) / 1000 : 0,
+        }));
+
+        return NextResponse.json({
+          full: fullTranscript,
+          segments: formattedSegments,
+        });
       }
 
       return NextResponse.json(
         {
           error: '자막을 가져올 수 없습니다',
-          details: transcriptError instanceof Error ? transcriptError.message : '알 수 없는 오류',
+          details: '자막이 제공되지 않는 영상입니다.',
         },
         { status: 404 }
       );
     }
+
+    // Process transcript
+    const content = transcriptData.transcript.content;
+    const segments = content?.body?.initial_segments || [];
+
+    const fullTranscript = (segments as unknown[])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((seg: any) => seg.snippet?.text?.toString() || '')
+      .filter((text: string) => text.length > 0)
+      .join(' ');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formattedSegments = (segments as unknown[]).map((seg: any) => ({
+      text: seg.snippet?.text?.toString() || '',
+      start: seg.start_ms ? seg.start_ms / 1000 : 0,
+      duration: seg.end_ms && seg.start_ms ? (seg.end_ms - seg.start_ms) / 1000 : 0,
+    }));
+
+    return NextResponse.json({
+      full: fullTranscript,
+      segments: formattedSegments,
+    });
+
   } catch (error: unknown) {
     console.error('Transcript 추출 오류:', error);
     return NextResponse.json(
-      { error: '자막 추출 중 오류가 발생했습니다', details: error instanceof Error ? error.message : '알 수 없는 오류' },
+      {
+        error: '자막 추출 중 오류가 발생했습니다',
+        details: error instanceof Error ? error.message : '알 수 없는 오류'
+      },
       { status: 500 }
     );
   }
