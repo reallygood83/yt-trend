@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAPIKeysStore } from '@/store/useAPIKeysStore';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { useAuth } from '@/contexts/AuthContext';
+import { RequireAuth } from '@/components/auth/RequireAuth';
+import { UserProfile } from '@/components/auth/UserProfile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,8 +94,9 @@ interface GeneratedNote {
 
 type TabValue = 'setup' | 'generating' | 'result';
 
-export default function NotePage() {
+function NotePageContent() {
   const { youtube, ai } = useAPIKeysStore();
+  const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState<TabValue>('setup');
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
@@ -114,27 +116,12 @@ export default function NotePage() {
   const [error, setError] = useState('');
 
   // Firebase state
-  const [userId, setUserId] = useState<string | null>(null);
+  const userId = user?.uid || null;
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
   const [shareId, setShareId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userNotes, setUserNotes] = useState<SavedNote[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Firebase 익명 인증
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        // 익명 로그인
-        const result = await signInAnonymously(auth);
-        setUserId(result.user.uid);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const extractVideoId = (url: string): string | null => {
     const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
@@ -452,6 +439,11 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* 우측 상단 사용자 프로필 */}
+      <div className="absolute top-4 right-4 z-10">
+        <UserProfile />
+      </div>
+
       <div className="container mx-auto p-6 max-w-4xl">
         {/* 삭제 모달 */}
         {showDeleteModal && (
@@ -1141,5 +1133,13 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function NotePage() {
+  return (
+    <RequireAuth>
+      <NotePageContent />
+    </RequireAuth>
   );
 }
