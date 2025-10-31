@@ -33,7 +33,8 @@ const EXPLANATION_METHODS = [
   { value: 'Mind Map', label: '마인드맵', description: '시각적 개념 연결 구조', icon: '🗺️', color: 'bg-blue-50 border-blue-200' },
   { value: 'Socratic Method', label: '소크라테스식', description: '질문을 통한 깊은 사고', icon: '❓', color: 'bg-purple-50 border-purple-200' },
   { value: 'Analogy', label: '비유법', description: '친숙한 비유로 설명', icon: '🌟', color: 'bg-pink-50 border-pink-200' },
-  { value: 'Storytelling', label: '스토리텔링', description: '이야기 형식으로 전달', icon: '📖', color: 'bg-indigo-50 border-indigo-200' }
+  { value: 'Storytelling', label: '스토리텔링', description: '이야기 형식으로 전달', icon: '📖', color: 'bg-indigo-50 border-indigo-200' },
+  { value: 'Custom', label: '프롬프트 직접입력', description: '원하는 노트 형식을 직접 지정', icon: '✏️', color: 'bg-red-50 border-red-200' }
 ];
 
 const NOTE_LANGUAGES = [
@@ -102,6 +103,7 @@ export default function NotePage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [ageGroup, setAgeGroup] = useState('초등 5-6학년');
   const [method, setMethod] = useState('Feynman Technique');
+  const [customPrompt, setCustomPrompt] = useState('');
   const [noteLanguage, setNoteLanguage] = useState<'ko' | 'en'>('ko');
   const [saveMode, setSaveMode] = useState<'firebase' | 'download'>('download');
 
@@ -153,6 +155,11 @@ export default function NotePage() {
 
     if (!ai.apiKey || !ai.provider) {
       setError('AI API 키를 먼저 설정해주세요');
+      return;
+    }
+
+    if (method === 'Custom' && !customPrompt.trim()) {
+      setError('커스텀 프롬프트를 입력해주세요');
       return;
     }
 
@@ -217,6 +224,7 @@ export default function NotePage() {
           transcript: transcriptData,
           ageGroup,
           method,
+          customPrompt: method === 'Custom' ? customPrompt : undefined, // 커스텀 프롬프트 추가
           noteLanguage, // 노트 생성 언어 추가
           videoId // 구간 임베드를 위해 전달
         })
@@ -626,6 +634,26 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     </button>
                   ))}
                 </div>
+
+                {/* 프롬프트 직접입력 선택 시 텍스트 영역 표시 */}
+                {method === 'Custom' && (
+                  <div className="mt-6 space-y-3">
+                    <Label htmlFor="custom-prompt" className="text-base font-semibold">
+                      ✏️ 커스텀 프롬프트 입력
+                    </Label>
+                    <textarea
+                      id="custom-prompt"
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      placeholder="원하는 노트 형식을 자유롭게 작성하세요. 예시:&#10;&#10;- 각 섹션마다 퀴즈 3개 포함&#10;- 실생활 예시를 많이 추가&#10;- 핵심 개념은 표로 정리&#10;- 복습을 위한 요약 카드 형식으로&#10;&#10;상세할수록 더 정확한 노트가 생성됩니다."
+                      className="w-full min-h-[200px] p-4 border-2 border-gray-300 rounded-lg resize-y focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all"
+                      required={method === 'Custom'}
+                    />
+                    <p className="text-sm text-gray-600">
+                      💡 <strong>팁:</strong> 구체적으로 작성할수록 원하는 형태의 노트를 얻을 수 있습니다.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

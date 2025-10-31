@@ -154,7 +154,7 @@ function detectLanguage(text: string): 'ko' | 'en' | 'other' {
 
 export async function POST(request: NextRequest) {
   try {
-    const { provider, apiKey, model, metadata, transcript, ageGroup, method, noteLanguage, videoId } = await request.json();
+    const { provider, apiKey, model, metadata, transcript, ageGroup, method, customPrompt, noteLanguage, videoId } = await request.json();
 
     if (!provider || !apiKey || !model) {
       return NextResponse.json(
@@ -173,6 +173,13 @@ export async function POST(request: NextRequest) {
     if (!noteLanguage) {
       return NextResponse.json(
         { error: '노트 생성 언어를 선택해주세요' },
+        { status: 400 }
+      );
+    }
+
+    if (method === 'Custom' && !customPrompt) {
+      return NextResponse.json(
+        { error: '커스텀 프롬프트를 입력해주세요' },
         { status: 400 }
       );
     }
@@ -217,8 +224,8 @@ ${languageInstruction}${translationInstruction}
 ### 1. 타겟 연령: ${ageGroup}
 ${ageGroupStyles[ageGroup]}
 
-### 2. 설명 방법: ${method}
-${explanationMethods[method]}
+### 2. 설명 방법: ${method === 'Custom' ? '커스텀 프롬프트' : method}
+${method === 'Custom' ? customPrompt : explanationMethods[method]}
 
 ## 🎯 생성해야 할 JSON 구조
 
