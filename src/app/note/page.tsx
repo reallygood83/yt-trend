@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAPIKeysStore } from '@/store/useAPIKeysStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { RequireAuth } from '@/components/auth/RequireAuth';
@@ -16,7 +16,6 @@ import {
   CheckCircle, GraduationCap, Brain, AlertCircle,
   Clock, PlayCircle, FileText, Lightbulb, Save, Share2, Trash2
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import { MindMap } from '@/components/MindMap';
 
 const AGE_GROUPS = [
@@ -74,6 +73,16 @@ interface Transcript {
   segments: TranscriptSegment[];
 }
 
+interface MindMapBranch {
+  label: string;
+  subbranches: string[];
+}
+
+interface MindMapData {
+  central: string;
+  branches: MindMapBranch[];
+}
+
 interface TimeSegment {
   start: number;
   end: number;
@@ -81,6 +90,7 @@ interface TimeSegment {
   summary: string;
   keyPoints: string[];
   examples: string[];
+  mindmap?: MindMapData;
 }
 
 interface GeneratedNote {
@@ -951,12 +961,12 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                       )}
 
                       {/* 마인드맵 시각화 */}
-                      {(segment as any).mindmap && (
+                      {segment.mindmap && (
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                           <h4 className="font-semibold mb-4 flex items-center gap-2">
                             🗺️ 마인드맵 시각화
                           </h4>
-                          <MindMap data={(segment as any).mindmap} id={`segment-${idx}`} />
+                          <MindMap data={segment.mindmap} id={`segment-${idx}`} />
                         </div>
                       )}
                     </CardContent>

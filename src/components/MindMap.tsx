@@ -39,7 +39,7 @@ export function MindMap({ data, id }: MindMapProps) {
     const generateMermaidSyntax = () => {
       let syntax = `mindmap\n  root((${data.central}))\n`;
 
-      data.branches.forEach((branch, branchIdx) => {
+      data.branches.forEach((branch) => {
         syntax += `    ${branch.label}\n`;
         branch.subbranches.forEach((sub) => {
           syntax += `      ${sub}\n`;
