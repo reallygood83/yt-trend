@@ -211,8 +211,8 @@ export async function POST(request: NextRequest) {
 ## 전체 자막 내용
 ${transcript.full}
 
-## 타임스탬프별 자막 구간 정보
-${transcript.segments ? transcript.segments.slice(0, 30).map((seg: { start: number; text: string }) =>
+## 타임스탬프별 자막 구간 정보 (전체 영상)
+${transcript.segments ? transcript.segments.map((seg: { start: number; text: string }) =>
   `[${Math.floor(seg.start)}초] ${seg.text}`
 ).join('\n') : ''}
 
@@ -272,12 +272,13 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
 
 ## ⚠️ 중요 지침
 
-1. **구간 분할**: 영상 길이에 따라 적절히 분할 (3분 영상 → 4-6개 구간, 10분 영상 → 8-12개 구간)
-2. **타임스탬프 정확성**: start/end는 실제 자막 타임스탬프 기반으로 정확하게
-3. **연령 맞춤**: ${ageGroup}이 이해할 수 있는 어휘와 문장 길이
-4. **${method} 적용**: 모든 설명에 ${method} 방식 반영
-5. **실용성**: 추상적 개념보다 구체적 예시와 실천 방법 중심
-6. **JSON 형식 준수**: 반드시 위 JSON 구조 그대로 출력 (추가 설명 없이)
+1. **전체 영상 커버**: 위에 제공된 모든 타임스탬프 구간을 반드시 포함하여 **영상 처음부터 끝까지** 빠짐없이 노트 생성
+2. **구간 분할**: 영상 길이에 따라 적절히 분할 (3분 → 4-6개, 10분 → 8-12개, 20분 → 15-20개, 1시간 → 30-40개)
+3. **타임스탬프 정확성**: start/end는 실제 자막 타임스탬프 기반으로 정확하게 (마지막 구간은 영상 끝까지)
+4. **연령 맞춤**: ${ageGroup}이 이해할 수 있는 어휘와 문장 길이
+5. **${method} 적용**: 모든 설명에 ${method} 방식 반영
+6. **실용성**: 추상적 개념보다 구체적 예시와 실천 방법 중심
+7. **JSON 형식 준수**: 반드시 위 JSON 구조 그대로 출력 (추가 설명 없이)
 
 지금 바로 JSON 형식으로 학습 노트를 생성해주세요!`;
 
