@@ -502,7 +502,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-blue-600 rounded-lg">
+            <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-lg">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
             <div>
@@ -579,7 +579,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                       onClick={() => setAgeGroup(group.value)}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         ageGroup === group.value
-                          ? 'border-blue-600 bg-blue-50 shadow-md scale-105'
+                          ? 'border-red-600 bg-red-50 shadow-md scale-105'
                           : group.color
                       }`}
                     >
@@ -605,7 +605,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                       onClick={() => setMethod(m.value)}
                       className={`p-4 rounded-lg border-2 transition-all text-left ${
                         method === m.value
-                          ? 'border-blue-600 bg-blue-50 shadow-md'
+                          ? 'border-red-600 bg-red-50 shadow-md'
                           : m.color
                       }`}
                     >
@@ -632,19 +632,19 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     onClick={() => setSaveMode('download')}
                     className={`p-6 rounded-lg border-2 transition-all text-left ${
                       saveMode === 'download'
-                        ? 'border-blue-600 bg-blue-50 shadow-md'
+                        ? 'border-red-600 bg-red-50 shadow-md'
                         : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <Download className="w-8 h-8 text-blue-600 flex-shrink-0" />
+                      <Download className="w-8 h-8 text-red-600 flex-shrink-0" />
                       <div>
                         <div className="font-bold text-lg mb-1">📥 로컬 다운로드</div>
                         <div className="text-sm text-gray-600 space-y-1">
                           <p>• Markdown 파일로 다운로드</p>
                           <p>• 제한 없이 무제한 생성</p>
                           <p>• 내 컴퓨터에 직접 저장</p>
-                          <p className="text-blue-600 font-semibold mt-2">✅ 추천: 개인 보관용</p>
+                          <p className="text-red-600 font-semibold mt-2">✅ 추천: 개인 보관용</p>
                         </div>
                       </div>
                     </div>
@@ -654,7 +654,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     onClick={() => setSaveMode('firebase')}
                     className={`p-6 rounded-lg border-2 transition-all text-left ${
                       saveMode === 'firebase'
-                        ? 'border-blue-600 bg-blue-50 shadow-md'
+                        ? 'border-red-600 bg-red-50 shadow-md'
                         : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
@@ -674,8 +674,8 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                 </div>
 
                 {saveMode === 'firebase' && userId && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-800">
                       💡 현재 익명 사용자로 로그인되어 있습니다. 노트는 이 기기에 최대 3개까지 저장됩니다.
                     </p>
                   </div>
@@ -687,7 +687,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
               <Button
                 onClick={handleGenerate}
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-red-600 hover:bg-red-700"
                 disabled={!youtubeUrl || !youtube.validated || !ai.validated}
               >
                 <Sparkles className="w-5 h-5 mr-2" />
@@ -701,11 +701,11 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
             <Card>
               <CardContent className="pt-12 pb-12">
                 <div className="text-center">
-                  <Loader2 className="w-20 h-20 mx-auto mb-6 animate-spin text-blue-600" />
+                  <Loader2 className="w-20 h-20 mx-auto mb-6 animate-spin text-red-600" />
                   <h2 className="text-2xl font-bold mb-4">AI가 학습 노트를 생성하고 있습니다</h2>
                   <Progress value={progress} className="h-3 mb-4 max-w-md mx-auto" />
                   <p className="text-sm text-gray-600 mb-2">{progressMessage}</p>
-                  <p className="text-lg font-semibold text-blue-600">{progress}%</p>
+                  <p className="text-lg font-semibold text-red-600">{progress}%</p>
                 </div>
               </CardContent>
             </Card>
@@ -767,7 +767,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         allowFullScreen
                       />
                     </div>
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                       <h3 className="font-semibold mb-2 flex items-center gap-2">
                         <FileText className="w-4 h-4" />
                         📋 전체 요약
@@ -797,7 +797,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         </thead>
                         <tbody>
                           {generatedNote.segments.map((segment, idx) => (
-                            <tr key={idx} className="border-b border-gray-200 hover:bg-blue-50">
+                            <tr key={idx} className="border-b border-gray-200 hover:bg-red-50">
                               <td className="p-3 font-mono text-sm">
                                 {formatTime(segment.start)}-{formatTime(segment.end)}
                               </td>
@@ -900,7 +900,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                       <ol className="space-y-2">
                         {generatedNote.insights.mainTakeaways.map((takeaway, i) => (
                           <li key={i} className="flex gap-3">
-                            <span className="font-bold text-blue-600">{i + 1}.</span>
+                            <span className="font-bold text-red-600">{i + 1}.</span>
                             <span className="text-gray-800">{takeaway}</span>
                           </li>
                         ))}
@@ -980,7 +980,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                           onClick={handleDownload}
                           size="lg"
                           variant="outline"
-                          className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                          className="border-red-600 text-red-600 hover:bg-red-50"
                         >
                           <Download className="w-5 h-5 mr-2" />
                           .md 파일로도 다운로드
@@ -1030,7 +1030,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                   <Card className="bg-gradient-to-r from-blue-50 to-cyan-50">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-blue-600" />
+                        <CheckCircle className="w-5 h-5 text-red-600" />
                         ✅ 다운로드 완료!
                       </CardTitle>
                     </CardHeader>
@@ -1040,7 +1040,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         원하시면 다시 다운로드하거나 Firebase에 저장할 수도 있습니다.
                       </p>
                       <div className="flex gap-3">
-                        <Button onClick={handleDownload} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                        <Button onClick={handleDownload} size="lg" className="bg-red-600 hover:bg-red-700">
                           <Download className="w-5 h-5 mr-2" />
                           다시 다운로드
                         </Button>

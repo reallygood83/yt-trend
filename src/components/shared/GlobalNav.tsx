@@ -4,27 +4,36 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAPIKeysStore } from '@/store/useAPIKeysStore';
 import { Button } from '@/components/ui/button';
-import { Settings, TrendingUp, FileText, AlertTriangle } from 'lucide-react';
+import { Settings, TrendingUp, FileText, AlertTriangle, BookOpen, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export function GlobalNav() {
   const pathname = usePathname();
   const { youtube, ai } = useAPIKeysStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isSetupComplete = youtube.validated && ai.validated;
   const isNoteEnabled = youtube.validated; // 학습 노트는 YouTube API만 있으면 사용 가능
 
   return (
-    <nav className="border-b bg-white sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+    <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* 로고 */}
-          <Link href="/" className="text-xl font-bold flex items-center gap-2">
-            <span className="text-2xl">🎬</span>
-            <span>YouTube Tool Suite</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-2 group-hover:from-red-600 group-hover:to-red-700 transition-all">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                YouTube Trend Explorer
+              </h1>
+              <p className="text-xs text-gray-500">트렌드 분석 & AI 학습</p>
+            </div>
           </Link>
 
-          {/* 메인 메뉴 */}
-          <div className="flex gap-2">
+          {/* 데스크톱 메뉴 */}
+          <div className="hidden md:flex items-center gap-1">
             <NavLink
               href="/"
               active={pathname === '/'}
@@ -35,24 +44,89 @@ export function GlobalNav() {
 
             <NavLink
               href="/note"
-              active={pathname.startsWith('/note')}
+              active={pathname.startsWith('/note') && !pathname.startsWith('/notes')}
               icon={<FileText className="w-4 h-4" />}
               disabled={!isNoteEnabled}
             >
-              학습 노트 생성
+              노트 생성
             </NavLink>
+
+            <NavLink
+              href="/notes"
+              active={pathname.startsWith('/notes')}
+              icon={<BookOpen className="w-4 h-4" />}
+              disabled={!isNoteEnabled}
+            >
+              내 노트
+            </NavLink>
+
+            <div className="ml-4">
+              <Link href="/settings">
+                <Button variant="ghost" size="sm">
+                  <Settings className="w-4 h-4 mr-2" />
+                  API 설정
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* 우측 메뉴 */}
-          <div className="flex items-center gap-4">
-            <Link href="/settings">
-              <Button variant="ghost" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                API 설정
-              </Button>
-            </Link>
-          </div>
+          {/* 모바일 메뉴 버튼 */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-600" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-600" />
+            )}
+          </button>
         </div>
+
+        {/* 모바일 메뉴 */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white pb-4">
+            <div className="px-2 py-3 space-y-1">
+              <MobileNavLink
+                href="/"
+                active={pathname === '/'}
+                icon={<TrendingUp className="w-5 h-5" />}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                트렌드 분석
+              </MobileNavLink>
+
+              <MobileNavLink
+                href="/note"
+                active={pathname.startsWith('/note') && !pathname.startsWith('/notes')}
+                icon={<FileText className="w-5 h-5" />}
+                disabled={!isNoteEnabled}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                노트 생성
+              </MobileNavLink>
+
+              <MobileNavLink
+                href="/notes"
+                active={pathname.startsWith('/notes')}
+                icon={<BookOpen className="w-5 h-5" />}
+                disabled={!isNoteEnabled}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                내 노트
+              </MobileNavLink>
+
+              <div className="pt-3">
+                <Link href="/settings" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                    <Settings className="w-4 h-4 mr-2" />
+                    API 설정
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* API 키 미설정 경고 */}
         {!youtube.validated && pathname !== '/settings' && (
@@ -95,7 +169,7 @@ function NavLink({ href, active, icon, children, disabled }: NavLinkProps) {
     return (
       <button
         disabled
-        className="flex items-center gap-2 px-4 py-2 rounded-md text-gray-400 cursor-not-allowed"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
       >
         {icon}
         {children}
@@ -106,14 +180,47 @@ function NavLink({ href, active, icon, children, disabled }: NavLinkProps) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
         active
-          ? 'bg-blue-100 text-blue-700 font-semibold'
-          : 'text-gray-700 hover:bg-gray-100'
+          ? 'bg-red-50 text-red-600 border border-red-200'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
       }`}
     >
       {icon}
       {children}
+    </Link>
+  );
+}
+
+interface MobileNavLinkProps extends NavLinkProps {
+  onClick: () => void;
+}
+
+function MobileNavLink({ href, active, icon, children, disabled, onClick }: MobileNavLinkProps) {
+  if (disabled) {
+    return (
+      <button
+        disabled
+        className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 cursor-not-allowed w-full"
+      >
+        {icon}
+        <span>{children}</span>
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+        active
+          ? 'bg-red-50 text-red-600 border border-red-200'
+          : 'text-gray-600 hover:bg-gray-50'
+      }`}
+    >
+      {icon}
+      <span>{children}</span>
     </Link>
   );
 }
