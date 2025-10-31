@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     siteName: 'YouTube 학습노트 생성기',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.png?v=3',
         width: 1200,
         height: 630,
         alt: 'YouTube 학습노트 생성기 - AI로 만드는 스마트한 영상 학습',
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     title: 'YouTube 학습노트 생성기',
     description: 'AI가 YouTube 영상을 스마트한 학습노트로 변환. 타임스탬프 구간, 영상 임베드, ADHD 친화적 학습',
     creator: '@배움의달인',
-    images: ['/og-image.png'],
+    images: ['/og-image.png?v=3'],
   },
   robots: {
     index: true,
