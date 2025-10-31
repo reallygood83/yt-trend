@@ -248,7 +248,20 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
       "examples": [
         "${method}에 맞는 쉬운 예시 1",
         "실생활 비유 예시 2"
-      ]
+      ],
+      ${method === '마인드맵' ? `"mindmap": {
+        "central": "이 구간의 중심 주제 (짧게)",
+        "branches": [
+          {
+            "label": "주요 가지 1",
+            "subbranches": ["세부내용 1-1", "세부내용 1-2"]
+          },
+          {
+            "label": "주요 가지 2",
+            "subbranches": ["세부내용 2-1", "세부내용 2-2"]
+          }
+        ]
+      },` : ''}
     }
   ],
   "insights": {

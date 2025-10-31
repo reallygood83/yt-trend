@@ -17,6 +17,7 @@ import {
   Clock, PlayCircle, FileText, Lightbulb, Save, Share2, Trash2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { MindMap } from '@/components/MindMap';
 
 const AGE_GROUPS = [
   { value: '초등 1-2학년', label: '초등 1-2학년', icon: '🎨', color: 'bg-pink-50 border-pink-200 hover:bg-pink-100' },
@@ -946,6 +947,16 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                               </li>
                             ))}
                           </ul>
+                        </div>
+                      )}
+
+                      {/* 마인드맵 시각화 */}
+                      {(segment as any).mindmap && (
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h4 className="font-semibold mb-4 flex items-center gap-2">
+                            🗺️ 마인드맵 시각화
+                          </h4>
+                          <MindMap data={(segment as any).mindmap} id={`segment-${idx}`} />
                         </div>
                       )}
                     </CardContent>
