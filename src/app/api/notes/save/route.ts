@@ -5,12 +5,10 @@ import {
   addDoc,
   query,
   where,
+  getCountFromServer,
   getDocs,
-  deleteDoc,
-  doc,
-  orderBy,
-  limit,
-  Timestamp
+  Timestamp,
+  orderBy
 } from 'firebase/firestore';
 
 // 노트 저장 타입
@@ -29,6 +27,15 @@ interface SaveNoteRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Firebase 초기화 확인
+    if (!db) {
+      console.error('Firebase not initialized - db is null');
+      return NextResponse.json(
+        { success: false, error: 'Firebase 설정이 올바르지 않습니다.' },
+        { status: 500 }
+      );
+    }
+
     const { userId, noteData, metadata }: SaveNoteRequest = await request.json();
 
     if (!userId) {
@@ -38,21 +45,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. 현재 사용자의 노트 개수 확인
+    // 1. 현재 사용자의 노트 개수 확인 (최적화: getCountFromServer 사용)
     const notesRef = collection(db, 'learningNotes');
     const userNotesQuery = query(
       notesRef,
       where('userId', '==', userId)
     );
 
-    const userNotesSnapshot = await getDocs(userNotesQuery);
-    const currentNoteCount = userNotesSnapshot.size;
+    // getCountFromServer로 개수만 가져오기 (전체 데이터 다운로드 안 함)
+    const countSnapshot = await getCountFromServer(userNotesQuery);
+    const currentNoteCount = countSnapshot.data().count;
 
     // 2. 3개 이상이면 에러 반환 (프론트엔드에서 삭제 UI 표시용)
     if (currentNoteCount >= 3) {
-      const existingNotes = userNotesSnapshot.docs.map(doc => ({
+      // 필요한 경우에만 기존 노트 정보 조회 (제목과 생성일만)
+      const existingNotesQuery = query(
+        notesRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+
+      const existingNotesSnapshot = await getDocs(existingNotesQuery);
+      const existingNotes = existingNotesSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
+        title: doc.data().metadata?.title || '제목 없음',
         createdAt: doc.data().createdAt?.toDate().toISOString()
       }));
 
@@ -87,8 +103,19 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('노트 저장 오류:', error);
+
+    // 더 상세한 에러 로깅
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
     return NextResponse.json(
-      { success: false, error: '노트 저장 중 오류가 발생했습니다.' },
+      {
+        success: false,
+        error: '노트 저장 중 오류가 발생했습니다.',
+        details: error instanceof Error ? error.message : '알 수 없는 오류'
+      },
       { status: 500 }
     );
   }
