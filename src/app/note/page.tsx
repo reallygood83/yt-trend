@@ -437,7 +437,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="container mx-auto p-6 max-w-4xl">
         {/* 삭제 모달 */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
