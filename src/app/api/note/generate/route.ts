@@ -321,7 +321,17 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
     try {
       // Remove markdown code blocks if present
       const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
+      let jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
+
+      // Fix common JSON errors
+      // 1. Remove trailing commas before closing brackets/braces
+      jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+      // 2. Remove any text before first { or after last }
+      const firstBrace = jsonString.indexOf('{');
+      const lastBrace = jsonString.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      }
 
       noteData = JSON.parse(jsonString.trim());
     } catch (parseError) {
