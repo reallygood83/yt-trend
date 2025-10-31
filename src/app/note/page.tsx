@@ -36,6 +36,11 @@ const EXPLANATION_METHODS = [
   { value: 'Storytelling', label: '스토리텔링', description: '이야기 형식으로 전달', icon: '📖', color: 'bg-indigo-50 border-indigo-200' }
 ];
 
+const NOTE_LANGUAGES = [
+  { value: 'ko', label: '한국어', icon: '🇰🇷', description: '한국어로 노트 생성', color: 'bg-blue-50 border-blue-200' },
+  { value: 'en', label: 'English', icon: '🇺🇸', description: 'Generate notes in English', color: 'bg-green-50 border-green-200' }
+];
+
 interface Metadata {
   title: string;
   channelTitle: string;
@@ -97,6 +102,7 @@ export default function NotePage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [ageGroup, setAgeGroup] = useState('초등 5-6학년');
   const [method, setMethod] = useState('Feynman Technique');
+  const [noteLanguage, setNoteLanguage] = useState<'ko' | 'en'>('ko');
   const [saveMode, setSaveMode] = useState<'firebase' | 'download'>('download');
 
   // Result state
@@ -211,6 +217,7 @@ export default function NotePage() {
           transcript: transcriptData,
           ageGroup,
           method,
+          noteLanguage, // 노트 생성 언어 추가
           videoId // 구간 임베드를 위해 전달
         })
       });
@@ -618,6 +625,49 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                       </div>
                     </button>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🌐 노트 생성 언어
+                  <span className="text-sm font-normal text-red-600">* 필수 선택</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {NOTE_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.value}
+                      onClick={() => setNoteLanguage(lang.value as 'ko' | 'en')}
+                      className={`p-6 rounded-lg border-2 transition-all text-left ${
+                        noteLanguage === lang.value
+                          ? 'border-red-600 bg-red-50 shadow-md scale-105'
+                          : lang.color + ' hover:shadow-md'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <span className="text-4xl">{lang.icon}</span>
+                        <div>
+                          <div className="font-bold text-lg mb-1">{lang.label}</div>
+                          <div className="text-sm text-gray-600">{lang.description}</div>
+                          {noteLanguage === lang.value && (
+                            <div className="mt-2 text-red-600 font-semibold text-sm flex items-center gap-1">
+                              <CheckCircle className="w-4 h-4" />
+                              선택됨
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    💡 <strong>자동 번역 기능:</strong> 영상의 원본 언어와 선택한 노트 언어가 다르면 자동으로 번역하여 노트를 생성합니다.
+                  </p>
                 </div>
               </CardContent>
             </Card>

@@ -136,9 +136,25 @@ const explanationMethods: Record<string, string> = {
 4. 교훈과 인사이트 도출`
 };
 
+// 언어 감지 함수 (간단한 휴리스틱)
+function detectLanguage(text: string): 'ko' | 'en' | 'other' {
+  const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+  const englishRegex = /[a-zA-Z]/;
+
+  const koreanMatches = text.match(koreanRegex);
+  const englishMatches = text.match(englishRegex);
+
+  const koreanCount = koreanMatches ? koreanMatches.length : 0;
+  const englishCount = englishMatches ? englishMatches.length : 0;
+
+  if (koreanCount > englishCount * 2) return 'ko';
+  if (englishCount > koreanCount * 2) return 'en';
+  return 'other';
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { provider, apiKey, model, metadata, transcript, ageGroup, method, videoId } = await request.json();
+    const { provider, apiKey, model, metadata, transcript, ageGroup, method, noteLanguage, videoId } = await request.json();
 
     if (!provider || !apiKey || !model) {
       return NextResponse.json(
@@ -153,6 +169,29 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (!noteLanguage) {
+      return NextResponse.json(
+        { error: '노트 생성 언어를 선택해주세요' },
+        { status: 400 }
+      );
+    }
+
+    // 원본 영상 언어 감지
+    const videoLanguage = detectLanguage(transcript.full);
+    const needsTranslation = videoLanguage !== noteLanguage && videoLanguage !== 'other';
+
+    // 번역 지시사항
+    const translationInstruction = needsTranslation
+      ? noteLanguage === 'ko'
+        ? `\n\n**중요: 이 영상의 자막은 ${videoLanguage === 'en' ? '영어' : '다른 언어'}로 작성되어 있습니다. 모든 내용을 한국어로 번역하여 노트를 작성해주세요.**`
+        : `\n\n**Important: This video's subtitles are in ${videoLanguage === 'ko' ? 'Korean' : 'another language'}. Please translate all content to English when creating the notes.**`
+      : '';
+
+    // 언어별 시스템 지시사항
+    const languageInstruction = noteLanguage === 'ko'
+      ? '모든 노트 내용은 한국어로 작성해주세요.'
+      : 'Please write all note content in English.';
 
     // Build structured prompt for AI
     const prompt = `# YouTube 학습 노트 생성 (구조화된 JSON 형식)
@@ -171,6 +210,9 @@ ${transcript.segments ? transcript.segments.slice(0, 30).map((seg: { start: numb
 ).join('\n') : ''}
 
 ## 요구사항
+
+### 0. 언어 설정: ${noteLanguage === 'ko' ? '한국어' : 'English'}
+${languageInstruction}${translationInstruction}
 
 ### 1. 타겟 연령: ${ageGroup}
 ${ageGroupStyles[ageGroup]}
