@@ -3,10 +3,9 @@
  *
  * Next.js 서버 컴포넌트에서 Firestore 데이터를 가져오기 위한 함수들
  * generateMetadata()와 같은 서버사이드 함수에서 사용
+ *
+ * 참고: 서버 컴포넌트에서는 Firebase Client SDK가 아닌 API 라우트를 통해 데이터 조회
  */
-
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
 interface NoteSegment {
   title: string;
@@ -44,24 +43,33 @@ export interface SharedNote {
 
 /**
  * 공유 노트 데이터 가져오기 (서버사이드)
+ * API 라우트를 통해 데이터 조회
  * @param shareId - 공유 노트 ID
  * @returns SharedNote 객체 또는 null
  */
 export async function fetchSharedNoteServer(shareId: string): Promise<SharedNote | null> {
   try {
-    const shareDocRef = doc(db, 'sharedNotes', shareId);
-    const shareDoc = await getDoc(shareDocRef);
+    // 서버사이드에서는 절대 URL로 API 호출
+    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    if (!shareDoc.exists()) {
+    const response = await fetch(`${baseUrl}/api/notes/share/${shareId}`, {
+      cache: 'no-store', // 항상 최신 데이터 가져오기
+    });
+
+    if (!response.ok) {
+      console.error(`노트 조회 실패: ${response.status}`);
       return null;
     }
 
-    const data = shareDoc.data();
-    return {
-      noteData: data.noteData,
-      metadata: data.metadata,
-      createdAt: data.createdAt,
-    } as SharedNote;
+    const data = await response.json();
+
+    if (!data.note) {
+      return null;
+    }
+
+    return data.note as SharedNote;
   } catch (error) {
     console.error('서버사이드 노트 조회 오류:', error);
     return null;
