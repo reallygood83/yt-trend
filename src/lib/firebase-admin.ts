@@ -8,8 +8,12 @@
 import { initializeApp, getApps, cert, type ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
-// Firebase Admin 싱글톤 초기화
-if (!getApps().length) {
+// Firebase Admin 싱글톤 초기화 (런타임에만 실행)
+function initializeFirebaseAdmin() {
+  if (getApps().length) {
+    return; // 이미 초기화됨
+  }
+
   try {
     // Service Account 키를 환경 변수에서 가져옴
     const projectId = process.env.FIREBASE_PROJECT_ID;
@@ -38,5 +42,8 @@ if (!getApps().length) {
   }
 }
 
-// Admin Firestore 인스턴스 export
-export const adminDb = getFirestore();
+// Admin Firestore 인스턴스를 lazy하게 가져오는 함수
+export function getAdminDb() {
+  initializeFirebaseAdmin(); // 런타임에 초기화
+  return getFirestore();
+}

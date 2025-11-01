@@ -24,6 +24,8 @@ function extractVideoId(url: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  let videoId: string | null = null; // catch 블록에서도 접근 가능하도록 선언
+
   try {
     const body = await request.json();
     const { url, videoId: directVideoId, lang = 'ko' } = body;
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Video ID 추출
-    const videoId = directVideoId || extractVideoId(url);
+    videoId = directVideoId || extractVideoId(url);
     if (!videoId) {
       return NextResponse.json(
         { error: '유효하지 않은 YouTube URL입니다' },
