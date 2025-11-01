@@ -27,6 +27,25 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { decryptAPIKey } from '@/lib/encryption';
 
+// 복호화된 키 타입 정의
+interface AIProviderKey {
+  apiKey: string;
+  model?: string;
+  validated: boolean;
+  lastValidated?: string;
+}
+
+interface DecryptedKeys {
+  youtube?: {
+    apiKey: string;
+    validated: boolean;
+    lastValidated?: string;
+  } | null;
+  ai?: {
+    [provider: string]: AIProviderKey | null;
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -55,7 +74,7 @@ export async function POST(request: NextRequest) {
     const data = userKeysDoc.data();
 
     // 3. 복호화할 키 객체 초기화
-    const decryptedKeys: Record<string, unknown> = {};
+    const decryptedKeys: DecryptedKeys = {};
 
     // 4. YouTube 키 복호화
     if (data.youtube?.encryptedKey) {
@@ -80,15 +99,21 @@ export async function POST(request: NextRequest) {
         if (data.ai[provider]?.encryptedKey) {
           try {
             const decryptedAIKey = decryptAPIKey(data.ai[provider].encryptedKey, userId);
-            decryptedKeys.ai[provider] = {
-              apiKey: decryptedAIKey,
-              model: data.ai[provider].model,
-              validated: data.ai[provider].validated || false,
-              lastValidated: data.ai[provider].lastValidated,
-            };
+            // TypeScript에게 ai가 undefined가 아님을 보장
+            if (decryptedKeys.ai) {
+              decryptedKeys.ai[provider] = {
+                apiKey: decryptedAIKey,
+                model: data.ai[provider].model,
+                validated: data.ai[provider].validated || false,
+                lastValidated: data.ai[provider].lastValidated,
+              };
+            }
           } catch (error) {
             console.error(`${provider} 키 복호화 실패:`, error);
-            decryptedKeys.ai[provider] = null;
+            // TypeScript에게 ai가 undefined가 아님을 보장
+            if (decryptedKeys.ai) {
+              decryptedKeys.ai[provider] = null;
+            }
           }
         }
       }
