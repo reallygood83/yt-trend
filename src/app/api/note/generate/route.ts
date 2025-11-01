@@ -337,9 +337,17 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
     let noteData;
     let jsonString = ''; // Declare outside try block for error logging
     try {
-      // Remove markdown code blocks if present
-      const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/);
-      jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
+      // Gemini with responseMimeType: "application/json" returns pure JSON
+      // Check if response starts with { (pure JSON) or contains ```json (markdown)
+      const trimmedResponse = aiResponse.trim();
+      if (trimmedResponse.startsWith('{')) {
+        // Pure JSON response (from responseMimeType setting)
+        jsonString = trimmedResponse;
+      } else {
+        // Markdown code block format
+        const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/);
+        jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
+      }
 
       // Fix common JSON errors
       // 1. Remove trailing commas before closing brackets/braces
