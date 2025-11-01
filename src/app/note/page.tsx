@@ -891,7 +891,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                           </tr>
                         </thead>
                         <tbody>
-                          {generatedNote.segments.map((segment, idx) => (
+                          {generatedNote.segments?.map((segment, idx) => (
                             <tr key={idx} className="border-b border-gray-200 hover:bg-red-50">
                               <td className="p-3 font-mono text-sm">
                                 {formatTime(segment.start)}-{formatTime(segment.end)}
@@ -907,7 +907,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                 </Card>
 
                 {/* 구간별 상세 내용 */}
-                {generatedNote.segments.map((segment, idx) => (
+                {generatedNote.segments?.map((segment, idx) => (
                   <Card key={idx}>
                     <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
                       <CardTitle className="flex items-center gap-2">
@@ -1003,7 +1003,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         📝 주요 배운 점
                       </h3>
                       <ol className="space-y-2">
-                        {generatedNote.insights.mainTakeaways.map((takeaway, i) => (
+                        {generatedNote.insights?.mainTakeaways?.map((takeaway, i) => (
                           <li key={i} className="flex gap-3">
                             <span className="font-bold text-red-600">{i + 1}.</span>
                             <span className="text-gray-800">{takeaway}</span>
@@ -1019,7 +1019,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         🤔 생각해볼 질문
                       </h3>
                       <ul className="space-y-2">
-                        {generatedNote.insights.thinkingQuestions.map((question, i) => (
+                        {generatedNote.insights?.thinkingQuestions?.map((question, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-indigo-600 mt-1">❓</span>
                             <span className="text-gray-800">{question}</span>
@@ -1029,7 +1029,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     </div>
 
                     {/* 더 알아보기 */}
-                    {generatedNote.insights.furtherReading.length > 0 && (
+                    {generatedNote.insights?.furtherReading && generatedNote.insights.furtherReading.length > 0 && (
                       <div>
                         <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                           <BookOpen className="w-5 h-5" />
