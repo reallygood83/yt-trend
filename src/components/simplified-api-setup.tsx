@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { saveApiKey, validateApiKey, getApiKey } from '@/lib/api-key';
 import { useAPIKeysStore } from '@/store/useAPIKeysStore';
+import { useAuth } from '@/contexts/AuthContext';
 import { ExternalLink, Key, CheckCircle, AlertCircle, Loader2, Play, Sparkles } from 'lucide-react';
 
 interface SimplifiedApiSetupProps {
@@ -31,6 +32,7 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
   const [youtubeKeyValid, setYoutubeKeyValid] = useState(false);
 
   const { youtube, ai, setYouTubeKey, setAIProvider: setStoreAIProvider } = useAPIKeysStore();
+  const { user } = useAuth(); // 🔐 로그인한 사용자 정보 가져오기
 
   useEffect(() => {
     const existingYouTubeKey = getApiKey();
@@ -82,6 +84,18 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
       if (isValid) {
         // 하위 호환성을 위해 기존 방식도 저장
         saveApiKey(youtubeApiKey.trim());
+
+        // 🔐 로그인한 사용자의 경우 Firestore에도 암호화 저장
+        if (user) {
+          try {
+            await useAPIKeysStore.getState().saveKeysToFirestore(user.uid);
+            console.log('✅ YouTube 키 Firestore 저장 완료');
+          } catch (error) {
+            console.error('⚠️ YouTube 키 Firestore 저장 실패:', error);
+            // 저장 실패해도 검증은 성공이므로 계속 진행
+          }
+        }
+
         setYoutubeKeyValid(true);
         setCurrentStep('ai');
       } else {
@@ -115,6 +129,17 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
       console.log('✅ AI 키 검증 결과:', isValid);
 
       if (isValid) {
+        // 🔐 로그인한 사용자의 경우 Firestore에도 암호화 저장
+        if (user) {
+          try {
+            await useAPIKeysStore.getState().saveKeysToFirestore(user.uid);
+            console.log('✅ AI 키 Firestore 저장 완료');
+          } catch (error) {
+            console.error('⚠️ AI 키 Firestore 저장 실패:', error);
+            // 저장 실패해도 검증은 성공이므로 계속 진행
+          }
+        }
+
         onSuccess();
       } else {
         const providerName = aiProvider.charAt(0).toUpperCase() + aiProvider.slice(1);

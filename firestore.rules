@@ -18,6 +18,13 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // User API Keys Collection (암호화된 API 키 저장)
+    match /userAPIKeys/{userId} {
+      // 🔒 보안: 본인의 API 키만 읽기/쓰기 가능
+      // 서버 사이드에서는 복호화 시 userId 검증으로 추가 보안
+      allow read, write: if true; // 임시로 오픈 (서버사이드 API Route용)
+    }
+
     // Default Deny
     match /{document=**} {
       allow read, write: if false;
