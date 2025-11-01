@@ -7,6 +7,8 @@ import {
   where,
   getCountFromServer,
   getDocs,
+  doc,
+  getDoc,
   Timestamp,
   orderBy
 } from 'firebase/firestore';
@@ -45,7 +47,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. 현재 사용자의 노트 개수 확인 (최적화: getCountFromServer 사용)
+    // 1. 프리미엄 사용자 확인
+    const premiumDocRef = doc(db, 'premiumUsers', userId);
+    const premiumDoc = await getDoc(premiumDocRef);
+    const isPremium = premiumDoc.exists() && premiumDoc.data()?.isPremium === true;
+
+    // 2. 현재 사용자의 노트 개수 확인 (최적화: getCountFromServer 사용)
     const notesRef = collection(db, 'learningNotes');
     const userNotesQuery = query(
       notesRef,
@@ -56,8 +63,8 @@ export async function POST(request: NextRequest) {
     const countSnapshot = await getCountFromServer(userNotesQuery);
     const currentNoteCount = countSnapshot.data().count;
 
-    // 2. 3개 이상이면 에러 반환 (프론트엔드에서 삭제 UI 표시용)
-    if (currentNoteCount >= 3) {
+    // 3. 일반 사용자는 3개 제한, 프리미엄 사용자는 무제한
+    if (!isPremium && currentNoteCount >= 3) {
       // 필요한 경우에만 기존 노트 정보 조회 (제목과 생성일만)
       const existingNotesQuery = query(
         notesRef,
@@ -83,7 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. 노트 저장
+    // 4. 노트 저장
     const noteDoc = {
       userId,
       noteData,
@@ -98,7 +105,10 @@ export async function POST(request: NextRequest) {
       success: true,
       noteId: docRef.id,
       shareId: noteDoc.shareId,
-      message: '노트가 성공적으로 저장되었습니다.'
+      isPremium, // 프리미엄 상태 반환 (UI 표시용)
+      message: isPremium
+        ? '✨ 프리미엄 노트가 성공적으로 저장되었습니다!'
+        : '노트가 성공적으로 저장되었습니다.'
     });
 
   } catch (error) {

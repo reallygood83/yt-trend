@@ -409,7 +409,13 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
       // 저장 성공
       setSavedNoteId(data.noteId);
       setShareId(data.shareId);
-      alert('✅ 노트가 성공적으로 저장되었습니다!');
+
+      // 프리미엄 사용자 여부에 따라 다른 메시지 표시
+      if (data.isPremium) {
+        alert('✨ 프리미엄 노트가 성공적으로 저장되었습니다!\n무제한으로 노트를 생성하실 수 있습니다.');
+      } else {
+        alert('✅ 노트가 성공적으로 저장되었습니다!\n아래에서 공유 링크를 확인하세요.');
+      }
     } catch (err) {
       console.error('Firebase 저장 오류:', err);
       setError(err instanceof Error ? err.message : '노트 저장에 실패했습니다');
@@ -1082,7 +1088,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                 )}
 
                 {saveMode === 'firebase' && savedNoteId && shareId && (
-                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-green-300">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />
@@ -1101,18 +1107,30 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                           <Button
                             onClick={() => {
                               navigator.clipboard.writeText(`${window.location.origin}/notes/share/${shareId}`);
-                              alert('링크가 복사되었습니다!');
+                              alert('✅ 링크가 클립보드에 복사되었습니다!');
                             }}
                             variant="outline"
+                            className="shrink-0"
                           >
                             <Share2 className="w-4 h-4 mr-2" />
                             복사
                           </Button>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        위 링크를 공유하면 누구나 이 노트를 볼 수 있습니다.
-                      </p>
+                      <div className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">🔗</span>
+                          <div>
+                            <p className="font-semibold text-gray-900">공유 기능 활성화됨</p>
+                            <p className="text-sm text-gray-600">위 링크를 공유하면 누구나 이 노트를 볼 수 있습니다.</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <p className="text-sm text-blue-800">
+                          💡 <strong>내 노트 관리:</strong> <a href="/notes" className="underline hover:text-blue-600">저장된 노트 목록</a>에서 언제든지 다시 확인하고 관리할 수 있습니다.
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 )}

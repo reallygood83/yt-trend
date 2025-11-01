@@ -40,6 +40,8 @@ export default function MyNotesPage() {
   const [error, setError] = useState('');
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [premiumLoading, setPremiumLoading] = useState(false);
 
   // Firebase 인증
   useEffect(() => {
@@ -54,6 +56,27 @@ export default function MyNotesPage() {
 
     return () => unsubscribe();
   }, []);
+
+  // 프리미엄 사용자 확인
+  useEffect(() => {
+    if (!userId) return;
+
+    const checkPremium = async () => {
+      setPremiumLoading(true);
+      try {
+        const response = await fetch(`/api/user/check-premium?userId=${userId}`);
+        const data = await response.json();
+        setIsPremium(data.isPremium || false);
+      } catch (err) {
+        console.error('프리미엄 확인 오류:', err);
+        setIsPremium(false);
+      } finally {
+        setPremiumLoading(false);
+      }
+    };
+
+    checkPremium();
+  }, [userId]);
 
   // 노트 목록 불러오기
   useEffect(() => {
@@ -179,8 +202,21 @@ export default function MyNotesPage() {
                 <BookOpen className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">내 학습 노트</h1>
-                <p className="text-gray-600">저장된 노트 {notes.length}/3개</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-3xl font-bold text-gray-900">내 학습 노트</h1>
+                  {isPremium && (
+                    <span className="px-3 py-1 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-sm font-bold rounded-full shadow-md">
+                      ✨ 프리미엄
+                    </span>
+                  )}
+                </div>
+                <p className="text-gray-600">
+                  {isPremium ? (
+                    <span className="text-amber-600 font-semibold">무제한 노트 저장 가능 ✨</span>
+                  ) : (
+                    `저장된 노트 ${notes.length}/3개`
+                  )}
+                </p>
               </div>
             </div>
             <Link href="/note">
