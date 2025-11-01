@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Innertube } from 'youtubei.js';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 // Force dynamic rendering for Vercel
 export const runtime = 'nodejs';
@@ -43,17 +44,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize YouTube client
+    // 🎯 방법 1: youtube-transcript 라이브러리 먼저 시도 (더 안정적)
+    try {
+      console.log(`[Method 1] youtube-transcript로 자막 추출 시도: ${videoId}`);
+      const transcriptList = await YoutubeTranscript.fetchTranscript(videoId, {
+        lang: lang === 'ko' ? 'ko' : 'en',
+      });
+
+      if (transcriptList && transcriptList.length > 0) {
+        const fullTranscript = transcriptList
+          .map(item => item.text)
+          .join(' ');
+
+        const formattedSegments = transcriptList.map(item => ({
+          text: item.text,
+          start: item.offset / 1000, // ms to seconds
+          duration: item.duration / 1000,
+        }));
+
+        console.log(`✅ [Method 1] 성공: ${transcriptList.length}개 세그먼트`);
+        return NextResponse.json({
+          full: fullTranscript,
+          segments: formattedSegments,
+          method: 'youtube-transcript',
+        });
+      }
+    } catch (method1Error) {
+      console.log(`⚠️ [Method 1] 실패, Method 2로 폴백:`, method1Error instanceof Error ? method1Error.message : 'Unknown error');
+    }
+
+    // 🎯 방법 2: youtubei.js 사용 (Method 1 실패 시)
+    console.log(`[Method 2] youtubei.js로 자막 추출 시도: ${videoId}`);
     const youtube = await Innertube.create({
       lang: lang === 'ko' ? 'ko' : 'en',
       location: lang === 'ko' ? 'KR' : 'US',
       retrieve_player: false,
     });
 
-    // Get video info with transcript
     const info = await youtube.getInfo(videoId);
-
-    // Try to get transcript
     const transcriptData = await info.getTranscript();
 
     if (!transcriptData || !transcriptData.transcript) {
@@ -126,17 +154,20 @@ export async function POST(request: NextRequest) {
       duration: seg.end_ms && seg.start_ms ? (seg.end_ms - seg.start_ms) / 1000 : 0,
     }));
 
+    console.log(`✅ [Method 2] 성공: ${formattedSegments.length}개 세그먼트`);
     return NextResponse.json({
       full: fullTranscript,
       segments: formattedSegments,
+      method: 'youtubei.js',
     });
 
   } catch (error: unknown) {
-    console.error('Transcript 추출 오류:', error);
+    console.error('❌ Transcript 추출 최종 실패:', error);
     return NextResponse.json(
       {
         error: '자막 추출 중 오류가 발생했습니다',
-        details: error instanceof Error ? error.message : '알 수 없는 오류'
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        videoId,
       },
       { status: 500 }
     );
