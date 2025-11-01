@@ -18,6 +18,10 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Firebase CLI scripts (not part of Next.js app)
+      "grant-premium-cli.js",
+      "grant-premium.js",
+      "test-premium-api.js",
       // 임시로 문제가 있는 파일들 무시 (motion 관련 에러)
       "src/components/dashboard/enhanced-dashboard.tsx",
       "src/components/filters/advanced-filters.tsx",
