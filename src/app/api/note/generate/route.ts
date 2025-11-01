@@ -48,12 +48,13 @@ async function callXAIAPI(apiKey: string, model: string, prompt: string) {
       messages: [
         {
           role: 'system',
-          content: 'You are an expert educational content creator who creates structured, engaging learning notes from YouTube videos.'
+          content: 'You are an expert educational content creator who creates structured, engaging learning notes from YouTube videos. You MUST respond with valid JSON only.'
         },
         { role: 'user', content: prompt }
       ],
       model: model,
-      temperature: 0.7
+      temperature: 0.7,
+      response_format: { type: 'json_object' } // 🎯 JSON 형식 강제
     })
   });
 
