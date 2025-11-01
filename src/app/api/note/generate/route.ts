@@ -320,10 +320,11 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
 
     // Parse JSON response from AI
     let noteData;
+    let jsonString = ''; // Declare outside try block for error logging
     try {
       // Remove markdown code blocks if present
       const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/);
-      let jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
+      jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
 
       // Fix common JSON errors
       // 1. Remove trailing commas before closing brackets/braces
@@ -335,10 +336,28 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
         jsonString = jsonString.substring(firstBrace, lastBrace + 1);
       }
 
+      // 3. Fix unescaped control characters in string values
+      // This handles newlines and other control characters that break JSON parsing
+      jsonString = jsonString.replace(
+        /"([^"]*?)"/g,
+        (match, content) => {
+          // Escape control characters within string values
+          const escaped = content
+            .replace(/\\/g, '\\\\')  // Escape backslashes first
+            .replace(/\n/g, '\\n')   // Escape newlines
+            .replace(/\r/g, '\\r')   // Escape carriage returns
+            .replace(/\t/g, '\\t')   // Escape tabs
+            .replace(/\f/g, '\\f')   // Escape form feeds
+            .replace(/\b/g, '\\b');  // Escape backspaces
+          return `"${escaped}"`;
+        }
+      );
+
       noteData = JSON.parse(jsonString.trim());
     } catch (parseError) {
       console.error('JSON 파싱 오류:', parseError);
-      console.error('AI 응답:', aiResponse);
+      console.error('AI 응답 (처음 500자):', aiResponse.substring(0, 500));
+      console.error('JSON 문자열 (처음 500자):', jsonString.substring(0, 500));
 
       // Fallback: create basic structure from raw text
       noteData = {
