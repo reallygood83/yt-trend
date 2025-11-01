@@ -3,51 +3,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ===== Premium Users Collection =====
-    // 프리미엄 사용자 목록 (Firebase Console에서만 관리)
+    // Premium Users Collection
     match /premiumUsers/{userId} {
-      // 읽기: 인증된 사용자는 자신의 프리미엄 상태 확인 가능
+      // 로그인한 사용자만 본인 프리미엄 상태 확인 가능
       allow read: if request.auth != null && request.auth.uid == userId;
-
-      // 쓰기: Firebase Console에서만 가능 (클라이언트 쓰기 차단)
-      allow write: if false;
+      allow write: if false;  // Firebase Console only
     }
 
-    // ===== Learning Notes Collection =====
-    // 학습 노트 저장소
+    // Learning Notes Collection
     match /learningNotes/{noteId} {
-
-      // 📖 읽기 규칙
-      // 1. 본인이 작성한 노트
-      // 2. shareId가 있는 노트 (공개 공유)
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow get: if resource.data.shareId != null;  // 공유 노트 단건 조회
-
-      // ✍️ 쓰기 규칙 - 생성
-      allow create: if request.auth != null &&
-                       request.resource.data.userId == request.auth.uid &&
-                       // 필수 필드 검증
-                       request.resource.data.keys().hasAll(['userId', 'noteData', 'metadata', 'createdAt', 'shareId']) &&
-                       // userId는 인증된 사용자와 일치해야 함
-                       request.resource.data.userId == request.auth.uid &&
-                       // shareId는 문자열이어야 함
-                       request.resource.data.shareId is string &&
-                       // createdAt은 타임스탬프여야 함
-                       request.resource.data.createdAt is timestamp;
-
-      // 🔄 업데이트 규칙
-      allow update: if request.auth != null &&
-                       resource.data.userId == request.auth.uid &&
-                       // userId 변경 불가
-                       request.resource.data.userId == resource.data.userId;
-
-      // 🗑️ 삭제 규칙
-      allow delete: if request.auth != null &&
-                       resource.data.userId == request.auth.uid;
+      // 임시 테스트용 - 로그인한 사용자는 모든 작업 가능
+      allow read, write: if request.auth != null;
     }
 
-    // ===== Default Deny =====
-    // 다른 모든 컬렉션은 기본적으로 접근 거부
+    // Default Deny
     match /{document=**} {
       allow read, write: if false;
     }

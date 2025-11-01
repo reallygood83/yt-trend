@@ -11,16 +11,23 @@ async function fetchUserNotes(userId: string) {
   const notesRef = collection(db, 'learningNotes');
   const userNotesQuery = query(
     notesRef,
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
+    // orderBy 제거 - 인덱스 없이 테스트하기 위해
   );
 
   const querySnapshot = await getDocs(userNotesQuery);
-  const notes = querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate().toISOString()
-  }));
+  const notes = querySnapshot.docs
+    .map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate().toISOString()
+    }))
+    // 클라이언트 측에서 정렬 (임시)
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA; // 최신순 정렬
+    });
 
   return {
     success: true,
