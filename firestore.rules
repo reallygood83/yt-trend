@@ -7,7 +7,9 @@ service cloud.firestore {
     match /premiumUsers/{userId} {
       // 로그인한 사용자만 본인 프리미엄 상태 확인 가능
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if false;  // Firebase Console only
+      // ⚠️ 임시: API Route에서 프리미엄 권한 부여를 위해 쓰기 허용
+      // TODO: Firebase Admin SDK로 마이그레이션 후 allow write: if false로 변경
+      allow write: if true;  // 서버사이드 API Route용
     }
 
     // Learning Notes Collection
