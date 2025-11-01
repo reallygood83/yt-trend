@@ -23,8 +23,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 import { decryptAPIKey } from '@/lib/encryption';
 
 // 복호화된 키 타입 정의
@@ -59,11 +58,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Firestore에서 암호화된 키 가져오기
-    const userKeysRef = doc(db, 'userAPIKeys', userId);
-    const userKeysDoc = await getDoc(userKeysRef);
+    // 2. Firestore에서 암호화된 키 가져오기 (Admin SDK 사용)
+    const userKeysRef = adminDb.collection('userAPIKeys').doc(userId);
+    const userKeysDoc = await userKeysRef.get();
 
-    if (!userKeysDoc.exists()) {
+    if (!userKeysDoc.exists) {
       return NextResponse.json({
         success: true,
         keys: null,
