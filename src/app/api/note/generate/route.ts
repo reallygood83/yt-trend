@@ -2,24 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // AI Provider Call Functions
 async function callGeminiAPI(apiKey: string, model: string, prompt: string) {
+  console.log('🚀 Gemini API 호출 시작...');
+
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192, // 🔧 응답 크기 제한 (164MB 방지)
+          responseMimeType: "application/json" // 🎯 JSON 형식 강제
+        }
       })
     }
   );
 
   if (!response.ok) {
     const errorData = await response.json();
+    console.error('❌ Gemini API 오류:', errorData);
     throw new Error(`Gemini API Error: ${errorData.error?.message || 'Unknown error'}`);
   }
 
   const data = await response.json();
-  return data.candidates[0].content.parts[0].text;
+  const aiText = data.candidates[0].content.parts[0].text;
+
+  console.log('✅ Gemini API 응답 길이:', aiText.length, '자');
+  console.log('📝 Gemini API 응답 (처음 200자):', aiText.substring(0, 200));
+
+  return aiText;
 }
 
 async function callXAIAPI(apiKey: string, model: string, prompt: string) {
