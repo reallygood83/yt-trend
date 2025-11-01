@@ -340,41 +340,42 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
       // Gemini with responseMimeType: "application/json" returns pure JSON
       // Check if response starts with { (pure JSON) or contains ```json (markdown)
       const trimmedResponse = aiResponse.trim();
-      if (trimmedResponse.startsWith('{')) {
+      const isPureJSON = trimmedResponse.startsWith('{');
+
+      if (isPureJSON) {
         // Pure JSON response (from responseMimeType setting)
+        // No need for string manipulation - it's already valid JSON!
         jsonString = trimmedResponse;
       } else {
-        // Markdown code block format
+        // Markdown code block format - needs cleanup
         const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/);
         jsonString = jsonMatch ? jsonMatch[1] : aiResponse;
-      }
 
-      // Fix common JSON errors
-      // 1. Remove trailing commas before closing brackets/braces
-      jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
-      // 2. Remove any text before first { or after last }
-      const firstBrace = jsonString.indexOf('{');
-      const lastBrace = jsonString.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
-      }
-
-      // 3. Fix unescaped control characters in string values
-      // This handles newlines and other control characters that break JSON parsing
-      jsonString = jsonString.replace(
-        /"([^"]*?)"/g,
-        (match, content) => {
-          // Escape control characters within string values
-          const escaped = content
-            .replace(/\\/g, '\\\\')  // Escape backslashes first
-            .replace(/\n/g, '\\n')   // Escape newlines
-            .replace(/\r/g, '\\r')   // Escape carriage returns
-            .replace(/\t/g, '\\t')   // Escape tabs
-            .replace(/\f/g, '\\f')   // Escape form feeds
-            .replace(/\b/g, '\\b');  // Escape backspaces
-          return `"${escaped}"`;
+        // Fix common JSON errors (only for markdown format)
+        // 1. Remove trailing commas before closing brackets/braces
+        jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+        // 2. Remove any text before first { or after last }
+        const firstBrace = jsonString.indexOf('{');
+        const lastBrace = jsonString.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+          jsonString = jsonString.substring(firstBrace, lastBrace + 1);
         }
-      );
+
+        // 3. Fix unescaped control characters in string values
+        jsonString = jsonString.replace(
+          /"([^"]*?)"/g,
+          (match, content) => {
+            const escaped = content
+              .replace(/\\/g, '\\\\')
+              .replace(/\n/g, '\\n')
+              .replace(/\r/g, '\\r')
+              .replace(/\t/g, '\\t')
+              .replace(/\f/g, '\\f')
+              .replace(/\b/g, '\\b');
+            return `"${escaped}"`;
+          }
+        );
+      }
 
       noteData = JSON.parse(jsonString.trim());
       console.log('✅ JSON 파싱 성공!');
