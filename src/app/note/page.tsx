@@ -211,6 +211,14 @@ function NotePageContent() {
       // Step 3: Generate structured note with AI (100%)
       setProgressMessage('AI가 구조화된 학습 노트를 생성하는 중...');
 
+      // 🔍 DEBUG: AI 키 확인
+      console.log('🔍 노트 생성 시 AI 설정:', {
+        provider: ai.provider,
+        model: ai.model,
+        hasApiKey: !!ai.apiKey,
+        apiKeyLength: ai.apiKey?.length || 0
+      });
+
       const noteResponse = await fetch('/api/note/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -105,32 +105,23 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
     setAIError(null);
 
     try {
-      let endpoint = '/api/validate-gemini';
-      if (aiProvider === 'xai') {
-        endpoint = '/api/validate-xai';
-      } else if (aiProvider === 'openrouter') {
-        endpoint = '/api/validate-openrouter';
-      }
+      // ✅ FIX: Zustand 스토어에 먼저 저장
+      console.log('🔑 AI 키 저장:', { provider: aiProvider, model: aiModel, keyLength: aiApiKey.trim().length });
+      setStoreAIProvider(aiProvider, aiApiKey.trim(), aiModel);
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          apiKey: aiApiKey.trim(),
-          model: aiModel
-        }),
-      });
+      // ✅ FIX: 스토어의 validateAIKey 메서드 사용 (API Route 통해 검증)
+      const isValid = await useAPIKeysStore.getState().validateAIKey();
 
-      const result = await response.json();
+      console.log('✅ AI 키 검증 결과:', isValid);
 
-      if (result.valid) {
-        setStoreAIProvider(aiProvider, aiApiKey.trim(), aiModel);
+      if (isValid) {
         onSuccess();
       } else {
         const providerName = aiProvider.charAt(0).toUpperCase() + aiProvider.slice(1);
-        setAIError(result.error || `유효하지 않은 ${providerName} API 키입니다.`);
+        setAIError(`유효하지 않은 ${providerName} API 키입니다. API 키를 확인해주세요.`);
       }
-    } catch {
+    } catch (error) {
+      console.error('AI API 키 검증 오류:', error);
       setAIError('AI API 키 검증 중 오류가 발생했습니다.');
     } finally {
       setIsValidatingAI(false);
