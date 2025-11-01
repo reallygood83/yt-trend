@@ -377,8 +377,16 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
       );
 
       noteData = JSON.parse(jsonString.trim());
+      console.log('✅ JSON 파싱 성공!');
+      console.log('📊 파싱된 데이터 구조:', {
+        hasFullSummary: !!noteData.fullSummary,
+        fullSummaryLength: noteData.fullSummary?.length || 0,
+        segmentsCount: noteData.segments?.length || 0,
+        hasInsights: !!noteData.insights
+      });
+      console.log('📝 fullSummary (처음 200자):', noteData.fullSummary?.substring(0, 200) || 'EMPTY');
     } catch (parseError) {
-      console.error('JSON 파싱 오류:', parseError);
+      console.error('❌ JSON 파싱 오류:', parseError);
       console.error('AI 응답 (처음 500자):', aiResponse.substring(0, 500));
       console.error('JSON 문자열 (처음 500자):', jsonString.substring(0, 500));
 
@@ -400,6 +408,14 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
         }
       };
     }
+
+    console.log('📤 응답 반환 직전 - noteData 구조:', {
+      hasFullSummary: !!noteData.fullSummary,
+      fullSummaryLength: noteData.fullSummary?.length || 0,
+      segmentsCount: noteData.segments?.length || 0,
+      hasInsights: !!noteData.insights
+    });
+    console.log('📤 응답 반환 - fullSummary (처음 100자):', noteData.fullSummary?.substring(0, 100) || 'EMPTY!!!');
 
     return NextResponse.json({
       success: true,
