@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Loader2, AlertCircle, Youtube, Clock, BookOpen,
-  ExternalLink, Share2, Check
+  ExternalLink, Share2, Check, Sparkles, X
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NoteSegment {
   title: string;
@@ -44,10 +45,12 @@ interface SharedNote {
 }
 
 export default function ClientSharePage({ shareId }: { shareId: string }) {
+  const { user } = useAuth(); // 사용자 로그인 상태 확인
   const [note, setNote] = useState<SharedNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showSignupBanner, setShowSignupBanner] = useState(true); // 회원가입 배너 표시 상태
 
   useEffect(() => {
     if (!shareId) return;
@@ -147,6 +150,48 @@ export default function ClientSharePage({ shareId }: { shareId: string }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto p-6">
+        {/* 비회원 회원가입 유도 배너 */}
+        {!user && showSignupBanner && (
+          <Card className="mb-6 border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-lg font-bold text-gray-900">
+                      나만의 YouTube 학습노트를 만들어보세요!
+                    </h3>
+                  </div>
+                  <p className="text-gray-700 mb-4">
+                    회원가입하고 AI 기반 학습노트 생성 기능을 무료로 이용하세요.
+                    YouTube 영상을 자동으로 분석하여 맞춤형 학습 자료를 생성해드립니다.
+                  </p>
+                  <div className="flex gap-3">
+                    <Link href="/auth/register">
+                      <Button className="bg-blue-600 hover:bg-blue-700">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        무료 회원가입
+                      </Button>
+                    </Link>
+                    <Link href="/auth/login">
+                      <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                        로그인
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSignupBanner(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="배너 닫기"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
