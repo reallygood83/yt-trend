@@ -36,7 +36,7 @@ export default function AdminPremiumPage() {
         setResult({ success: false, message: data.error || '오류가 발생했습니다.' });
       }
 
-    } catch (error) {
+    } catch {
       setResult({ success: false, message: '네트워크 오류가 발생했습니다.' });
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export default function AdminPremiumPage() {
         setResult({ success: false, message: data.error || '오류가 발생했습니다.' });
       }
 
-    } catch (error) {
+    } catch {
       setResult({ success: false, message: '네트워크 오류가 발생했습니다.' });
     } finally {
       setLoading(false);

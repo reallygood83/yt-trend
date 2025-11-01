@@ -5,10 +5,9 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Loader2, BookOpen, Trash2, Share2, Eye, AlertCircle,
-  Clock, Youtube, FileText, Copy, Check, ExternalLink
+  Clock, Youtube, FileText, Check, ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
 

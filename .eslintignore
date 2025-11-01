@@ -1,0 +1,32 @@
+# ESLint ignore patterns
+
+# Node.js scripts for Firebase CLI (not part of Next.js app)
+grant-premium-cli.js
+grant-premium.js
+test-premium-api.js
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
