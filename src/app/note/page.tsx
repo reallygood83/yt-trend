@@ -761,9 +761,16 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                 </div>
 
                 {saveMode === 'firebase' && userId && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-800">
-                      💡 현재 익명 사용자로 로그인되어 있습니다. 노트는 이 기기에 최대 3개까지 저장됩니다.
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      {user?.isAnonymous ? (
+                        <>💡 현재 익명 사용자로 로그인되어 있습니다. 노트는 이 기기에 최대 3개까지 저장됩니다.</>
+                      ) : (
+                        <>
+                          ✅ <strong>{user?.displayName || user?.email || '사용자'}</strong>님으로 로그인되어 있습니다.
+                          노트는 계정에 안전하게 저장되며, 최대 3개까지 저장 가능합니다.
+                        </>
+                      )}
                     </p>
                   </div>
                 )}
