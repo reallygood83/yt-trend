@@ -249,19 +249,7 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
         "${method}에 맞는 쉬운 예시 1",
         "실생활 비유 예시 2"
       ],
-      ${method === '마인드맵' ? `"mindmap": {
-        "central": "이 구간의 중심 주제 (짧게)",
-        "branches": [
-          {
-            "label": "주요 가지 1",
-            "subbranches": ["세부내용 1-1", "세부내용 1-2"]
-          },
-          {
-            "label": "주요 가지 2",
-            "subbranches": ["세부내용 2-1", "세부내용 2-2"]
-          }
-        ]
-      },` : ''}
+      ${method === '마인드맵' ? `"mermaidCode": "graph TD\\n  A[중심주제]-->B[핵심개념1]\\n  A-->C[핵심개념2]\\n  B-->D[세부내용1-1]\\n  B-->E[세부내용1-2]\\n  C-->F[세부내용2-1]\\n  C-->G[세부내용2-2]\\n\\n  style A fill:#4F46E5,stroke:#312E81,stroke-width:3px,color:#fff\\n  style B fill:#10B981,stroke:#065F46,stroke-width:2px,color:#fff\\n  style C fill:#10B981,stroke:#065F46,stroke-width:2px,color:#fff\\n  style D fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff\\n  style E fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff\\n  style F fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff\\n  style G fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff",` : ''}
     }
   ],
   "insights": {
@@ -293,7 +281,21 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
    - 예: 도입부 → 핵심 개념 1 → 핵심 개념 2 → 실전 예시 → 정리 (5개 구간)
 3. **타임스탬프 정확성**: start/end는 실제 자막 타임스탬프 기반으로 정확하게 (마지막 구간은 영상 끝까지)
 4. **연령 맞춤**: ${ageGroup}이 이해할 수 있는 어휘와 문장 길이
-5. **${method} 적용**: 모든 설명에 ${method} 방식 반영
+5. **${method} 적용**: 모든 설명에 ${method} 방식 반영${method === '마인드맵' ? `
+   - **Mermaid 마인드맵 생성 규칙**:
+     * graph TD 또는 graph LR 구조 사용
+     * 노드는 [텍스트] 형식으로 작성
+     * 화살표로 연결: A-->B, A-->C
+     * 스타일링: style 노드명 fill:#색상코드,stroke:#테두리색,stroke-width:2px,color:#fff
+     * 중심주제 → 핵심개념 → 세부내용 3단계 구조
+     * 한국어로 명확하고 간결하게 작성
+     * 이스케이프 문자 사용 금지 (백슬래시는 \\\\n만 사용)
+     * 예시:
+       graph TD
+         A[중심주제]-->B[개념1]
+         A-->C[개념2]
+         B-->D[세부1]
+         style A fill:#4F46E5,stroke:#312E81,stroke-width:3px,color:#fff` : ''}
 6. **실용성**: 추상적 개념보다 구체적 예시와 실천 방법 중심
 7. **JSON 형식 준수**: 반드시 위 JSON 구조 그대로 출력 (추가 설명 없이)
 

@@ -73,16 +73,6 @@ interface Transcript {
   segments: TranscriptSegment[];
 }
 
-interface MindMapBranch {
-  label: string;
-  subbranches: string[];
-}
-
-interface MindMapData {
-  central: string;
-  branches: MindMapBranch[];
-}
-
 interface TimeSegment {
   start: number;
   end: number;
@@ -90,7 +80,7 @@ interface TimeSegment {
   summary: string;
   keyPoints: string[];
   examples: string[];
-  mindmap?: MindMapData;
+  mermaidCode?: string;
 }
 
 interface GeneratedNote {
@@ -985,12 +975,12 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                       )}
 
                       {/* 마인드맵 시각화 */}
-                      {segment.mindmap && (
+                      {segment.mermaidCode && (
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                           <h4 className="font-semibold mb-4 flex items-center gap-2">
                             🗺️ 마인드맵 시각화
                           </h4>
-                          <MindMap data={segment.mindmap} id={`segment-${idx}`} />
+                          <MindMap mermaidCode={segment.mermaidCode} id={`segment-${idx}`} />
                         </div>
                       )}
                     </CardContent>
