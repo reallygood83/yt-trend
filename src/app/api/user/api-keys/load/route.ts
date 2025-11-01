@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const data = userKeysDoc.data();
 
     // 3. 복호화할 키 객체 초기화
-    const decryptedKeys: any = {};
+    const decryptedKeys: Record<string, unknown> = {};
 
     // 4. YouTube 키 복호화
     if (data.youtube?.encryptedKey) {
@@ -100,12 +100,12 @@ export async function POST(request: NextRequest) {
       success: true,
       keys: decryptedKeys,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('API 키 로드 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'API 키 로드 중 오류가 발생했습니다',
+        error: error instanceof Error ? error.message : 'API 키 로드 중 오류가 발생했습니다',
       },
       { status: 500 }
     );

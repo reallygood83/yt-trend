@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     };
 
     // 7. 키 타입별로 저장 위치 결정
-    let updateData: any;
+    let updateData: Record<string, unknown>;
 
     if (keyType === 'youtube') {
       updateData = {
@@ -102,12 +102,12 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'API 키가 안전하게 저장되었습니다',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('API 키 저장 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'API 키 저장 중 오류가 발생했습니다',
+        error: error instanceof Error ? error.message : 'API 키 저장 중 오류가 발생했습니다',
       },
       { status: 500 }
     );

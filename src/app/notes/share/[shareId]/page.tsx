@@ -12,8 +12,12 @@ import Link from 'next/link';
 interface NoteSegment {
   title: string;
   summary: string;
+  start?: number; // 🎬 추가: 시작 초
+  end?: number;   // 🎬 추가: 종료 초
   timestamp?: string;
   endTimestamp?: string;
+  keyPoints?: string[];
+  examples?: string[];
 }
 
 interface NoteData {
@@ -26,6 +30,7 @@ interface NoteData {
 interface NoteMetadata {
   title: string;
   youtubeUrl: string;
+  videoId?: string; // 🎬 추가: 구간별 임베드를 위한 videoId
   duration: string;
   channelTitle: string;
   ageGroup: string;
@@ -274,29 +279,36 @@ export default function SharedNotePage({ params }: { params: Promise<{ shareId: 
         {/* Segments */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">📑 구간별 상세 내용</h2>
-          {noteData.segments.map((segment, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
+          {noteData.segments.map((segment, index) => {
+            // 🎬 구간별 YouTube 임베드 URL 생성
+            const segmentVideoId = metadata.videoId || videoId;
+            const segmentEmbedUrl = segmentVideoId && segment.start !== undefined
+              ? `https://www.youtube.com/embed/${segmentVideoId}?start=${Math.floor(segment.start)}${segment.end ? `&end=${Math.floor(segment.end)}` : ''}`
+              : null;
+
+            return (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      {segment.timestamp && (
+                        <span className="text-blue-600 font-mono text-sm">
+                          [{segment.timestamp}
+                          {segment.endTimestamp && ` - ${segment.endTimestamp}`}]
+                        </span>
+                      )}
+                      {segment.title}
+                    </span>
                     {segment.timestamp && (
-                      <span className="text-blue-600 font-mono text-sm">
-                        [{segment.timestamp}
-                        {segment.endTimestamp && ` - ${segment.endTimestamp}`}]
-                      </span>
-                    )}
-                    {segment.title}
-                  </span>
-                  {segment.timestamp && (
-                    <a
-                      href={getTimestampUrl(metadata.youtubeUrl, segment.timestamp)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                      <a
+                        href={getTimestampUrl(metadata.youtubeUrl, segment.timestamp)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-600 text-blue-600 hover:bg-blue-50"
                       >
                         <Youtube className="w-4 h-4 mr-2" />
                         구간 보기
@@ -305,13 +317,61 @@ export default function SharedNotePage({ params }: { params: Promise<{ shareId: 
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* 🎬 구간별 YouTube 임베드 (최초 생성된 노트와 동일) */}
+                {segmentEmbedUrl && (
+                  <div className="aspect-video mb-4">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={segmentEmbedUrl}
+                      title={segment.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-lg"
+                    ></iframe>
+                  </div>
+                )}
+
+                {/* 요약 */}
                 <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {segment.summary}
                 </p>
+
+                {/* 핵심 포인트 */}
+                {segment.keyPoints && segment.keyPoints.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">🔑 핵심 포인트:</h4>
+                    <ul className="space-y-1">
+                      {segment.keyPoints.map((point, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-blue-600">•</span>
+                          <span className="text-gray-700">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 예시 */}
+                {segment.examples && segment.examples.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">💡 예시:</h4>
+                    <ul className="space-y-1">
+                      {segment.examples.map((example, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-purple-600">•</span>
+                          <span className="text-gray-700">{example}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
+          );
+          })}
         </div>
 
         {/* Insights */}

@@ -383,6 +383,8 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
     setError('');
 
     try {
+      const videoId = extractVideoId(youtubeUrl);
+
       const response = await fetch('/api/notes/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -392,6 +394,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
           metadata: {
             title: metadata.title,
             youtubeUrl,
+            videoId, // 🎬 추가: 구간별 임베드를 위한 videoId
             duration: metadata.duration,
             channelTitle: metadata.channelTitle,
             ageGroup,
