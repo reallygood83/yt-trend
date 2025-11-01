@@ -48,9 +48,18 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. 프리미엄 사용자 확인
-    const premiumDocRef = doc(db, 'premiumUsers', userId);
-    const premiumDoc = await getDoc(premiumDocRef);
-    const isPremium = premiumDoc.exists() && premiumDoc.data()?.isPremium === true;
+    // TODO: 클라이언트에서 isPremium 상태를 전달받거나 Firebase Admin SDK 사용 필요
+    // 서버 사이드에서는 request.auth가 없어서 Firestore 규칙 통과 불가
+    let isPremium = false;
+    try {
+      const premiumDocRef = doc(db, 'premiumUsers', userId);
+      const premiumDoc = await getDoc(premiumDocRef);
+      isPremium = premiumDoc.exists() && premiumDoc.data()?.isPremium === true;
+    } catch (premiumError) {
+      console.warn('프리미엄 상태 확인 실패 (무시하고 계속):', premiumError);
+      // 프리미엄 확인 실패해도 일반 사용자로 처리하고 계속 진행
+      isPremium = false;
+    }
 
     // 2. 현재 사용자의 노트 개수 확인 (최적화: getCountFromServer 사용)
     const notesRef = collection(db, 'learningNotes');

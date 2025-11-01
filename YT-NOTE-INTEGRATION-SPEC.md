@@ -606,13 +606,14 @@ npm install -D @types/crypto-js @types/file-saver
 # .env.local (기존 + 추가)
 
 # ===== 기존 Firebase 설정 (유지) =====
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBOE1xIPeG_AEEfImnw7PtmJ02kPkpmDW0
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=realtime-vote-4f9c7.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=realtime-vote-4f9c7
-NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://realtime-vote-4f9c7-default-rtdb.asia-southeast1.firebasedatabase.app
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=realtime-vote-4f9c7.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=766576329227
-NEXT_PUBLIC_FIREBASE_APP_ID=1:766576329227:web:a445052f7e122e9cb03d0e
+# ⚠️ 보안: 실제 값은 Vercel 환경변수에 저장되어 있습니다
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your_project.firebasedatabase.app
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
 # ===== 🆕 API 키 암호화 =====
 NEXT_PUBLIC_ENCRYPTION_KEY=your_random_32_character_key_here
