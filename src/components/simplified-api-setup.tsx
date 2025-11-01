@@ -73,17 +73,22 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
     setYoutubeError(null);
 
     try {
-      const result = await validateApiKey(youtubeApiKey.trim());
+      // Zustand 스토어에 먼저 저장
+      setYouTubeKey(youtubeApiKey.trim());
 
-      if (result.valid) {
+      // 스토어의 validateYouTubeKey 메서드 사용 (API Route 통해 검증)
+      const isValid = await useAPIKeysStore.getState().validateYouTubeKey();
+
+      if (isValid) {
+        // 하위 호환성을 위해 기존 방식도 저장
         saveApiKey(youtubeApiKey.trim());
-        setYouTubeKey(youtubeApiKey.trim());
         setYoutubeKeyValid(true);
         setCurrentStep('ai');
       } else {
-        setYoutubeError(result.error || '유효하지 않은 YouTube API 키입니다.');
+        setYoutubeError('유효하지 않은 YouTube API 키입니다. API 키를 확인해주세요.');
       }
-    } catch {
+    } catch (error) {
+      console.error('YouTube API 키 검증 오류:', error);
       setYoutubeError('YouTube API 키 검증 중 오류가 발생했습니다.');
     } finally {
       setIsValidatingYouTube(false);
