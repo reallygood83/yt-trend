@@ -23,7 +23,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { decryptAPIKey } from '@/lib/encryption';
 
 // 복호화된 키 타입 정의
@@ -58,12 +59,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Firestore에서 암호화된 키 가져오기 (Admin SDK 사용)
-    const adminDb = getAdminDb(); // 런타임에 lazy 초기화
-    const userKeysRef = adminDb.collection('userAPIKeys').doc(userId);
-    const userKeysDoc = await userKeysRef.get();
+    // 2. Firestore에서 암호화된 키 가져오기 (Client SDK 사용)
+    const userKeysRef = doc(db, 'userAPIKeys', userId);
+    const userKeysDoc = await getDoc(userKeysRef);
 
-    if (!userKeysDoc.exists) {
+    if (!userKeysDoc.exists()) {
       return NextResponse.json({
         success: true,
         keys: null,
@@ -73,19 +73,10 @@ export async function POST(request: NextRequest) {
 
     const data = userKeysDoc.data();
 
-    // 3. 데이터 존재 확인
-    if (!data) {
-      return NextResponse.json({
-        success: true,
-        keys: null,
-        message: '저장된 API 키가 없습니다',
-      });
-    }
-
-    // 4. 복호화할 키 객체 초기화
+    // 3. 복호화할 키 객체 초기화
     const decryptedKeys: DecryptedKeys = {};
 
-    // 5. YouTube 키 복호화
+    // 4. YouTube 키 복호화
     if (data.youtube?.encryptedKey) {
       try {
         const decryptedYouTubeKey = decryptAPIKey(data.youtube.encryptedKey, userId);
@@ -100,7 +91,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 6. AI 키들 복호화
+    // 5. AI 키들 복호화
     if (data.ai) {
       decryptedKeys.ai = {};
 
