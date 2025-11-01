@@ -50,9 +50,11 @@ export interface SharedNote {
 export async function fetchSharedNoteServer(shareId: string): Promise<SharedNote | null> {
   try {
     // 서버사이드에서는 절대 URL로 API 호출
-    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // 커스텀 도메인 우선, Vercel 도메인 또는 로컬호스트 폴백
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || // 커스텀 도메인 (Vercel 환경변수에 설정)
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || // Vercel 기본 도메인
+      'http://localhost:3000'; // 로컬 개발
 
     const response = await fetch(`${baseUrl}/api/notes/share/${shareId}`, {
       cache: 'no-store', // 항상 최신 데이터 가져오기
