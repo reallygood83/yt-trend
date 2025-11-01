@@ -8,10 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { removeApiKey, getApiKey, getGeminiApiKey } from '@/lib/api-key';
 import { YouTubeVideo } from '@/types/youtube';
-import { 
-  Search, 
-  TrendingUp, 
-  BarChart3, 
+import {
+  Search,
+  TrendingUp,
+  BarChart3,
   Settings,
   Loader2,
   Sparkles,
@@ -20,7 +20,9 @@ import {
   Play,
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Copy,
+  Check
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
 
@@ -91,6 +93,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
     insights: string[];
     videos: YouTubeVideo[];
   } | null>(null);
+  const [copiedVideoId, setCopiedVideoId] = useState<string | null>(null);
 
   const handleApiKeyRemove = () => {
     removeApiKey();
@@ -985,6 +988,28 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                             <p className="text-xs text-gray-500 mb-2">
                               💬 {parseInt(video.statistics.commentCount || '0').toLocaleString()} 댓글
                             </p>
+                            <Button
+                              onClick={async () => {
+                                await navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${video.id}`);
+                                setCopiedVideoId(video.id);
+                                setTimeout(() => setCopiedVideoId(null), 2000);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs h-8 mb-2"
+                            >
+                              {copiedVideoId === video.id ? (
+                                <>
+                                  <Check className="w-3 h-3 mr-1" />
+                                  복사됨!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3 mr-1" />
+                                  링크 복사
+                                </>
+                              )}
+                            </Button>
                             <Button
                               onClick={() => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank')}
                               variant="outline"
