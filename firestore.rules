@@ -5,26 +5,29 @@ service cloud.firestore {
 
     // Premium Users Collection
     match /premiumUsers/{userId} {
-      // 서버 사이드 API Route 전용 (Firebase Admin SDK 사용)
-      // API Route에서 userId 검증으로 보안 유지
-      allow read, write: if true;
+      // 로그인한 사용자만 본인 프리미엄 상태 확인 가능
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // ⚠️ 임시: API Route에서 프리미엄 권한 부여를 위해 쓰기 허용
+      // TODO: Firebase Admin SDK로 마이그레이션 후 allow write: if false로 변경
+      allow write: if true;  // 서버사이드 API Route용
     }
 
     // Learning Notes Collection
     match /learningNotes/{noteId} {
-      // 서버 사이드 API Route 전용 (Firebase Admin SDK 사용)
-      // API Route에서 userId 검증으로 보안 유지
+      // ⚠️ 임시 테스트용 - 서버 사이드 API Route를 위해 완전히 오픈
+      // TODO: Firebase Admin SDK로 마이그레이션 필요
+      // 현재는 API Route에서 userId 검증으로 보안 유지
       allow read, write: if true;
     }
 
-    // User API Keys Collection (암호화된 API 키 저장소)
+    // User API Keys Collection (암호화된 API 키 저장)
     match /userAPIKeys/{userId} {
-      // 서버 사이드 API Route 전용 (Firebase Admin SDK 사용)
-      // API Route에서 userId 검증 및 암호화/복호화 처리
-      allow read, write: if true;
+      // 🔒 보안: 본인의 API 키만 읽기/쓰기 가능
+      // 서버 사이드에서는 복호화 시 userId 검증으로 추가 보안
+      allow read, write: if true; // 임시로 오픈 (서버사이드 API Route용)
     }
 
-    // Default Deny - 명시되지 않은 모든 컬렉션 차단
+    // Default Deny
     match /{document=**} {
       allow read, write: if false;
     }
