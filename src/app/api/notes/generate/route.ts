@@ -19,17 +19,18 @@ import type {
  * Call Gemini API directly
  * Using the same pattern as existing ai-client.ts
  */
-async function callGemini(prompt: string): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
+async function callGemini(prompt: string, apiKey?: string): Promise<string> {
+  // Use provided API key or fallback to environment variable
+  const key = apiKey || process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY가 서버 환경변수에 설정되지 않았습니다.');
+  if (!key) {
+    throw new Error('GEMINI_API_KEY가 제공되지 않았거나 서버 환경변수에 설정되지 않았습니다.');
   }
 
   console.log('[Gemini] API 호출 시작');
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${key}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -88,6 +89,7 @@ interface GenerateNoteRequest {
   ageGroup: AgeGroup;
   customPrompt?: string;
   expertDomain?: string;
+  apiKey?: string; // Firebase에서 로드된 사용자의 암호화된 API 키
 }
 
 export async function POST(request: NextRequest) {
@@ -181,7 +183,7 @@ async function generateFeynmanNote(request: GenerateNoteRequest): Promise<Feynma
   const prompt = buildFeynmanPrompt(request);
 
   // Generate content using Gemini API
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
 
   // Parse and validate response
   const parsedNote = parseFeynmanResponse(responseText, request);
@@ -692,7 +694,7 @@ function calculateQualityScore(parsed: any): number {
  */
 async function generateELI5Note(request: GenerateNoteRequest): Promise<ELI5Note> {
   const prompt = buildELI5Prompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseELI5Response(responseText, request);
 }
 
@@ -889,7 +891,7 @@ function validateSegmentCoverage(segments: TimeSegment[], totalDuration: number)
  */
 async function generateCornellNote(request: GenerateNoteRequest): Promise<CornellNote> {
   const prompt = buildCornellPrompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseCornellResponse(responseText, request);
 }
 
@@ -1071,7 +1073,7 @@ function calculateCornellQualityScore(parsed: any): number {
  */
 async function generateAnalogyNote(request: GenerateNoteRequest): Promise<AnalogyNote> {
   const prompt = buildAnalogyPrompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseAnalogyResponse(responseText, request);
 }
 
@@ -1390,7 +1392,7 @@ function calculateAnalogyQualityScore(parsed: any): number {
  */
 async function generateStorytellingNote(request: GenerateNoteRequest): Promise<StorytellingNote> {
   const prompt = buildStorytellingPrompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseStorytellingResponse(responseText, request);
 }
 
@@ -1772,7 +1774,7 @@ function calculateStorytellingQualityScore(parsed: any): number {
  */
 async function generateSocraticNote(request: GenerateNoteRequest): Promise<SocraticNote> {
   const prompt = buildSocraticPrompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseSocraticResponse(responseText, request);
 }
 
@@ -2135,7 +2137,7 @@ function calculateSocraticQualityScore(parsed: any): number {
  */
 async function generateExpertAnalysisNote(request: GenerateNoteRequest): Promise<ExpertAnalysisNote> {
   const prompt = buildExpertAnalysisPrompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseExpertAnalysisResponse(responseText, request);
 }
 
@@ -2613,7 +2615,7 @@ function calculateExpertAnalysisQualityScore(parsed: any): number {
  */
 async function generateMindMapNote(request: GenerateNoteRequest): Promise<MindMapNote> {
   const prompt = buildMindMapPrompt(request);
-  const responseText = await callGemini(prompt);
+  const responseText = await callGemini(prompt, request.apiKey);
   return parseMindMapResponse(responseText, request);
 }
 
