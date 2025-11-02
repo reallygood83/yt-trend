@@ -12,7 +12,7 @@ const getStoreState = () => {
   return useAPIKeysStore.getState();
 };
 
-export function saveApiKey(apiKey: string): void {
+export async function saveApiKey(apiKey: string, userId?: string): Promise<void> {
   try {
     // 새로운 통합 스토어에 저장
     const store = getStoreState();
@@ -22,7 +22,7 @@ export function saveApiKey(apiKey: string): void {
       store.validateYouTubeKey();
     }
 
-    // 하위 호환성을 위해 기존 방식도 유지
+    // 하위 호환성을 위해 기존 방식도 유지 (localStorage)
     const encoded = btoa(apiKey);
     localStorage.setItem(API_KEY_STORAGE, encoded);
 
@@ -32,6 +32,31 @@ export function saveApiKey(apiKey: string): void {
       lastChecked: new Date()
     };
     localStorage.setItem(API_CONFIG_STORAGE, JSON.stringify(config));
+
+    // 🔥 Firebase에 암호화 저장 (userId가 있을 때만)
+    if (userId) {
+      try {
+        const response = await fetch('/api/user/api-keys/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            keyType: 'youtube',
+            apiKey
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ YouTube API 키가 Firebase에 저장되었습니다');
+        } else {
+          console.error('❌ Firebase 저장 실패:', result.error);
+        }
+      } catch (firebaseError) {
+        console.error('Firebase 저장 중 오류:', firebaseError);
+        // Firebase 저장 실패해도 localStorage는 성공했으므로 계속 진행
+      }
+    }
   } catch (error) {
     console.error('Failed to save API key:', error);
   }
@@ -123,7 +148,7 @@ export async function validateApiKey(apiKey: string): Promise<{ valid: boolean; 
 }
 
 // Gemini API 키 관리 함수들
-export function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.0-flash-exp'): void {
+export async function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.0-flash-exp', userId?: string): Promise<void> {
   try {
     // 새로운 통합 스토어에 저장
     const store = getStoreState();
@@ -133,7 +158,7 @@ export function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.0-fla
       store.validateAIKey();
     }
 
-    // 하위 호환성을 위해 기존 방식도 유지
+    // 하위 호환성을 위해 기존 방식도 유지 (localStorage)
     const encoded = btoa(apiKey);
     localStorage.setItem(GEMINI_API_KEY_STORAGE, encoded);
 
@@ -143,6 +168,32 @@ export function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.0-fla
       lastChecked: new Date()
     };
     localStorage.setItem(GEMINI_API_CONFIG_STORAGE, JSON.stringify(config));
+
+    // 🔥 Firebase에 암호화 저장 (userId가 있을 때만)
+    if (userId) {
+      try {
+        const response = await fetch('/api/user/api-keys/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            keyType: 'gemini',
+            apiKey,
+            model
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ Gemini API 키가 Firebase에 저장되었습니다');
+        } else {
+          console.error('❌ Firebase 저장 실패:', result.error);
+        }
+      } catch (firebaseError) {
+        console.error('Firebase 저장 중 오류:', firebaseError);
+        // Firebase 저장 실패해도 localStorage는 성공했으므로 계속 진행
+      }
+    }
   } catch (error) {
     console.error('Failed to save Gemini API key:', error);
   }
@@ -191,13 +242,185 @@ export async function validateGeminiApiKey(apiKey: string): Promise<{ valid: boo
       },
       body: JSON.stringify({ apiKey })
     });
-    
+
     const result = await response.json();
     return result;
   } catch {
-    return { 
-      valid: false, 
-      error: '네트워크 오류가 발생했습니다.' 
+    return {
+      valid: false,
+      error: '네트워크 오류가 발생했습니다.'
     };
+  }
+}
+
+// 🔥 xAI API 키 저장 함수 (Firebase 연동)
+export async function saveXAIApiKey(apiKey: string, model: string = 'grok-beta', userId?: string): Promise<void> {
+  try {
+    // Zustand 스토어에 저장
+    const store = getStoreState();
+    if (store) {
+      store.setAIProvider('xai', apiKey, model);
+      store.validateAIKey();
+    }
+
+    // 🔥 Firebase에 암호화 저장 (userId가 있을 때만)
+    if (userId) {
+      try {
+        const response = await fetch('/api/user/api-keys/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            keyType: 'xai',
+            apiKey,
+            model
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ xAI API 키가 Firebase에 저장되었습니다');
+        } else {
+          console.error('❌ Firebase 저장 실패:', result.error);
+        }
+      } catch (firebaseError) {
+        console.error('Firebase 저장 중 오류:', firebaseError);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to save xAI API key:', error);
+  }
+}
+
+// 🔥 OpenRouter API 키 저장 함수 (Firebase 연동)
+export async function saveOpenRouterApiKey(apiKey: string, model: string = 'anthropic/claude-3.5-sonnet', userId?: string): Promise<void> {
+  try {
+    // Zustand 스토어에 저장
+    const store = getStoreState();
+    if (store) {
+      store.setAIProvider('openrouter', apiKey, model);
+      store.validateAIKey();
+    }
+
+    // 🔥 Firebase에 암호화 저장 (userId가 있을 때만)
+    if (userId) {
+      try {
+        const response = await fetch('/api/user/api-keys/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            keyType: 'openrouter',
+            apiKey,
+            model
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ OpenRouter API 키가 Firebase에 저장되었습니다');
+        } else {
+          console.error('❌ Firebase 저장 실패:', result.error);
+        }
+      } catch (firebaseError) {
+        console.error('Firebase 저장 중 오류:', firebaseError);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to save OpenRouter API key:', error);
+  }
+}
+
+// 🔥 로그인 시 Firebase에서 모든 API 키 자동 로드 (핵심 함수!)
+export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
+  try {
+    const response = await fetch('/api/user/api-keys/load', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+
+    const result = await response.json();
+
+    if (!result.success || !result.keys) {
+      console.log('ℹ️ Firebase에 저장된 API 키가 없습니다');
+      return;
+    }
+
+    const store = getStoreState();
+
+    // YouTube API 키 로드
+    if (result.keys.youtube?.apiKey) {
+      const ytKey = result.keys.youtube.apiKey;
+
+      // localStorage에 저장
+      const encoded = btoa(ytKey);
+      localStorage.setItem(API_KEY_STORAGE, encoded);
+      localStorage.setItem(API_CONFIG_STORAGE, JSON.stringify({
+        apiKey: ytKey,
+        isValid: result.keys.youtube.validated || false,
+        lastChecked: new Date()
+      }));
+
+      // Zustand 스토어에 저장
+      if (store) {
+        store.setYouTubeKey(ytKey);
+      }
+
+      console.log('✅ YouTube API 키가 Firebase에서 로드되었습니다');
+    }
+
+    // AI Provider 키 로드 (Gemini, xAI, OpenRouter)
+    if (result.keys.ai) {
+      const aiKeys = result.keys.ai;
+
+      if (aiKeys.gemini?.apiKey) {
+        const geminiKey = aiKeys.gemini.apiKey;
+        const geminiModel = aiKeys.gemini.model || 'gemini-2.0-flash-exp';
+
+        // localStorage에 저장
+        const encoded = btoa(geminiKey);
+        localStorage.setItem(GEMINI_API_KEY_STORAGE, encoded);
+        localStorage.setItem(GEMINI_API_CONFIG_STORAGE, JSON.stringify({
+          apiKey: geminiKey,
+          isValid: aiKeys.gemini.validated || false,
+          lastChecked: new Date()
+        }));
+
+        // Zustand 스토어에 저장
+        if (store) {
+          store.setAIProvider('gemini', geminiKey, geminiModel);
+        }
+
+        console.log('✅ Gemini API 키가 Firebase에서 로드되었습니다');
+      }
+
+      if (aiKeys.xai?.apiKey) {
+        const xaiKey = aiKeys.xai.apiKey;
+        const xaiModel = aiKeys.xai.model || 'grok-beta';
+
+        if (store) {
+          store.setAIProvider('xai', xaiKey, xaiModel);
+        }
+
+        console.log('✅ xAI API 키가 Firebase에서 로드되었습니다');
+      }
+
+      if (aiKeys.openrouter?.apiKey) {
+        const orKey = aiKeys.openrouter.apiKey;
+        const orModel = aiKeys.openrouter.model || 'anthropic/claude-3.5-sonnet';
+
+        if (store) {
+          store.setAIProvider('openrouter', orKey, orModel);
+        }
+
+        console.log('✅ OpenRouter API 키가 Firebase에서 로드되었습니다');
+      }
+    }
+
+    console.log('🎉 모든 API 키가 Firebase에서 성공적으로 로드되었습니다');
+  } catch (error) {
+    console.error('Firebase에서 API 키 로드 실패:', error);
+    // 로드 실패해도 기존 localStorage 키는 그대로 유지됨
   }
 }

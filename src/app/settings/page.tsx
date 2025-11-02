@@ -7,16 +7,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { saveApiKey, saveGeminiApiKey, saveXAIApiKey, saveOpenRouterApiKey, loadApiKeysFromFirebase } from '@/lib/api-key';
 
 export default function SettingsPage() {
   const { youtube, ai, setYouTubeKey, setAIProvider, validateYouTubeKey, validateAIKey } = useAPIKeysStore();
 
+  const [userId, setUserId] = useState<string | null>(null);
   const [youtubeKey, setYoutubeKeyLocal] = useState(youtube.apiKey || '');
   const [aiProvider, setAiProviderLocal] = useState<'gemini' | 'xai' | 'openrouter'>(ai.provider || 'gemini');
   const [aiKey, setAiKeyLocal] = useState(ai.apiKey || '');
   const [aiModel, setAiModelLocal] = useState(ai.model || 'gemini-2.0-flash-exp');
 
   const [validating, setValidating] = useState({ youtube: false, ai: false });
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 로그인 감지 및 Firebase에서 API 키 자동 로드
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        console.log('🔐 로그인 감지됨, Firebase에서 API 키 로드 시작...');
+        await loadApiKeysFromFirebase(user.uid);
+        setLoading(false);
+      } else {
+        setUserId(null);
+        setLoading(false);
+        console.log('ℹ️ 로그인하지 않은 상태 - localStorage 키만 사용');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     setYoutubeKeyLocal(youtube.apiKey || '');
@@ -31,6 +54,10 @@ export default function SettingsPage() {
   const handleYouTubeSave = async () => {
     setYouTubeKey(youtubeKey);
     setValidating({ ...validating, youtube: true });
+
+    // 🔥 Firebase에 저장 (로그인된 경우)
+    await saveApiKey(youtubeKey, userId || undefined);
+
     await validateYouTubeKey();
     setValidating({ ...validating, youtube: false });
   };
@@ -38,6 +65,16 @@ export default function SettingsPage() {
   const handleAISave = async () => {
     setAIProvider(aiProvider, aiKey, aiModel);
     setValidating({ ...validating, ai: true });
+
+    // 🔥 Firebase에 저장 (로그인된 경우)
+    if (aiProvider === 'gemini') {
+      await saveGeminiApiKey(aiKey, aiModel, userId || undefined);
+    } else if (aiProvider === 'xai') {
+      await saveXAIApiKey(aiKey, aiModel, userId || undefined);
+    } else if (aiProvider === 'openrouter') {
+      await saveOpenRouterApiKey(aiKey, aiModel, userId || undefined);
+    }
+
     await validateAIKey();
     setValidating({ ...validating, ai: false });
   };
