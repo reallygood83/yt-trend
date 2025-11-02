@@ -1,0 +1,132 @@
+{
+  "method": "Cornell Method",
+  "ageGroup": "adult",
+  "fullSummary": "The Cornell Method, developed by Walter Pauk at Cornell University, is a systematic note-taking strategy that enhances learning through active engagement. It structures notes into three sections—cues, detailed notes, and a summary—to facilitate effective review, improve information recall by over 30%, and promote the transfer of knowledge to long-term memory.",
+  "videoMetadata": {
+    "videoId": "test-cornell-789",
+    "title": "효과적인 학습 전략: Cornell Method 노트 필기법",
+    "duration": 420,
+    "language": "ko"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 150,
+      "title": "Cornell Method의 기본 구조와 기원 (Basic Structure and Origin)",
+      "summary": "This segment introduces the Cornell Method, its creator, and the fundamental three-part structure of the note-taking page: the cue column, notes column, and summary row.",
+      "cueQuestions": [
+        "Who developed the Cornell Method and when?",
+        "What is the core principle behind its structure?",
+        "How is a page divided in the Cornell Method?",
+        "What is the purpose of each of the three sections?"
+      ],
+      "detailedNotes": "Main Idea: The Cornell Method is a note-taking system designed for effective learning by structuring a page into three functional sections.\n\n- **Origin**: Developed in the 1950s by Professor Walter Pauk of Cornell University.\n- **Core Concept**: The key is to divide a single page into three distinct parts for organized note-taking and easier review.\n- **Page Structure**:\n  1. **Cue Column (단서 영역)**: A narrow column on the left side for writing key questions or keywords that act as prompts.\n  2. **Notes Column (노트 영역)**: The main, wide column on the right for recording detailed lecture content, core information, and examples.\n  3. **Summary Row (요약 영역)**: A section at the bottom of the page for synthesizing the entire page's content into a single, concise sentence.",
+      "bottomSummary": "The Cornell Method, created by Walter Pauk in the 1950s, organizes a page into a left cue column, a right notes column, and a bottom summary row to structure information effectively.",
+      "questionAnswerPairs": [
+        {
+          "question": "코넬 메소드는 누가, 언제 개발했나요? (Who developed the Cornell Method and when?)",
+          "answer": "1950년대 코넬 대학교의 Walter Pauk 교수가 개발했습니다. (It was developed in the 1950s by Professor Walter Pauk of Cornell University.)",
+          "importance": "medium"
+        },
+        {
+          "question": "코넬 노트 페이지의 세 가지 주요 영역은 무엇인가요? (What are the three main areas of a Cornell note page?)",
+          "answer": "페이지는 왼쪽의 '단서 영역', 오른쪽의 '노트 영역', 그리고 하단의 '요약 영역'으로 나뉩니다. (The page is divided into the 'cue area' on the left, the 'notes area' on the right, and the 'summary area' at the bottom.)",
+          "importance": "high"
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "Cornell Method",
+          "definition": "A note-taking system that divides a page into three sections (cues, notes, summary) to improve learning and retention."
+        },
+        {
+          "term": "단서 영역 (Cue Column)",
+          "definition": "The left-hand column used for keywords and questions that serve as prompts for recalling information from the notes column."
+        },
+        {
+          "term": "노트 영역 (Notes Column)",
+          "definition": "The main, right-hand section of the page for recording detailed lecture notes, facts, and examples."
+        }
+      ]
+    },
+    {
+      "start": 150,
+      "end": 300,
+      "title": "Cornell Method의 핵심 장점과 효과 (Core Advantages and Effects)",
+      "summary": "This section explains the primary benefits of the Cornell Method, focusing on how it promotes active learning and serves as a self-testing tool to significantly improve memory recall.",
+      "cueQuestions": [
+        "What is the main advantage of using the Cornell Method?",
+        "Why is the cue column a powerful tool for review?",
+        "How does this method facilitate active learning?",
+        "How much can this method improve information recall, according to research?"
+      ],
+      "detailedNotes": "Main Idea: The Cornell Method's structure is designed to promote active learning rather than passive information absorption.\n\n- **Primary Advantage**: Its greatest strength is the promotion of *active learning*.\n- **Self-Testing Tool**: The cue column transforms into a tool for self-assessment during review sessions.\n- **Proven Effectiveness**: Research indicates that using this method can increase information recall rates by more than 30%.\n- **Cognitive Process**: By covering the notes and using the cues to recall information, students actively engage their memory, which is more effective than simple re-reading.",
+      "bottomSummary": "The Cornell Method's key advantage is fostering active learning, using the cue column as a self-testing tool to significantly boost information recall by over 30%.",
+      "questionAnswerPairs": [
+        {
+          "question": "코넬 메소드의 가장 큰 장점은 무엇인가요? (What is the biggest advantage of the Cornell Method?)",
+          "answer": "능동적 학습을 촉진한다는 것입니다. 단서 영역의 질문을 통해 스스로를 테스트할 수 있습니다. (It promotes active learning. You can test yourself using the questions in the cue area.)",
+          "importance": "high"
+        },
+        {
+          "question": "연구에 따르면 코넬 메소드는 정보 회상률을 얼마나 높이나요? (According to research, how much does the Cornell Method increase information recall?)",
+          "answer": "정보 회상률이 30% 이상 증가한다고 합니다. (It is said to increase information recall by over 30%.)",
+          "importance": "medium"
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "능동적 학습 (Active Learning)",
+          "definition": "A learning process where students engage with the material through activities like discussion, problem-solving, and self-testing, rather than passively listening."
+        },
+        {
+          "term": "정보 회상률 (Information Recall Rate)",
+          "definition": "The measure of how effectively an individual can retrieve stored information from their memory."
+        }
+      ]
+    },
+    {
+      "start": 300,
+      "end": 420,
+      "title": "효과적인 복습 방법과 활용성 (Effective Review Method and Versatility)",
+      "summary": "This final segment details the practical application of the Cornell Method for review, emphasizing the importance of timing and the active recall process for strengthening long-term memory.",
+      "cueQuestions": [
+        "When is the most critical time to review notes taken with the Cornell Method?",
+        "How should one conduct a review session using these notes?",
+        "Why is this review process effective for long-term memory?",
+        "What subjects is the Cornell Method suitable for?"
+      ],
+      "detailedNotes": "Main Idea: The effectiveness of Cornell notes is maximized through a specific, timely review process that aids long-term memory formation.\n\n- **Optimal Review Time**: It is crucial to review the notes within 24 hours of taking them.\n- **Review Process (Active Recall)**:\n  1. Cover the main notes column on the right.\n  2. Look only at the questions and keywords in the cue column on the left.\n  3. Attempt to recall and answer the questions or explain the concepts aloud.\n- **Memory Benefit**: This practice of active recall helps transfer information from short-term to long-term memory, ensuring better retention.\n- **Versatility**: The Cornell Method is a universal learning tool that can be applied to any subject, making it highly flexible.",
+      "bottomSummary": "To maximize learning, notes must be reviewed within 24 hours by using the cue column for active recall, a process that solidifies long-term memory and is applicable to all subjects.",
+      "questionAnswerPairs": [
+        {
+          "question": "코넬 노트는 언제 복습하는 것이 가장 중요한가요? (When is it most important to review Cornell notes?)",
+          "answer": "노트 필기 후 24시간 내에 복습하는 것이 중요합니다. (It is important to review them within 24 hours of taking the notes.)",
+          "importance": "high"
+        },
+        {
+          "question": "코넬 노트를 활용한 효과적인 복습 방법은 무엇인가요? (What is an effective review method using Cornell notes?)",
+          "answer": "노트 영역을 가리고 단서 영역의 질문만 보고 답을 떠올리는 것입니다. (Cover the notes area and try to recall the answers by looking only at the questions in the cue area.)",
+          "importance": "high"
+        },
+        {
+          "question": "이러한 복습 방법이 왜 효과적인가요? (Why is this review method effective?)",
+          "answer": "정보를 장기 기억으로 전환시키는 효과가 있기 때문입니다. (Because it has the effect of converting information into long-term memory.)",
+          "importance": "medium"
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "장기 기억 (Long-Term Memory)",
+          "definition": "The phase of the memory process where information is stored for an extended period, from hours to a lifetime."
+        },
+        {
+          "term": "범용적 학습 도구 (Universal Learning Tool)",
+          "definition": "A method or resource that can be effectively applied across a wide range of subjects and learning contexts."
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2025-11-02T07:15:25.504Z",
+  "qualityScore": 87
+}

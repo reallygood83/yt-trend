@@ -1,0 +1,194 @@
+{
+  "method": "Socratic Method",
+  "ageGroup": "adult",
+  "fullSummary": "This video posits that true understanding stems not from passively accepting information, but from actively engaging in critical thinking through questioning. It introduces the Socratic method and five key question types as a practical framework for deconstructing claims, revealing assumptions, and ultimately making wiser decisions.",
+  "videoMetadata": {
+    "videoId": "test-socratic-101",
+    "title": "비판적 사고의 힘: 질문을 통한 깊은 이해",
+    "duration": 420,
+    "language": "ko"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 140,
+      "title": "Questioning the Surface: The Foundation of Critical Thought",
+      "summary": "This segment contrasts passive information consumption with active inquiry. It uses the claim \"AI will replace all jobs\" as a case study to demonstrate how initial questions can dismantle broad statements and open the door to deeper analysis.",
+      "guidingQuestions": [
+        {
+          "question": "The video claims 'true understanding begins with a question.' What does this imply about information that is presented as a simple fact?",
+          "type": "clarification",
+          "depth": 2
+        },
+        {
+          "question": "What is the underlying assumption when one accepts the statement 'AI will replace all jobs' without challenge?",
+          "type": "assumption",
+          "depth": 3
+        },
+        {
+          "question": "The video asks about 'new opportunities' that AI might create. How does this question shift the perspective away from the initial claim?",
+          "type": "perspective",
+          "depth": 4
+        },
+        {
+          "question": "What kind of evidence would be required to transform the claim about AI from a mere assertion into a well-supported argument?",
+          "type": "evidence",
+          "depth": 3
+        }
+      ],
+      "thoughtProcess": [
+        "Acknowledge the default state of passive information acceptance.",
+        "Identify questioning as the primary tool to move from passive to active thinking.",
+        "Apply initial questions to a broad claim (e.g., 'AI will replace all jobs') to test its validity.",
+        "Deconstruct the claim by questioning its absolute terms ('all') and its evidentiary basis.",
+        "Recognize that questioning is the first step to uncovering nuance and complexity."
+      ],
+      "counterArguments": [
+        "Is it practical or efficient to question every piece of information we receive? This could lead to decision paralysis.",
+        "Some situations require immediate trust in an expert's statement (e.g., a doctor's diagnosis in an emergency). Is questioning always the most appropriate response?"
+      ],
+      "finalInsight": "The simple act of posing a question transforms us from passive receivers into active investigators of reality, revealing that most declarative statements are built upon a foundation of unexamined assumptions and incomplete perspectives.",
+      "questionLadder": [
+        {
+          "level": 1,
+          "question": "According to the video, what is the first step of critical thinking?",
+          "expectedThought": "To not accept surface-level information and to raise doubts or questions.",
+          "followUp": "Why is this step so crucial?"
+        },
+        {
+          "level": 3,
+          "question": "How does questioning a single word, like 'all' in 'all jobs', fundamentally change the entire meaning of a statement?",
+          "expectedThought": "It challenges the statement's absolute nature, forcing a more nuanced and realistic discussion about exceptions and degrees.",
+          "followUp": "What other absolute words should we be cautious of?"
+        },
+        {
+          "level": 5,
+          "question": "If all 'facts' are open to questioning, what is the ultimate basis for believing anything at all?",
+          "expectedThought": "A deep reflection on the nature of knowledge, moving from certainty to probability, and basing belief on the strength of evidence and reasoning rather than authority.",
+          "followUp": "How does this impact your personal definition of 'knowledge'?"
+        }
+      ]
+    },
+    {
+      "start": 140,
+      "end": 280,
+      "title": "The Socratic Toolkit: Deconstructing Claims with Five Question Types",
+      "summary": "This section frames critical inquiry within the historical context of the Socratic method. It provides a structured toolkit of five distinct question types—clarification, assumption, evidence, perspective, and implication—to systematically analyze any topic.",
+      "guidingQuestions": [
+        {
+          "question": "The video presents five types of questions. How does a 'clarification' question set the stage for the other four types?",
+          "type": "clarification",
+          "depth": 3
+        },
+        {
+          "question": "What is the assumed relationship between evidence and truth in this model of thinking?",
+          "type": "assumption",
+          "depth": 4
+        },
+        {
+          "question": "What are the potential consequences (implications) of consistently failing to ask these types of questions in your personal life?",
+          "type": "implication",
+          "depth": 4
+        },
+        {
+          "question": "How might two people, using the exact same five-question framework, still arrive at completely different conclusions?",
+          "type": "perspective",
+          "depth": 5
+        }
+      ],
+      "thoughtProcess": [
+        "Link the general act of questioning to a formal methodology (the Socratic method).",
+        "Categorize questions into a practical, five-part toolkit.",
+        "Understand the specific function of each tool: defining terms, uncovering biases, demanding proof, broadening views, and exploring consequences.",
+        "Realize these question types form a comprehensive system for a 360-degree analysis of any idea.",
+        "Appreciate that critical thinking is a structured skill, not just a vague attitude."
+      ],
+      "counterArguments": [
+        "This framework seems highly logical and rational. Does it devalue the role of intuition, emotion, or creativity in understanding the world and making decisions?",
+        "In a high-pressure work environment, is it realistic to pause and apply a five-step questioning model to every decision?"
+      ],
+      "finalInsight": "Critical thinking is a learnable skill, not an innate talent. By mastering this five-question toolkit, one can systematically move beyond surface-level agreement or disagreement to a profound understanding of the structure and validity of any argument.",
+      "questionLadder": [
+        {
+          "level": 1,
+          "question": "Can you name the five types of Socratic questions mentioned in the video?",
+          "expectedThought": "Recalling the list: clarification, assumption, evidence, perspective, implication.",
+          "followUp": "Which type do you think is most challenging to use?"
+        },
+        {
+          "level": 3,
+          "question": "Why is it important to ask about assumptions *before* asking for evidence?",
+          "expectedThought": "Because assumptions are the hidden foundation of an argument. If the foundation is flawed, the evidence presented on top of it may be irrelevant or misleading.",
+          "followUp": "How can you spot a hidden assumption in a conversation?"
+        },
+        {
+          "level": 5,
+          "question": "Does this Socratic toolkit assume that there is always a single, objective 'truth' to be found?",
+          "expectedThought": "A reflection on whether the goal is to find one right answer or to achieve the clearest, most well-supported understanding, even if it remains complex and multi-faceted.",
+          "followUp": "How does this change the purpose of a debate or discussion?"
+        }
+      ]
+    },
+    {
+      "start": 280,
+      "end": 420,
+      "title": "From Practice to Insight: The Journey of Lifelong Inquiry",
+      "summary": "The video concludes by reframing critical thinking as a continuous practice rather than a goal with an endpoint. It emphasizes that the ultimate purpose of questioning is not simply to find correct answers, but to embark on a lifelong journey toward deeper understanding and wisdom.",
+      "guidingQuestions": [
+        {
+          "question": "The video concludes that questioning is a 'journey, not a tool.' What is the core difference between these two concepts in this context?",
+          "type": "clarification",
+          "depth": 3
+        },
+        {
+          "question": "What is the assumed connection between the practice of critical questioning and the development of 'wisdom'?",
+          "type": "assumption",
+          "depth": 4
+        },
+        {
+          "question": "From an alternative perspective, could a relentless habit of questioning lead to social friction or being perceived as difficult?",
+          "type": "perspective",
+          "depth": 3
+        },
+        {
+          "question": "What are the long-term implications for a society if its citizens widely adopt this practice of critical thinking?",
+          "type": "implication",
+          "depth": 5
+        }
+      ],
+      "thoughtProcess": [
+        "Shift the focus from the 'tools' of questioning to the 'habit' of questioning.",
+        "Understand that critical thinking is a continuous process, not a destination.",
+        "Connect this ongoing practice to higher-order outcomes like 'wisdom' and 'better decisions.'",
+        "Reframe the goal of inquiry from finding a final, static answer to engaging in a dynamic, ongoing process of understanding."
+      ],
+      "counterArguments": [
+        "This portrays understanding as a very individualistic journey. What is the role of collective knowledge, culture, and community in shaping our understanding?",
+        "The idea of a 'journey to true understanding' can seem idealistic. Is it possible that some questions don't have deeper answers and should be taken at face value?"
+      ],
+      "finalInsight": "The ultimate power of the Socratic method lies not in winning arguments, but in transforming one's entire orientation to the world—from a search for certainty to an embrace of inquiry, making learning a lifelong, dynamic journey rather than a destination.",
+      "questionLadder": [
+        {
+          "level": 1,
+          "question": "What does the video say is the final outcome of practicing these questioning skills?",
+          "expectedThought": "To think more deeply and make wiser decisions.",
+          "followUp": "What does a 'wise decision' mean to you?"
+        },
+        {
+          "level": 3,
+          "question": "How might adopting questioning as a 'journey' change the way you react when you discover you were wrong about something?",
+          "expectedThought": "It could shift the feeling from failure or embarrassment to one of discovery and progress on the journey of understanding.",
+          "followUp": "How does this mindset foster intellectual humility?"
+        },
+        {
+          "level": 5,
+          "question": "If understanding is a journey without a final destination, what motivates a person to keep asking questions?",
+          "expectedThought": "A philosophical exploration of innate curiosity, the intrinsic joy of learning, and the ethical commitment to seeking a more accurate and compassionate view of the world.",
+          "followUp": "What does this suggest about the fundamental purpose of human consciousness?"
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2025-11-02T07:55:58.787Z",
+  "qualityScore": 100
+}

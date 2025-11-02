@@ -1,0 +1,382 @@
+// ============================================================================
+// STORYTELLING METHOD IMPLEMENTATION
+// ============================================================================
+
+/**
+ * Generate Storytelling Method Note
+ *
+ * Core Storytelling principles:
+ * 1. Narrative (setting, protagonist, obstacles, resolution)
+ * 2. Characters (roles, motivations)
+ * 3. Plot (problem → conflict → solution)
+ * 4. Story Arc (exposition → rising → climax → falling → resolution)
+ * 5. Emotional Journey (timestamps with emotion and intensity)
+ * 6. Moral (lessons and real-world application)
+ */
+async function generateStorytellingNote(request: GenerateNoteRequest): Promise<StorytellingNote> {
+  const prompt = buildStorytellingPrompt(request);
+  const responseText = await callGemini(prompt);
+  return parseStorytellingResponse(responseText, request);
+}
+
+/**
+ * Build Storytelling prompt with clear JSON structure for frontend visualization
+ */
+function buildStorytellingPrompt(request: GenerateNoteRequest): string {
+  const { title, transcript, ageGroup, duration } = request;
+
+  return `You are an expert educator using the Storytelling Method to make complex concepts memorable through narrative structure.
+
+**Storytelling Method Core Principles:**
+1. **Narrative**: Setting, protagonist's goal, obstacles, and resolution
+2. **Characters**: Clear roles (protagonist, antagonist, mentor, helper) with motivations
+3. **Plot Structure**: Problem → Conflict → Solution
+4. **Story Arc**: Five-act structure (Exposition → Rising Action → Climax → Falling Action → Resolution)
+5. **Emotional Journey**: Track emotional intensity throughout the story
+6. **Moral & Application**: Extract lessons and real-world applications
+
+**Video Information:**
+- Title: ${title}
+- Duration: ${Math.floor(duration / 60)} minutes
+- Age Group: ${ageGroup}
+
+**Video Transcript:**
+${transcript}
+
+**Your Task:**
+Create a Storytelling Method learning note with this structure:
+
+1. **Full Summary** (2-3 sentences): Overall synthesis of the video content
+
+2. **Time Segments** (4-6 segments, each 2-3 minutes):
+   For each segment, provide:
+
+   a) **Narrative** (story structure):
+      - Setting: Where and when does this take place?
+      - Protagonist Goal: What does the main character/concept want to achieve?
+      - Obstacles: What challenges are faced? (array of 2-3 obstacles)
+      - Resolution: How does the story resolve?
+
+   b) **Characters** (2-3 characters):
+      - Name: Character/concept name
+      - Role: protagonist | antagonist | mentor | helper
+      - Motivation: What drives this character?
+
+   c) **Plot Structure**:
+      - Problem: Initial problem situation
+      - Conflict: Central conflict or challenge
+      - Solution: How the problem is solved
+
+   d) **Story Arc** (5-act structure):
+      - Exposition: Introduction and setup
+      - Rising Action: Events building tension (array of 2-3 events)
+      - Climax: Peak moment or turning point
+      - Falling Action: Consequences after climax
+      - Resolution: Final outcome
+
+   e) **Emotional Journey** (3-4 emotion points):
+      - Timestamp: Second mark in the video
+      - Emotion: Specific emotion (e.g., "curious", "frustrated", "excited", "relieved")
+      - Intensity: 1-10 scale
+
+   f) **Moral & Application**:
+      - Moral: The story's lesson or takeaway
+      - Real World Application: How to apply this in real life
+
+**Output Format (JSON):**
+\`\`\`json
+{
+  "method": "Storytelling",
+  "ageGroup": "${ageGroup}",
+  "fullSummary": "Overall synthesis of video content in 2-3 sentences...",
+  "videoMetadata": {
+    "videoId": "${request.videoId}",
+    "title": "${title}",
+    "duration": ${duration},
+    "language": "${request.language}"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 180,
+      "title": "Segment title as story chapter",
+      "summary": "Brief segment overview",
+      "narrative": {
+        "setting": "Time and place where this story unfolds",
+        "protagonistGoal": "What the main character/concept wants to achieve",
+        "obstacles": [
+          "First obstacle or challenge",
+          "Second obstacle",
+          "Third obstacle"
+        ],
+        "resolution": "How the obstacles are overcome"
+      },
+      "characters": [
+        {
+          "name": "Character name (e.g., 'The Learner', 'Confusion', 'Insight')",
+          "role": "protagonist",
+          "motivation": "What drives this character"
+        },
+        {
+          "name": "Second character",
+          "role": "antagonist",
+          "motivation": "Opposing force motivation"
+        }
+      ],
+      "plot": {
+        "problem": "Initial problem situation",
+        "conflict": "Central conflict or tension",
+        "solution": "How the problem is resolved"
+      },
+      "storyArc": {
+        "exposition": "Introduction and setup of the situation",
+        "risingAction": [
+          "First event building tension",
+          "Second event increasing stakes",
+          "Third event approaching climax"
+        ],
+        "climax": "Peak moment or turning point",
+        "fallingAction": "Consequences after the climax",
+        "resolution": "Final outcome and closure"
+      },
+      "emotionalJourney": [
+        {
+          "timestamp": 30,
+          "emotion": "curious",
+          "intensity": 6
+        },
+        {
+          "timestamp": 90,
+          "emotion": "frustrated",
+          "intensity": 7
+        },
+        {
+          "timestamp": 150,
+          "emotion": "excited",
+          "intensity": 9
+        }
+      ],
+      "moral": "The lesson or takeaway from this story",
+      "realWorldApplication": "How to apply this learning in real-world situations"
+    }
+  ],
+  "generatedAt": "${new Date().toISOString()}"
+}
+\`\`\`
+
+**Critical Requirements for Frontend Visualization:**
+- Segments must cover entire video (0 to ${duration} seconds)
+- Each segment: 2-3 minutes (120-180 seconds)
+- Characters: 2-3 per segment with clear roles
+- Obstacles: 2-3 concrete challenges per narrative
+- Rising Action: 2-3 events building toward climax
+- Emotional Journey: 3-4 emotion points per segment
+- Timestamp values must be within segment range
+- All content must be accurate to the transcript
+- Use age-appropriate language for ${ageGroup} level
+- **Clean JSON structure** for easy frontend parsing and visualization
+
+Generate the JSON now:`;
+}
+
+/**
+ * Parse Storytelling response from Gemini API with thorough validation
+ */
+function parseStorytellingResponse(responseText: string, request: GenerateNoteRequest): StorytellingNote {
+  try {
+    // Extract JSON from markdown code block
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in AI response');
+    }
+
+    let jsonText = jsonMatch[1].trim();
+
+    // Smart JSON parsing with repair logic (same proven pattern)
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (firstError) {
+      console.warn('[Storytelling Parse Warning] Initial parse failed, attempting JSON repair...');
+
+      // Try adding missing closing braces if JSON is incomplete
+      if (!jsonText.trim().endsWith('}')) {
+        jsonText = jsonText.trim() + '\n  ]\n}';
+        console.log('[Storytelling Parse Debug] Added missing closing braces');
+      }
+
+      // Fix common AI JSON issues
+      jsonText = jsonText
+        .replace(/"\s*}\s*\n\s*{/g, '"},\n    {')  // Missing commas between objects
+        .replace(/"\s*}\s*\]/g, '"}\n  ]');         // Missing closing array
+
+      try {
+        parsed = JSON.parse(jsonText);
+        console.log('[Storytelling Parse Success] JSON repaired and parsed successfully');
+      } catch (secondError) {
+        console.error('[Storytelling Parse Error] JSON repair failed:', secondError);
+        throw new Error(`Failed to parse AI response: ${secondError instanceof Error ? secondError.message : 'Unknown error'}`);
+      }
+    }
+
+    // Build StorytellingNote with type safety and frontend-optimized structure
+    const note: StorytellingNote = {
+      method: "Storytelling",
+      ageGroup: request.ageGroup,
+      fullSummary: parsed.fullSummary || '',
+      videoMetadata: parsed.videoMetadata || {
+        videoId: request.videoId,
+        title: request.title,
+        duration: request.duration,
+        language: request.language
+      },
+      segments: (parsed.segments || []).map((seg: any) => ({
+        start: seg.start || 0,
+        end: seg.end || 0,
+        title: seg.title || '',
+        summary: seg.summary || '',
+        narrative: {
+          setting: seg.narrative?.setting || '',
+          protagonistGoal: seg.narrative?.protagonistGoal || '',
+          obstacles: Array.isArray(seg.narrative?.obstacles) ? seg.narrative.obstacles : [],
+          resolution: seg.narrative?.resolution || ''
+        },
+        characters: (seg.characters || []).map((char: any) => ({
+          name: char.name || '',
+          role: char.role || 'protagonist',
+          motivation: char.motivation || ''
+        })),
+        plot: {
+          problem: seg.plot?.problem || '',
+          conflict: seg.plot?.conflict || '',
+          solution: seg.plot?.solution || ''
+        },
+        storyArc: {
+          exposition: seg.storyArc?.exposition || '',
+          risingAction: Array.isArray(seg.storyArc?.risingAction) ? seg.storyArc.risingAction : [],
+          climax: seg.storyArc?.climax || '',
+          fallingAction: seg.storyArc?.fallingAction || '',
+          resolution: seg.storyArc?.resolution || ''
+        },
+        emotionalJourney: (seg.emotionalJourney || []).map((ej: any) => ({
+          timestamp: typeof ej.timestamp === 'number' ? ej.timestamp : 0,
+          emotion: ej.emotion || '',
+          intensity: typeof ej.intensity === 'number' ? ej.intensity : 5
+        })),
+        moral: seg.moral || '',
+        realWorldApplication: seg.realWorldApplication || ''
+      })) || [],
+      generatedAt: new Date(),
+      qualityScore: calculateStorytellingQualityScore(parsed)
+    };
+
+    // Validate segment coverage
+    validateSegmentCoverage(note.segments, request.duration);
+
+    return note;
+
+  } catch (error) {
+    console.error('Error parsing Storytelling response:', error);
+    throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Calculate quality score for Storytelling notes
+ */
+function calculateStorytellingQualityScore(parsed: any): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Check summary quality (10 points)
+  if (parsed.fullSummary && parsed.fullSummary.length >= 30) {
+    score += 10;
+  }
+
+  // Check segment count (20 points)
+  const segmentCount = parsed.segments?.length || 0;
+  if (segmentCount >= 4 && segmentCount <= 6) {
+    score += 20;
+  } else if (segmentCount >= 3) {
+    score += 10;
+  }
+
+  // Check Storytelling-specific fields (70 points total)
+  const segments = parsed.segments || [];
+  let storyScore = 0;
+  let validSegments = 0;
+
+  segments.forEach((seg: any) => {
+    let segScore = 0;
+
+    // Narrative quality (15 points)
+    if (seg.narrative?.setting && seg.narrative?.protagonistGoal &&
+        Array.isArray(seg.narrative?.obstacles) && seg.narrative.obstacles.length >= 2 &&
+        seg.narrative?.resolution) {
+      segScore += 15;
+    } else if (seg.narrative?.setting || seg.narrative?.protagonistGoal) {
+      segScore += 8;
+    }
+
+    // Characters quality (15 points)
+    const charCount = seg.characters?.length || 0;
+    if (charCount >= 2 && charCount <= 3) {
+      const validChars = seg.characters.filter((c: any) => c.name && c.role && c.motivation);
+      if (validChars.length === charCount) {
+        segScore += 15;
+      } else {
+        segScore += 10;
+      }
+    } else if (charCount >= 1) {
+      segScore += 5;
+    }
+
+    // Plot structure quality (10 points)
+    if (seg.plot?.problem && seg.plot?.conflict && seg.plot?.solution) {
+      segScore += 10;
+    } else if (seg.plot?.problem || seg.plot?.conflict) {
+      segScore += 5;
+    }
+
+    // Story arc quality (15 points)
+    if (seg.storyArc?.exposition && Array.isArray(seg.storyArc?.risingAction) &&
+        seg.storyArc.risingAction.length >= 2 && seg.storyArc?.climax &&
+        seg.storyArc?.fallingAction && seg.storyArc?.resolution) {
+      segScore += 15;
+    } else if (seg.storyArc?.climax || seg.storyArc?.resolution) {
+      segScore += 8;
+    }
+
+    // Emotional journey quality (10 points)
+    const ejCount = seg.emotionalJourney?.length || 0;
+    if (ejCount >= 3 && ejCount <= 4) {
+      const validEj = seg.emotionalJourney.filter((ej: any) =>
+        typeof ej.timestamp === 'number' && ej.emotion && typeof ej.intensity === 'number'
+      );
+      if (validEj.length === ejCount) {
+        segScore += 10;
+      } else {
+        segScore += 5;
+      }
+    } else if (ejCount >= 2) {
+      segScore += 5;
+    }
+
+    // Moral and application quality (5 points)
+    if (seg.moral && seg.realWorldApplication) {
+      segScore += 5;
+    } else if (seg.moral || seg.realWorldApplication) {
+      segScore += 3;
+    }
+
+    storyScore += segScore;
+    validSegments++;
+  });
+
+  // Average story score across segments
+  if (validSegments > 0) {
+    score += (storyScore / validSegments);
+  }
+
+  return Math.min(Math.round(score), maxScore);
+}

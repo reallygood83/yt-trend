@@ -1,0 +1,90 @@
+{
+  "method": "Feynman Technique",
+  "ageGroup": "adult",
+  "fullSummary": "The double-slit experiment shows that the tiniest things, like light, act weirdly. They behave like spread-out waves when we're not looking, but snap into being solid particles in one specific place the moment we try to measure them.",
+  "videoMetadata": {
+    "videoId": "test-video-123",
+    "title": "양자역학의 기초: 이중 슬릿 실험",
+    "duration": 600,
+    "language": "ko"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 150,
+      "title": "Part 1: The 'Common Sense' Expectation",
+      "summary": "Setting up the experiment and predicting what would happen if we used solid objects, establishing a baseline based on our everyday world.",
+      "coreConcept": "Solid objects, like particles, go through one opening or the other, creating two simple bands on a screen behind them.",
+      "simpleExplanation": "Imagine you have a wall with two vertical slits in it, like two open doorways side-by-side. Now, stand back and shoot a paintball gun at it. The paintballs that go through the slits will hit the back wall. Where would you expect them to land? Naturally, you'd see two distinct lines of paint on the back wall, each one directly behind one of the slits. This is our 'common sense' understanding of how the world works.\n\nThis is the particle model. A particle is a tiny, solid thing. It can only be in one place at one time. It has to choose one slit to go through. Over time, as you fire more and more paintballs, you build up two clear, separate piles or bands. This is exactly what scientists first expected to see when they tried this experiment with the smallest bits of matter.",
+      "everydayAnalogy": "This is like dropping marbles through two slots in a piece of cardboard. The marbles will land in two neat piles on the floor directly below the slots. A single marble can't go through both slots at once, so the result is predictable and simple: two piles, one for each slot.",
+      "knowledgeGaps": [
+        "Why is it so important to first establish what happens with 'particles' like paintballs?",
+        "If you made the slits very wide, how would that change the pattern on the back wall?",
+        "What assumption are we making about the paintball's path from the gun to the wall?"
+      ],
+      "selfExplanationTest": "Explain to a friend why shooting paintballs through two slits results in only two lines. You must cover the idea that a single object can only take a single path. The tricky part is explaining why this simple, obvious idea is the crucial starting point for understanding why the quantum world is so strange."
+    },
+    {
+      "start": 150,
+      "end": 300,
+      "title": "Part 2: The First Surprise - Light Behaves Like a Wave",
+      "summary": "Replacing particles with light and observing a completely different, unexpected pattern that suggests light is not a simple particle.",
+      "coreConcept": "When light shines through two slits, it creates a widespread pattern of many bright and dark bands, which is a hallmark of wave behavior.",
+      "simpleExplanation": "Now, let's change the experiment. Instead of paintballs, we shine a light through the same two slits. What do we see on the back screen? Not two simple lines. Instead, we get a whole series of bright and dark stripes, with the brightest one in the very middle, right between the two slits. This is called an 'interference pattern.'\n\nWhere does this pattern come from? It happens when waves interact. Imagine a wave going through both slits at the same time. On the other side, you now have two new waves starting from each slit. As these waves spread out, they run into each other. In some places, the peaks of the waves add up, creating a bigger wave (a bright stripe). In other places, a peak from one wave meets a trough from the other, and they cancel each other out (a dark stripe). This proves that light is acting like a wave, not a collection of tiny particles.",
+      "everydayAnalogy": "Think about dropping two pebbles into a calm pond at the same time. Ripples spread out from where each pebble hit. When these two sets of ripples meet, they create a complex pattern. Some spots have much higher waves (constructive interference), and some spots become completely calm (destructive interference). The light pattern on the screen is the exact same idea, just with light waves instead of water waves.",
+      "knowledgeGaps": [
+        "Why is the brightest band in the middle, a place where no 'particle' could have gone in a straight line?",
+        "If light is a wave, what is 'waving'?",
+        "How does the distance between the two slits affect the interference pattern we see on the screen?"
+      ],
+      "selfExplanationTest": "Explain to someone why the interference pattern proves light is a wave. You need to clearly describe how two waves can add up or cancel each other out. The most difficult part is connecting the abstract idea of wave peaks and troughs to the concrete bright and dark bands seen on the screen."
+    },
+    {
+      "start": 300,
+      "end": 450,
+      "title": "Part 3: The Quantum Weirdness - One Particle at a Time",
+      "summary": "Exploring the core mystery by sending single particles of light (photons) one by one, which unbelievably still creates a wave pattern.",
+      "coreConcept": "Even when you send particles through the slits one at a time, they collectively build up the same wave interference pattern, suggesting each particle interferes with itself.",
+      "simpleExplanation": "This is where our brains start to hurt. Scientists thought, 'Okay, light is a wave. But we also know light is made of tiny packets of energy called photons. What if we turn the light down so low that only ONE photon goes through the experiment at a time?' This is like shooting one paintball, waiting, then shooting another. Surely, a single photon has to choose one slit or the other. It can't interfere with anything, so we should get the simple two-band pattern back, right?\n\nWrong. This is the mind-blowing part. When they did this, the first photon landed as a single dot. The second landed as another dot. The third, another. At first, the dots look random. But after thousands of single photons have been fired, one by one, what pattern do you see? The exact same interference pattern of many stripes. This is deeply weird. How can a single photon, traveling all by itself, create a pattern that requires something to go through *both* slits at once to interfere with itself?",
+      "everydayAnalogy": "Imagine you're a single skier going down a slope towards two gates. You ski down once, leaving a single track. Then another skier goes, and another, each one at a time. When you look at the mountain later, you expect to see two clusters of tracks behind the two gates. Instead, you see a complex pattern of many tracks spread across the whole finish line, even in places that would be impossible to reach by going straight through just one gate. It's as if each individual skier somehow 'sensed' both gates and took a path influenced by a route they didn't even take.",
+      "knowledgeGaps": [
+        "How can a single particle interfere with itself? What does that even mean?",
+        "If the photon is a single particle when it hits the screen (a single dot), what was it while it was traveling?",
+        "Does the particle 'know' that there are two slits open, even before it gets there?"
+      ],
+      "selfExplanationTest": "Try to explain to a 12-year-old why firing photons one-by-one is the strangest part of this experiment. You need to emphasize the contradiction: it's launched as one thing, it hits the screen as one thing, but in between, it acts like it was in multiple places at once. The struggle will be explaining *how* this is possible without just saying 'it's quantum mechanics'."
+    },
+    {
+      "start": 450,
+      "end": 600,
+      "title": "Part 4: The Observer Effect - Looking Changes Everything",
+      "summary": "The final twist: when we try to observe which slit the particle goes through, the weirdness vanishes, and the outcome changes completely.",
+      "coreConcept": "The act of measuring or observing which path a particle takes forces it to behave like a simple particle, destroying the wave interference pattern.",
+      "simpleExplanation": "Scientists were just as confused as we are. So they decided to cheat. They put a tiny detector next to the slits to see which one each photon actually went through. 'Aha!' they thought, 'Now we'll solve the mystery.' But what happened next was even stranger.\n\nThe moment they turned on the detector, the interference pattern vanished completely. As soon as they 'watched' the photons, the photons stopped acting like waves. They started behaving like well-behaved paintballs again, creating just two simple bands on the screen. The very act of observing forced the photon to 'make a choice' and behave like a particle. When the detector was turned off, the interference pattern came back. This is the 'Observer Effect': in the quantum world, the universe behaves differently when we're watching it.",
+      "everydayAnalogy": "This is like a very shy person who hums a beautiful, complex melody (the wave pattern) when they think they're alone. The moment you open the door to see who is singing (the act of observation), they get embarrassed and just say 'Hello' in a plain voice (the particle pattern). Your act of looking fundamentally changed their behavior from a complex 'wave' of music into a simple, definite 'particle' of speech.",
+      "knowledgeGaps": [
+        "What does 'observation' physically mean? Is it about a human consciousness, or the physical interaction of a measuring device?",
+        "Why would the act of measuring which slit it went through prevent it from interfering with itself?",
+        "If we measure its path and the wave pattern disappears, does this mean the particle 'knew' it was being watched?"
+      ],
+      "selfExplanationTest": "Explain the Observer Effect using the shy singer analogy. You must make it clear that the 'observer' doesn't have to be a person; it's any interaction that reveals the particle's path. The challenge is to explain *why* this interaction would collapse the wavy possibilities into one single reality, which is the core mystery of quantum mechanics."
+    }
+  ],
+  "overallReflection": {
+    "fundamentalConcepts": [
+      "Wave-Particle Duality: Things can act as both spread-out waves and pinpoint particles, depending on how you interact with them.",
+      "Quantum Superposition: Before being measured, a particle exists in a state of all possibilities at once (e.g., going through both slits simultaneously).",
+      "The Observer Effect: The act of measuring a quantum system fundamentally changes its state, forcing it out of superposition into a single, definite outcome."
+    ],
+    "majorGaps": [
+      "The mechanism of collapse: *Why* does observation force a wave of possibilities to collapse into a single particle? The experiment shows that it happens, but not how.",
+      "The nature of reality: What is the particle 'doing' when we are not looking? Is it truly a wave, or something else we can't imagine? The experiment raises more questions than it answers about the fundamental nature of reality."
+    ],
+    "effectiveAnalogies": [
+      "Water waves from two pebbles: This is the best and most intuitive analogy for explaining what an interference pattern is and why it's a signature of waves.",
+      "The shy singer: This analogy is excellent for explaining the Observer Effect because it captures the idea that the behavior itself changes when it's being observed, moving from a complex state (singing/wave) to a simple one (speaking/particle)."
+    ]
+  },
+  "generatedAt": "2025-11-02T06:53:26.689Z",
+  "qualityScore": 90
+}

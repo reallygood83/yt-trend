@@ -1,0 +1,137 @@
+/**
+ * Build Cornell Method prompt
+ * Core principles: Cue questions (5W1H), Detailed notes, Bottom summary, Q&A pairs, Key terms
+ */
+function buildCornellPrompt(request: GenerateNoteRequest): string {
+  const { title, transcript, ageGroup, duration } = request;
+
+  return `You are an expert educator using the Cornell Method for effective note-taking and learning.
+
+**Cornell Method Core Principles:**
+1. **Cue Column (왼쪽)**: Key questions using 5W1H (Who, What, When, Where, Why, How)
+   - 3-5 questions per segment
+   - Questions that trigger recall of main ideas
+
+2. **Notes Column (오른쪽)**: Detailed lecture notes
+   - Main ideas and supporting details
+   - Facts, definitions, examples
+   - Clear and organized
+
+3. **Summary Row (하단)**: One-sentence summary
+   - Synthesize the main point
+   - Use your own words
+
+4. **Question-Answer Pairs**: Active recall practice
+   - Questions with concrete answers
+   - Mark importance level (high/medium/low)
+
+5. **Key Terms Glossary**: Important vocabulary
+   - Term and clear definition
+   - Essential concepts to remember
+
+**Video Information:**
+- Title: ${title}
+- Duration: ${Math.floor(duration / 60)} minutes
+- Age Group: ${ageGroup}
+
+**Video Transcript:**
+${transcript}
+
+**Your Task:**
+Create a Cornell Method learning note with this structure:
+
+1. **Full Summary** (2-3 sentences): Overall synthesis of the video content
+
+2. **Time Segments** (4-6 segments, each 2-3 minutes):
+   For each segment, provide:
+
+   a) **Cue Questions** (3-5 questions):
+      - Use 5W1H format (Who, What, When, Where, Why, How)
+      - Questions that prompt recall of key information
+      - Example: "What is the main purpose of...?"
+
+   b) **Detailed Notes** (comprehensive):
+      - Main ideas and supporting details
+      - Important facts, definitions, examples
+      - Organized and clear structure
+
+   c) **Bottom Summary** (1 sentence):
+      - Synthesize the segment's main point
+      - Use your own words
+
+   d) **Question-Answer Pairs** (2-4 pairs):
+      - Question: Clear, specific question
+      - Answer: Concrete, informative answer
+      - Importance: high | medium | low
+
+   e) **Key Terms** (2-3 terms):
+      - Term: Important vocabulary or concept
+      - Definition: Clear explanation
+
+**Output Format (JSON):**
+\`\`\`json
+{
+  "method": "Cornell Method",
+  "ageGroup": "${ageGroup}",
+  "fullSummary": "Overall synthesis of video content in 2-3 sentences...",
+  "videoMetadata": {
+    "videoId": "${request.videoId}",
+    "title": "${title}",
+    "duration": ${duration},
+    "language": "${request.language}"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 180,
+      "title": "Segment title",
+      "summary": "Brief segment overview",
+      "cueQuestions": [
+        "What is the main concept introduced?",
+        "Why is this topic important?",
+        "How does this relate to the overall theme?"
+      ],
+      "detailedNotes": "Main idea: The video introduces the concept of X, which is important because Y. Key supporting details include: 1) First detail with example, 2) Second detail showing application, 3) Third detail explaining implications. The presenter emphasizes that this forms the foundation for understanding subsequent concepts.",
+      "bottomSummary": "This segment establishes the foundational concept that enables deeper understanding.",
+      "questionAnswerPairs": [
+        {
+          "question": "What is the primary benefit of this approach?",
+          "answer": "The primary benefit is improved efficiency through systematic organization and clear structure.",
+          "importance": "high"
+        },
+        {
+          "question": "How does this differ from traditional methods?",
+          "answer": "Unlike traditional methods, this approach emphasizes active recall and self-testing.",
+          "importance": "medium"
+        }
+      ],
+      "keyTerms": [
+        {
+          "term": "Active Recall",
+          "definition": "A learning technique where you actively retrieve information from memory rather than passively reviewing notes."
+        },
+        {
+          "term": "Spaced Repetition",
+          "definition": "A learning method that involves reviewing material at increasing intervals to strengthen long-term retention."
+        }
+      ]
+    }
+  ],
+  "generatedAt": "${new Date().toISOString()}"
+}
+\`\`\`
+
+**Critical Requirements:**
+- Segments must cover entire video (0 to ${duration} seconds)
+- Each segment: 2-3 minutes (120-180 seconds)
+- Cue questions: 3-5 per segment using 5W1H
+- Detailed notes: Comprehensive and well-organized
+- Bottom summary: One clear sentence synthesizing the segment
+- Question-Answer pairs: 2-4 per segment with importance levels
+- Key terms: 2-3 essential concepts per segment
+- All content must be accurate to the transcript
+- Use age-appropriate language for ${ageGroup} level
+
+Generate the JSON now:`;
+}
+

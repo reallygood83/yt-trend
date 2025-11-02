@@ -1,0 +1,356 @@
+// ============================================================================
+// SOCRATIC METHOD IMPLEMENTATION
+// ============================================================================
+
+/**
+ * Generate Socratic Method Note
+ *
+ * Core Socratic principles:
+ * 1. Guided Inquiry (guiding questions to lead thinking)
+ * 2. Question Types (clarification, assumption, evidence, perspective, implication)
+ * 3. Question Depth (1-5 levels from surface to deep)
+ * 4. Thought Process (reasoning steps)
+ * 5. Counter-Arguments (critical thinking)
+ * 6. Question Ladder (progressive questioning with expected thought and follow-up)
+ */
+async function generateSocraticNote(request: GenerateNoteRequest): Promise<SocraticNote> {
+  const prompt = buildSocraticPrompt(request);
+  const responseText = await callGemini(prompt);
+  return parseSocraticResponse(responseText, request);
+}
+
+/**
+ * Build Socratic prompt with clear JSON structure for frontend visualization
+ */
+function buildSocraticPrompt(request: GenerateNoteRequest): string {
+  const { title, transcript, ageGroup, duration } = request;
+
+  return `You are an expert educator using the Socratic Method to guide learners through critical thinking and self-discovery.
+
+**Socratic Method Core Principles:**
+1. **Guided Inquiry**: Use questions to guide learners to discover insights themselves
+2. **Question Types**:
+   - clarification: Questions that clarify understanding
+   - assumption: Questions that examine underlying assumptions
+   - evidence: Questions about proof and data
+   - perspective: Questions exploring different viewpoints
+   - implication: Questions about consequences and applications
+3. **Question Depth**: Progressive levels from surface (1) to deep (5)
+4. **Thought Process**: Step-by-step reasoning journey
+5. **Counter-Arguments**: Critical examination of ideas
+6. **Question Ladder**: Scaffolded questions building on each other
+
+**Video Information:**
+- Title: ${title}
+- Duration: ${Math.floor(duration / 60)} minutes
+- Age Group: ${ageGroup}
+
+**Video Transcript:**
+${transcript}
+
+**Your Task:**
+Create a Socratic Method learning note with this structure:
+
+1. **Full Summary** (2-3 sentences): Overall synthesis of the video content
+
+2. **Time Segments** (4-6 segments, each 2-3 minutes):
+   For each segment, provide:
+
+   a) **Guiding Questions** (3-5 questions):
+      - question: The Socratic question
+      - type: clarification | assumption | evidence | perspective | implication
+      - depth: 1 (surface) ~ 5 (deep)
+
+   b) **Thought Process** (3-5 reasoning steps):
+      - Array of thinking steps that emerge from the questions
+
+   c) **Counter-Arguments** (2-3 counter-arguments):
+      - Critical examination and alternative perspectives
+
+   d) **Final Insight**:
+      - The insight reached through the questioning process
+
+   e) **Question Ladder** (3-4 progressive questions):
+      - level: Question depth level (1-5)
+      - question: The progressive question
+      - expectedThought: Expected thinking direction
+      - followUp: Follow-up question to deepen inquiry
+
+**Output Format (JSON):**
+\`\`\`json
+{
+  "method": "Socratic Method",
+  "ageGroup": "${ageGroup}",
+  "fullSummary": "Overall synthesis of video content in 2-3 sentences...",
+  "videoMetadata": {
+    "videoId": "${request.videoId}",
+    "title": "${title}",
+    "duration": ${duration},
+    "language": "${request.language}"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 180,
+      "title": "Segment title as inquiry topic",
+      "summary": "Brief segment overview",
+      "guidingQuestions": [
+        {
+          "question": "What is the core concept being presented here?",
+          "type": "clarification",
+          "depth": 1
+        },
+        {
+          "question": "What assumptions underlie this approach?",
+          "type": "assumption",
+          "depth": 3
+        },
+        {
+          "question": "What evidence supports this claim?",
+          "type": "evidence",
+          "depth": 2
+        }
+      ],
+      "thoughtProcess": [
+        "First step: Identify the main claim",
+        "Second step: Examine the reasoning",
+        "Third step: Consider the implications"
+      ],
+      "counterArguments": [
+        "Alternative perspective: What if we consider...",
+        "Potential objection: However, one might argue..."
+      ],
+      "finalInsight": "The key insight reached through this inquiry",
+      "questionLadder": [
+        {
+          "level": 1,
+          "question": "Surface level question",
+          "expectedThought": "Initial understanding",
+          "followUp": "What does this tell us?"
+        },
+        {
+          "level": 3,
+          "question": "Deeper question",
+          "expectedThought": "Critical examination",
+          "followUp": "How does this connect to broader ideas?"
+        },
+        {
+          "level": 5,
+          "question": "Deep philosophical question",
+          "expectedThought": "Fundamental understanding",
+          "followUp": "What are the ultimate implications?"
+        }
+      ]
+    }
+  ],
+  "generatedAt": "${new Date().toISOString()}"
+}
+\`\`\`
+
+**Critical Requirements for Frontend Visualization:**
+- Segments must cover entire video (0 to ${duration} seconds)
+- Each segment: 2-3 minutes (120-180 seconds)
+- Guiding Questions: 3-5 questions with varied types and depths
+- Thought Process: 3-5 clear reasoning steps
+- Counter-Arguments: 2-3 alternative perspectives
+- Question Ladder: 3-4 progressive questions (increasing depth levels)
+- All content must be accurate to the transcript
+- Use age-appropriate language for ${ageGroup} level
+- **Clean JSON structure** for easy frontend parsing and visualization
+
+Generate the JSON now:`;
+}
+
+/**
+ * Parse Socratic response from Gemini API with thorough validation
+ */
+function parseSocraticResponse(responseText: string, request: GenerateNoteRequest): SocraticNote {
+  try {
+    // Extract JSON from markdown code block
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in AI response');
+    }
+
+    let jsonText = jsonMatch[1].trim();
+
+    // Smart JSON parsing with repair logic (same proven pattern)
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (firstError) {
+      console.warn('[Socratic Parse Warning] Initial parse failed, attempting JSON repair...');
+
+      // Try adding missing closing braces if JSON is incomplete
+      if (!jsonText.trim().endsWith('}')) {
+        jsonText = jsonText.trim() + '\n  ]\n}';
+        console.log('[Socratic Parse Debug] Added missing closing braces');
+      }
+
+      // Fix common AI JSON issues
+      jsonText = jsonText
+        .replace(/"\s*}\s*\n\s*{/g, '"},\n    {')  // Missing commas between objects
+        .replace(/"\s*}\s*\]/g, '"}\n  ]');         // Missing closing array
+
+      try {
+        parsed = JSON.parse(jsonText);
+        console.log('[Socratic Parse Success] JSON repaired and parsed successfully');
+      } catch (secondError) {
+        console.error('[Socratic Parse Error] JSON repair failed:', secondError);
+        throw new Error(`Failed to parse AI response: ${secondError instanceof Error ? secondError.message : 'Unknown error'}`);
+      }
+    }
+
+    // Build SocraticNote with type safety and frontend-optimized structure
+    const note: SocraticNote = {
+      method: "Socratic Method",
+      ageGroup: request.ageGroup,
+      fullSummary: parsed.fullSummary || '',
+      videoMetadata: parsed.videoMetadata || {
+        videoId: request.videoId,
+        title: request.title,
+        duration: request.duration,
+        language: request.language
+      },
+      segments: (parsed.segments || []).map((seg: any) => ({
+        start: seg.start || 0,
+        end: seg.end || 0,
+        title: seg.title || '',
+        summary: seg.summary || '',
+        guidingQuestions: (seg.guidingQuestions || []).map((gq: any) => ({
+          question: gq.question || '',
+          type: gq.type || 'clarification',
+          depth: typeof gq.depth === 'number' ? gq.depth : 1
+        })),
+        thoughtProcess: Array.isArray(seg.thoughtProcess) ? seg.thoughtProcess : [],
+        counterArguments: Array.isArray(seg.counterArguments) ? seg.counterArguments : [],
+        finalInsight: seg.finalInsight || '',
+        questionLadder: (seg.questionLadder || []).map((ql: any) => ({
+          level: typeof ql.level === 'number' ? ql.level : 1,
+          question: ql.question || '',
+          expectedThought: ql.expectedThought || '',
+          followUp: ql.followUp || ''
+        }))
+      })) || [],
+      generatedAt: new Date(),
+      qualityScore: calculateSocraticQualityScore(parsed)
+    };
+
+    // Validate segment coverage
+    validateSegmentCoverage(note.segments, request.duration);
+
+    return note;
+
+  } catch (error) {
+    console.error('Error parsing Socratic response:', error);
+    throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Calculate quality score for Socratic notes
+ */
+function calculateSocraticQualityScore(parsed: any): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Check summary quality (10 points)
+  if (parsed.fullSummary && parsed.fullSummary.length >= 30) {
+    score += 10;
+  }
+
+  // Check segment count (20 points)
+  const segmentCount = parsed.segments?.length || 0;
+  if (segmentCount >= 4 && segmentCount <= 6) {
+    score += 20;
+  } else if (segmentCount >= 3) {
+    score += 10;
+  }
+
+  // Check Socratic-specific fields (70 points total)
+  const segments = parsed.segments || [];
+  let socraticScore = 0;
+  let validSegments = 0;
+
+  segments.forEach((seg: any) => {
+    let segScore = 0;
+
+    // Guiding questions quality (20 points)
+    const gqCount = seg.guidingQuestions?.length || 0;
+    if (gqCount >= 3 && gqCount <= 5) {
+      const validGq = seg.guidingQuestions.filter((gq: any) =>
+        gq.question && gq.type && typeof gq.depth === 'number'
+      );
+      if (validGq.length === gqCount) {
+        segScore += 20;
+
+        // Bonus for question type variety (5 points)
+        const types = new Set(validGq.map((gq: any) => gq.type));
+        if (types.size >= 3) {
+          segScore += 5;
+        }
+      } else {
+        segScore += 10;
+      }
+    } else if (gqCount >= 2) {
+      segScore += 10;
+    }
+
+    // Thought process quality (15 points)
+    const tpCount = seg.thoughtProcess?.length || 0;
+    if (tpCount >= 3 && tpCount <= 5) {
+      segScore += 15;
+    } else if (tpCount >= 2) {
+      segScore += 8;
+    }
+
+    // Counter-arguments quality (10 points)
+    const caCount = seg.counterArguments?.length || 0;
+    if (caCount >= 2 && caCount <= 3) {
+      segScore += 10;
+    } else if (caCount >= 1) {
+      segScore += 5;
+    }
+
+    // Final insight quality (10 points)
+    if (seg.finalInsight && seg.finalInsight.length >= 20) {
+      segScore += 10;
+    } else if (seg.finalInsight && seg.finalInsight.length >= 10) {
+      segScore += 5;
+    }
+
+    // Question ladder quality (15 points)
+    const qlCount = seg.questionLadder?.length || 0;
+    if (qlCount >= 3 && qlCount <= 4) {
+      const validQl = seg.questionLadder.filter((ql: any) =>
+        typeof ql.level === 'number' && ql.question && ql.expectedThought && ql.followUp
+      );
+      if (validQl.length === qlCount) {
+        segScore += 15;
+
+        // Bonus for progressive depth (5 points)
+        const levels = validQl.map((ql: any) => ql.level).sort((a: number, b: number) => a - b);
+        const isProgressive = levels.every((level: number, i: number) =>
+          i === 0 || level >= levels[i - 1]
+        );
+        if (isProgressive) {
+          segScore += 5;
+        }
+      } else {
+        segScore += 8;
+      }
+    } else if (qlCount >= 2) {
+      segScore += 8;
+    }
+
+    socraticScore += segScore;
+    validSegments++;
+  });
+
+  // Average socratic score across segments
+  if (validSegments > 0) {
+    score += (socraticScore / validSegments);
+  }
+
+  return Math.min(Math.round(score), maxScore);
+}

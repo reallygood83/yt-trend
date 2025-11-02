@@ -1,0 +1,181 @@
+// ============================================================================
+// CORNELL METHOD IMPLEMENTATION
+// ============================================================================
+
+/**
+ * Generate Cornell Method Note
+ *
+ * Core Cornell Method principles:
+ * 1. Cue Column (왼쪽): 5W1H questions (3-5 per segment)
+ * 2. Notes Column (오른쪽): Detailed lecture notes
+ * 3. Summary Row (하단): One-sentence summary
+ * 4. Question-Answer pairs for active recall
+ * 5. Key terms glossary
+ */
+async function generateCornellNote(request: GenerateNoteRequest): Promise<CornellNote> {
+  const prompt = buildCornellPrompt(request);
+  const responseText = await callGemini(prompt);
+  return parseCornellResponse(responseText, request);
+}
+
+/**
+ * Parse Cornell response from Gemini API
+ */
+function parseCornellResponse(responseText: string, request: GenerateNoteRequest): CornellNote {
+  try {
+    // Extract JSON from markdown code block
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in AI response');
+    }
+
+    let jsonText = jsonMatch[1].trim();
+
+    // Smart JSON parsing with repair logic (same as Feynman/ELI5)
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (firstError) {
+      console.warn('[Cornell Parse Warning] Initial parse failed, attempting JSON repair...');
+
+      // Try adding missing closing braces if JSON is incomplete
+      if (!jsonText.trim().endsWith('}')) {
+        jsonText = jsonText.trim() + '\n  ]\n}';
+        console.log('[Cornell Parse Debug] Added missing closing braces');
+      }
+
+      // Fix common AI JSON issues
+      jsonText = jsonText
+        .replace(/"\s*}\s*\n\s*{/g, '"},\n    {')  // Missing commas between objects
+        .replace(/"\s*}\s*\]/g, '"}\n  ]');         // Missing closing array
+
+      try {
+        parsed = JSON.parse(jsonText);
+        console.log('[Cornell Parse Success] JSON repaired and parsed successfully');
+      } catch (secondError) {
+        console.error('[Cornell Parse Error] JSON repair failed:', secondError);
+        throw new Error(`Failed to parse AI response: ${secondError instanceof Error ? secondError.message : 'Unknown error'}`);
+      }
+    }
+
+    // Build CornellNote with type safety
+    const note: CornellNote = {
+      method: "Cornell Method",
+      ageGroup: request.ageGroup,
+      fullSummary: parsed.fullSummary || '',
+      videoMetadata: parsed.videoMetadata || {
+        videoId: request.videoId,
+        title: request.title,
+        duration: request.duration,
+        language: request.language
+      },
+      segments: (parsed.segments || []).map((seg: any) => ({
+        start: seg.start || 0,
+        end: seg.end || 0,
+        title: seg.title || '',
+        summary: seg.summary || '',
+        cueQuestions: seg.cueQuestions || [],
+        detailedNotes: seg.detailedNotes || '',
+        bottomSummary: seg.bottomSummary || '',
+        questionAnswerPairs: (seg.questionAnswerPairs || []).map((qa: any) => ({
+          question: qa.question || '',
+          answer: qa.answer || '',
+          importance: qa.importance || 'medium'
+        })),
+        keyTerms: (seg.keyTerms || []).map((term: any) => ({
+          term: term.term || '',
+          definition: term.definition || ''
+        }))
+      })) || [],
+      generatedAt: new Date(),
+      qualityScore: calculateCornellQualityScore(parsed)
+    };
+
+    // Validate segment coverage
+    validateSegmentCoverage(note.segments, request.duration);
+
+    return note;
+
+  } catch (error) {
+    console.error('Error parsing Cornell response:', error);
+    throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Calculate quality score for Cornell notes
+ */
+function calculateCornellQualityScore(parsed: any): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Check summary quality (10 points)
+  if (parsed.fullSummary && parsed.fullSummary.length >= 30) {
+    score += 10;
+  }
+
+  // Check segment count (20 points)
+  const segmentCount = parsed.segments?.length || 0;
+  if (segmentCount >= 4 && segmentCount <= 6) {
+    score += 20;
+  } else if (segmentCount >= 3) {
+    score += 10;
+  }
+
+  // Check Cornell-specific fields (70 points total)
+  const segments = parsed.segments || [];
+  let cornellScore = 0;
+  let validSegments = 0;
+
+  segments.forEach((seg: any) => {
+    let segScore = 0;
+
+    // Cue questions (3-5 questions) (20 points)
+    const cueCount = seg.cueQuestions?.length || 0;
+    if (cueCount >= 3 && cueCount <= 5) {
+      segScore += 20;
+    } else if (cueCount >= 2) {
+      segScore += 10;
+    }
+
+    // Detailed notes quality (20 points)
+    if (seg.detailedNotes && seg.detailedNotes.length >= 100) {
+      segScore += 20;
+    } else if (seg.detailedNotes && seg.detailedNotes.length >= 50) {
+      segScore += 10;
+    }
+
+    // Bottom summary (10 points)
+    if (seg.bottomSummary && seg.bottomSummary.length >= 20) {
+      segScore += 10;
+    }
+
+    // Question-Answer pairs (15 points)
+    const qaCount = seg.questionAnswerPairs?.length || 0;
+    if (qaCount >= 3) {
+      segScore += 15;
+    } else if (qaCount >= 2) {
+      segScore += 10;
+    } else if (qaCount >= 1) {
+      segScore += 5;
+    }
+
+    // Key terms glossary (5 points)
+    const termCount = seg.keyTerms?.length || 0;
+    if (termCount >= 2) {
+      segScore += 5;
+    } else if (termCount >= 1) {
+      segScore += 3;
+    }
+
+    cornellScore += segScore;
+    validSegments++;
+  });
+
+  // Average Cornell score across segments
+  if (validSegments > 0) {
+    score += (cornellScore / validSegments);
+  }
+
+  return Math.min(Math.round(score), maxScore);
+}

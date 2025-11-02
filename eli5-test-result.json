@@ -1,0 +1,72 @@
+{
+  "method": "ELI5 (Explain Like I'm 5)",
+  "ageGroup": "child",
+  "fullSummary": "This video is about the super pretty rainbow! We learn how the sun and little raindrops play together. They make a colorful smile in the sky for us.",
+  "videoMetadata": {
+    "videoId": "test-eli5-456",
+    "title": "무지개는 어떻게 만들어질까?",
+    "duration": 360,
+    "language": "ko"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 180,
+      "title": "Hello, Rainbow! 🌈",
+      "summary": "Let's meet the rainbow and its pretty colors!",
+      "childFriendlyAnalogy": "A rainbow is like a big box of crayons in the sky. It has all the best colors. They are lined up in a big, happy smile.",
+      "visualDescription": "Imagine a giant, colorful slide in the sky. It has a big red stripe. Then an orange stripe. Then yellow, and green, and blue!",
+      "emotionalConnection": "Remember when you see something super pretty? It makes you feel happy and say 'Wow!' That's how rainbows make us feel.",
+      "simpleExplanation": [
+        "A rainbow has seven colors.",
+        "It comes out after the rain.",
+        "The sun must be shining too.",
+        "It looks like a big arch."
+      ],
+      "maxWordsPerSentence": 10,
+      "emojiUsage": [
+        "🌈",
+        "🖍️",
+        "😊"
+      ],
+      "funQuestions": [
+        "What is your favorite color in the rainbow?",
+        "Can you draw a rainbow with your crayons?",
+        "Where do you think the rainbow ends?"
+      ],
+      "readabilityScore": 1,
+      "analogyQuality": "excellent"
+    },
+    {
+      "start": 180,
+      "end": 360,
+      "title": "The Sun and Raindrop's Magic Trick ✨",
+      "summary": "See how sun and tiny raindrops make magic together.",
+      "childFriendlyAnalogy": "It’s like when you play with bubbles! The sunlight shines on a bubble. You can see pretty colors swirling around. Raindrops are like tiny little bubbles in the air.",
+      "visualDescription": "Picture the sun sending out white light. The light hits a tiny, sparkly water drop. *Poof!* All the secret colors pop out like magic candy.",
+      "emotionalConnection": "It's a fun surprise! You think the light is just white. But surprise! It has secret colors hiding inside. Isn't that exciting?",
+      "simpleExplanation": [
+        "Sunlight has colors hidden inside.",
+        "Raindrops are like tiny balls.",
+        "Light goes into the raindrop.",
+        "The raindrop bends the light.",
+        "This makes all the colors show."
+      ],
+      "maxWordsPerSentence": 10,
+      "emojiUsage": [
+        "☀️",
+        "💧",
+        "✨"
+      ],
+      "funQuestions": [
+        "Do you think the sun is a magician?",
+        "Can we make a rainbow with a water hose?",
+        "What colors do you think are hiding in the light?"
+      ],
+      "readabilityScore": 1,
+      "analogyQuality": "excellent"
+    }
+  ],
+  "generatedAt": "2025-11-02T07:05:28.211Z",
+  "qualityScore": 65
+}

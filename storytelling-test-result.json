@@ -1,0 +1,286 @@
+{
+  "method": "Storytelling",
+  "ageGroup": "adult",
+  "fullSummary": "This story follows an entrepreneur's journey from a simple idea to a sustainable business. It highlights how overcoming initial funding and product failures by embracing user feedback is crucial for achieving product-market fit, securing investment, and navigating the challenges of growth by staying true to core values.",
+  "videoMetadata": {
+    "videoId": "test-storytelling-101",
+    "title": "기업가의 여정: 실패에서 성공까지",
+    "duration": 480,
+    "language": "ko"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 120,
+      "title": "Chapter 1: The Spark and the Struggle",
+      "summary": "A university student with an idea for a simpler online learning platform faces financial rejection but perseveres to build the first prototype through sheer determination.",
+      "narrative": {
+        "setting": "A university student's world, filled with late-night coding sessions and the pursuit of an idea.",
+        "protagonistGoal": "To create a tangible product that simplifies online learning.",
+        "obstacles": [
+          "Rejection for bank loans",
+          "Lack of interest from investors",
+          "Limited personal funds"
+        ],
+        "resolution": "The founder self-funds through part-time work and successfully builds the first prototype after six months of intense effort."
+      },
+      "characters": [
+        {
+          "name": "The Founder",
+          "role": "protagonist",
+          "motivation": "To solve a personal frustration with existing online learning platforms."
+        },
+        {
+          "name": "The Gatekeepers (Banks & Investors)",
+          "role": "antagonist",
+          "motivation": "To minimize financial risk by avoiding unproven ideas and founders."
+        }
+      ],
+      "plot": {
+        "problem": "Online learning platforms are overly complex and frustrating to use.",
+        "conflict": "The founder's passionate vision clashes with the cold, risk-averse reality of securing startup capital.",
+        "solution": "Bypassing traditional funding routes through personal sacrifice and relentless work to create a proof-of-concept."
+      },
+      "storyArc": {
+        "exposition": "A university student identifies a common problem: 'Why are online courses so complicated?'",
+        "risingAction": [
+          "Attempts to secure a bank loan fail.",
+          "Pitches to investors are met with disinterest.",
+          "The founder decides to bootstrap, working part-time jobs to fund the project."
+        ],
+        "climax": "After six months of coding day and night, the first functional prototype is completed.",
+        "fallingAction": "The founder prepares to launch the prototype and gather initial user feedback.",
+        "resolution": "An idea is transformed into a tangible, albeit unproven, product."
+      },
+      "emotionalJourney": [
+        {
+          "timestamp": 20,
+          "emotion": "inspired",
+          "intensity": 7
+        },
+        {
+          "timestamp": 50,
+          "emotion": "disappointed",
+          "intensity": 8
+        },
+        {
+          "timestamp": 85,
+          "emotion": "determined",
+          "intensity": 9
+        }
+      ],
+      "moral": "Perseverance is essential to bring an idea to life, especially when external validation is absent.",
+      "realWorldApplication": "When facing initial rejection, focus on building a Minimum Viable Product (MVP) to demonstrate your concept's value through action, not just words."
+    },
+    {
+      "start": 120,
+      "end": 240,
+      "title": "Chapter 2: The Harsh Feedback and the Pivot",
+      "summary": "The initial prototype is met with harsh user criticism, leading to a crisis of confidence. However, a mentor's guidance on user-centric design inspires a complete product pivot.",
+      "narrative": {
+        "setting": "The crucial early stage of a startup, where product-market fit is being tested.",
+        "protagonistGoal": "To gain user validation and prove the product's value.",
+        "obstacles": [
+          "Overwhelmingly negative user feedback.",
+          "The founder's own flawed assumptions about user needs.",
+          "The emotional toll of seeing their hard work rejected."
+        ],
+        "resolution": "The founder embraces the negative feedback as a learning opportunity, finds a mentor, and commits to a full redesign based on direct user conversations."
+      },
+      "characters": [
+        {
+          "name": "The Founder",
+          "role": "protagonist",
+          "motivation": "To understand the true needs of users and build a product they will actually love."
+        },
+        {
+          "name": "User Indifference",
+          "role": "antagonist",
+          "motivation": "To represent the market's brutal honesty and the gap between the founder's vision and reality."
+        },
+        {
+          "name": "The Mentor",
+          "role": "mentor",
+          "motivation": "To impart wisdom about the importance of user-centric design and guide the founder away from a fatal mistake."
+        }
+      ],
+      "plot": {
+        "problem": "The product, built on the founder's assumptions, fails to resonate with its target audience.",
+        "conflict": "The founder's attachment to their original creation versus the market's clear rejection of it.",
+        "solution": "Pivoting the entire product strategy from 'building for users' to 'building with users' based on a mentor's advice."
+      },
+      "storyArc": {
+        "exposition": "The founder launches the prototype, anticipating positive user reactions.",
+        "risingAction": [
+          "The first wave of user feedback is brutally negative: 'This isn't what we want.'",
+          "The founder experiences deep frustration and questions their entire endeavor.",
+          "A mentor intervenes and introduces the concept of user-centric design."
+        ],
+        "climax": "The founder has a critical realization: the failure wasn't in the execution but in the approach. They must listen to users first.",
+        "fallingAction": "The team begins a new process of interviewing users to understand their core needs before writing a single line of new code.",
+        "resolution": "A new, humbled, and customer-focused development philosophy is born."
+      },
+      "emotionalJourney": [
+        {
+          "timestamp": 145,
+          "emotion": "crushed",
+          "intensity": 9
+        },
+        {
+          "timestamp": 180,
+          "emotion": "enlightened",
+          "intensity": 7
+        },
+        {
+          "timestamp": 220,
+          "emotion": "refocused",
+          "intensity": 8
+        }
+      ],
+      "moral": "Failure is not a dead end; it is essential data that points the way toward a better solution.",
+      "realWorldApplication": "Treat early criticism as a gift. Actively seek out and listen to your harshest critics to find the flaws in your assumptions before you invest more resources."
+    },
+    {
+      "start": 240,
+      "end": 360,
+      "title": "Chapter 3: The Breakthrough and Validation",
+      "summary": "After a year of redesigning with user feedback, the new product finds its audience, achieving rapid organic growth that attracts the attention of the very investors who previously showed no interest.",
+      "narrative": {
+        "setting": "A startup in the growth phase, experiencing the positive feedback loop of product-market fit.",
+        "protagonistGoal": "To achieve sustainable user growth and secure the resources needed to scale.",
+        "obstacles": [
+          "Winning back market trust after the initial failed product.",
+          "Proving the new user-centric model could translate to business success."
+        ],
+        "resolution": "The product's value spreads through word-of-mouth, hitting 1,000 users and creating a 'pull' effect that leads to a successful Series A funding round."
+      },
+      "characters": [
+        {
+          "name": "The Startup",
+          "role": "protagonist",
+          "motivation": "To grow and prove that its user-focused philosophy is a winning strategy."
+        },
+        {
+          "name": "The Early Adopters",
+          "role": "helper",
+          "motivation": "To use a product that genuinely solves their problem and to share their positive experience with others."
+        },
+        {
+          "name": "The Investors",
+          "role": "helper",
+          "motivation": "To capitalize on a demonstrated success story and fund a company with proven market traction."
+        }
+      ],
+      "plot": {
+        "problem": "The redesigned product must now prove its worth and achieve meaningful traction in the market.",
+        "conflict": "Can the startup's new, patient, user-led approach compete and succeed in a fast-paced market?",
+        "solution": "The product's inherent value creates a powerful, organic growth engine that attracts both users and capital, validating the pivot."
+      },
+      "storyArc": {
+        "exposition": "After a year of careful redesign, the new product is launched.",
+        "risingAction": [
+          "The product gains its first 1,000 dedicated users, a key milestone.",
+          "Positive word-of-mouth begins to spread, creating accelerating organic growth.",
+          "The company's growth metrics start appearing on the radar of venture capitalists."
+        ],
+        "climax": "Investors begin proactively contacting the founder, seeking to invest in the company.",
+        "fallingAction": "The founder successfully negotiates and closes a Series A investment round.",
+        "resolution": "The startup is now well-funded, validated by the market, and ready to expand its team and operations."
+      },
+      "emotionalJourney": [
+        {
+          "timestamp": 265,
+          "emotion": "anxious",
+          "intensity": 7
+        },
+        {
+          "timestamp": 290,
+          "emotion": "validated",
+          "intensity": 9
+        },
+        {
+          "timestamp": 330,
+          "emotion": "triumphant",
+          "intensity": 10
+        }
+      ],
+      "moral": "When you truly solve a customer's problem, you don't have to chase success; it will start to chase you.",
+      "realWorldApplication": "Focus on creating a 'must-have' experience for a small group of users first. Delighted early adopters will become your most effective and authentic sales force."
+    },
+    {
+      "start": 360,
+      "end": 480,
+      "title": "Chapter 4: The Price of Growth and The Core Principle",
+      "summary": "Rapid growth introduces new internal challenges, including technical debt and cultural clashes. The founder navigates this crisis by returning to the company's core value—'Users First'—to realign the team and build a sustainable business.",
+      "narrative": {
+        "setting": "A rapidly scaling company (a 'scale-up') facing internal friction and complexity.",
+        "protagonistGoal": "To build a strong, lasting company without losing the mission that made it successful.",
+        "obstacles": [
+          "Technical problems caused by rapid user growth.",
+          "Clashes between new and old employees, leading to a fractured culture.",
+          "The risk of the team losing sight of the customer."
+        ],
+        "resolution": "The founder re-establishes 'Users First' as the ultimate decision-making principle, which unites the team, resolves conflicts, and paves the way for profitability."
+      },
+      "characters": [
+        {
+          "name": "The Leader",
+          "role": "protagonist",
+          "motivation": "To shepherd the company through the chaos of growth and ensure its long-term health and integrity."
+        },
+        {
+          "name": "Scaling Pains",
+          "role": "antagonist",
+          "motivation": "The inevitable chaos and friction that emerge when systems and culture are stretched to their limits."
+        },
+        {
+          "name": "The Core Value ('Users First')",
+          "role": "mentor",
+          "motivation": "To serve as an unwavering guidepost, providing clarity and purpose during a period of complexity and crisis."
+        }
+      ],
+      "plot": {
+        "problem": "The company's success is creating internal fractures that threaten its future.",
+        "conflict": "The pressure to maintain rapid growth versus the need to build a stable technical and cultural foundation.",
+        "solution": "Returning to the company's founding principle as a guiding light to align decisions, unite the team, and solve complex problems."
+      },
+      "storyArc": {
+        "exposition": "The company is expanding quickly, hiring new staff and onboarding thousands of new users.",
+        "risingAction": [
+          "The platform becomes unstable due to technical debt accumulated during the growth sprint.",
+          "Tension arises between different teams and employee cohorts, creating 'us vs. them' dynamics.",
+          "The team becomes bogged down in internal issues, losing focus on the customer."
+        ],
+        "climax": "In a moment of crisis, the founder calls a meeting and reminds everyone of their single most important principle: 'We serve the user.'",
+        "fallingAction": "This renewed focus empowers the team to collaborate on fixing technical issues and resolving cultural rifts for the user's benefit.",
+        "resolution": "The company emerges stronger, more unified, and achieves profitability, having proven its model is sustainable. The final lessons of the journey are shared."
+      },
+      "emotionalJourney": [
+        {
+          "timestamp": 380,
+          "emotion": "overwhelmed",
+          "intensity": 8
+        },
+        {
+          "timestamp": 415,
+          "emotion": "centered",
+          "intensity": 7
+        },
+        {
+          "timestamp": 450,
+          "emotion": "resilient",
+          "intensity": 9
+        },
+        {
+          "timestamp": 475,
+          "emotion": "accomplished",
+          "intensity": 10
+        }
+      ],
+      "moral": "Your core values are not just words on a wall; they are your most powerful tool for navigating the chaos of success.",
+      "realWorldApplication": "Clearly define your core principles, whether for a project, a team, or your own career. When you face a complex or difficult decision, use those principles as your filter."
+    }
+  ],
+  "generatedAt": "2025-11-02T07:50:25.775Z",
+  "qualityScore": 100
+}

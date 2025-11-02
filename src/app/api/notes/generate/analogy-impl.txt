@@ -1,0 +1,319 @@
+// ============================================================================
+// ANALOGY METHOD IMPLEMENTATION
+// ============================================================================
+
+/**
+ * Generate Analogy Method Note
+ *
+ * Core Analogy principles:
+ * 1. Target Concept (targetConcept): 설명할 개념
+ * 2. Source Analogy (sourceAnalogy): 친숙한 비유 대상
+ * 3. Mapping Explanation (mappingExplanation): 대응 관계 설명
+ * 4. Analogy Chain (analogyChain): 추상-구체 연결 구조
+ * 5. Analogy Types (analogyTypes): 비유 유형 분류
+ * 6. Quality Metrics: familiarityScore, correspondenceAccuracy
+ */
+async function generateAnalogyNote(request: GenerateNoteRequest): Promise<AnalogyNote> {
+  const prompt = buildAnalogyPrompt(request);
+  const responseText = await callGemini(prompt);
+  return parseAnalogyResponse(responseText, request);
+}
+
+/**
+ * Build Analogy prompt with clear JSON structure for frontend visualization
+ */
+function buildAnalogyPrompt(request: GenerateNoteRequest): string {
+  const { title, transcript, ageGroup, duration } = request;
+
+  return `You are an expert educator using the Analogy Method to make complex concepts understandable through familiar comparisons.
+
+**Analogy Method Core Principles:**
+1. **Target Concept**: The unfamiliar concept to be explained
+2. **Source Analogy**: A familiar, everyday thing to compare it to
+3. **Mapping Explanation**: How the two correspond point-by-point
+4. **Analogy Chain**: Series of abstract→concrete connections
+5. **Analogy Types**: Classify by object, process, relationship, or system
+
+**Video Information:**
+- Title: ${title}
+- Duration: ${Math.floor(duration / 60)} minutes
+- Age Group: ${ageGroup}
+
+**Video Transcript:**
+${transcript}
+
+**Your Task:**
+Create an Analogy Method learning note with this structure:
+
+1. **Full Summary** (2-3 sentences): Overall synthesis of the video content
+
+2. **Time Segments** (4-6 segments, each 2-3 minutes):
+   For each segment, provide:
+
+   a) **Target Concept** (핵심 개념):
+      - The main concept being explained
+      - Why it's difficult to understand
+      - Age-appropriate description
+
+   b) **Source Analogy** (친숙한 비유):
+      - Familiar thing to compare to (from everyday life)
+      - Why this analogy works well
+      - Familiarity score (1-10, how familiar to ${ageGroup})
+
+   c) **Mapping Explanation** (대응 관계):
+      - How targetConcept and sourceAnalogy correspond
+      - Point-by-point comparison
+      - What each part represents
+
+   d) **Analogy Chain** (3-4 chains):
+      - Abstract concept (from video)
+      - Concrete analogy (familiar equivalent)
+      - Correspondence points (array of 2-3 matching aspects)
+
+   e) **Analogy Types** (2-3 types):
+      - Type: object | process | relationship | system
+      - Example from this segment
+
+   f) **Quality Metrics**:
+      - Familiarity Score (1-10): How familiar is the analogy?
+      - Correspondence Accuracy (1-10): How well does it match?
+
+**Output Format (JSON):**
+\`\`\`json
+{
+  "method": "Analogy",
+  "ageGroup": "${ageGroup}",
+  "fullSummary": "Overall synthesis of video content in 2-3 sentences...",
+  "videoMetadata": {
+    "videoId": "${request.videoId}",
+    "title": "${title}",
+    "duration": ${duration},
+    "language": "${request.language}"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 180,
+      "title": "Segment title",
+      "summary": "Brief segment overview",
+      "targetConcept": "The unfamiliar concept being explained",
+      "sourceAnalogy": "The familiar everyday thing used for comparison",
+      "mappingExplanation": "Detailed explanation of how the target concept and source analogy correspond. For example, if explaining cloud storage using a library analogy: 'Just as a library stores books in organized sections, cloud storage stores your files in organized folders. The librarian is like the cloud service managing access, and borrowing a book is like downloading a file.'",
+      "analogyChain": [
+        {
+          "abstract": "Abstract concept from the video",
+          "concrete": "Familiar concrete equivalent",
+          "correspondence": [
+            "First matching aspect",
+            "Second matching aspect",
+            "Third matching aspect"
+          ]
+        },
+        {
+          "abstract": "Another abstract concept",
+          "concrete": "Another familiar equivalent",
+          "correspondence": [
+            "Matching point 1",
+            "Matching point 2"
+          ]
+        }
+      ],
+      "analogyTypes": [
+        {
+          "type": "object",
+          "example": "Comparing a computer to a brain (both are processing units)"
+        },
+        {
+          "type": "process",
+          "example": "Comparing data encryption to locking a safe (both secure information)"
+        }
+      ],
+      "familiarityScore": 8,
+      "correspondenceAccuracy": 9
+    }
+  ],
+  "generatedAt": "${new Date().toISOString()}"
+}
+\`\`\`
+
+**Critical Requirements for Frontend Visualization:**
+- Segments must cover entire video (0 to ${duration} seconds)
+- Each segment: 2-3 minutes (120-180 seconds)
+- targetConcept: Clear, concise concept name (under 100 characters)
+- sourceAnalogy: Familiar everyday object/process (under 100 characters)
+- mappingExplanation: Detailed but structured (2-4 sentences)
+- analogyChain: 3-4 chains per segment for variety
+- analogyTypes: Classify each analogy (object/process/relationship/system)
+- familiarityScore: 1-10 scale (how familiar to ${ageGroup})
+- correspondenceAccuracy: 1-10 scale (how accurate the mapping)
+- All content must be accurate to the transcript
+- Use age-appropriate language for ${ageGroup} level
+- **Clean JSON structure** for easy frontend parsing and visualization
+
+Generate the JSON now:`;
+}
+
+/**
+ * Parse Analogy response from Gemini API with thorough validation
+ */
+function parseAnalogyResponse(responseText: string, request: GenerateNoteRequest): AnalogyNote {
+  try {
+    // Extract JSON from markdown code block
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in AI response');
+    }
+
+    let jsonText = jsonMatch[1].trim();
+
+    // Smart JSON parsing with repair logic (same proven pattern)
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (firstError) {
+      console.warn('[Analogy Parse Warning] Initial parse failed, attempting JSON repair...');
+
+      // Try adding missing closing braces if JSON is incomplete
+      if (!jsonText.trim().endsWith('}')) {
+        jsonText = jsonText.trim() + '\n  ]\n}';
+        console.log('[Analogy Parse Debug] Added missing closing braces');
+      }
+
+      // Fix common AI JSON issues
+      jsonText = jsonText
+        .replace(/"\s*}\s*\n\s*{/g, '"},\n    {')  // Missing commas between objects
+        .replace(/"\s*}\s*\]/g, '"}\n  ]');         // Missing closing array
+
+      try {
+        parsed = JSON.parse(jsonText);
+        console.log('[Analogy Parse Success] JSON repaired and parsed successfully');
+      } catch (secondError) {
+        console.error('[Analogy Parse Error] JSON repair failed:', secondError);
+        throw new Error(`Failed to parse AI response: ${secondError instanceof Error ? secondError.message : 'Unknown error'}`);
+      }
+    }
+
+    // Build AnalogyNote with type safety and frontend-optimized structure
+    const note: AnalogyNote = {
+      method: "Analogy",
+      ageGroup: request.ageGroup,
+      fullSummary: parsed.fullSummary || '',
+      videoMetadata: parsed.videoMetadata || {
+        videoId: request.videoId,
+        title: request.title,
+        duration: request.duration,
+        language: request.language
+      },
+      segments: (parsed.segments || []).map((seg: any) => ({
+        start: seg.start || 0,
+        end: seg.end || 0,
+        title: seg.title || '',
+        summary: seg.summary || '',
+        targetConcept: seg.targetConcept || '',
+        sourceAnalogy: seg.sourceAnalogy || '',
+        mappingExplanation: seg.mappingExplanation || '',
+        analogyChain: (seg.analogyChain || []).map((chain: any) => ({
+          abstract: chain.abstract || '',
+          concrete: chain.concrete || '',
+          correspondence: Array.isArray(chain.correspondence) ? chain.correspondence : []
+        })),
+        analogyTypes: (seg.analogyTypes || []).map((type: any) => ({
+          type: type.type || 'object',
+          example: type.example || ''
+        })),
+        familiarityScore: typeof seg.familiarityScore === 'number' ? seg.familiarityScore : 5,
+        correspondenceAccuracy: typeof seg.correspondenceAccuracy === 'number' ? seg.correspondenceAccuracy : 5
+      })) || [],
+      generatedAt: new Date(),
+      qualityScore: calculateAnalogyQualityScore(parsed)
+    };
+
+    // Validate segment coverage
+    validateSegmentCoverage(note.segments, request.duration);
+
+    return note;
+
+  } catch (error) {
+    console.error('Error parsing Analogy response:', error);
+    throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Calculate quality score for Analogy notes
+ */
+function calculateAnalogyQualityScore(parsed: any): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Check summary quality (10 points)
+  if (parsed.fullSummary && parsed.fullSummary.length >= 30) {
+    score += 10;
+  }
+
+  // Check segment count (20 points)
+  const segmentCount = parsed.segments?.length || 0;
+  if (segmentCount >= 4 && segmentCount <= 6) {
+    score += 20;
+  } else if (segmentCount >= 3) {
+    score += 10;
+  }
+
+  // Check Analogy-specific fields (70 points total)
+  const segments = parsed.segments || [];
+  let analogyScore = 0;
+  let validSegments = 0;
+
+  segments.forEach((seg: any) => {
+    let segScore = 0;
+
+    // Target concept quality (15 points)
+    if (seg.targetConcept && seg.targetConcept.length >= 10 && seg.targetConcept.length <= 100) {
+      segScore += 15;
+    } else if (seg.targetConcept && seg.targetConcept.length >= 5) {
+      segScore += 8;
+    }
+
+    // Source analogy quality (15 points)
+    if (seg.sourceAnalogy && seg.sourceAnalogy.length >= 10 && seg.sourceAnalogy.length <= 100) {
+      segScore += 15;
+    } else if (seg.sourceAnalogy && seg.sourceAnalogy.length >= 5) {
+      segScore += 8;
+    }
+
+    // Mapping explanation quality (15 points)
+    if (seg.mappingExplanation && seg.mappingExplanation.length >= 50) {
+      segScore += 15;
+    } else if (seg.mappingExplanation && seg.mappingExplanation.length >= 20) {
+      segScore += 8;
+    }
+
+    // Analogy chain count (15 points)
+    const chainCount = seg.analogyChain?.length || 0;
+    if (chainCount >= 3 && chainCount <= 4) {
+      segScore += 15;
+    } else if (chainCount >= 2) {
+      segScore += 10;
+    } else if (chainCount >= 1) {
+      segScore += 5;
+    }
+
+    // Analogy types variety (10 points)
+    const typeCount = seg.analogyTypes?.length || 0;
+    if (typeCount >= 2) {
+      segScore += 10;
+    } else if (typeCount >= 1) {
+      segScore += 5;
+    }
+
+    analogyScore += segScore;
+    validSegments++;
+  });
+
+  // Average analogy score across segments
+  if (validSegments > 0) {
+    score += (analogyScore / validSegments);
+  }
+
+  return Math.min(Math.round(score), maxScore);
+}

@@ -1,0 +1,431 @@
+// ============================================================================
+// MIND MAP IMPLEMENTATION
+// ============================================================================
+
+/**
+ * Generate Mind Map Note
+ *
+ * Mind Map creates a hierarchical visual structure of concepts and their relationships,
+ * optimizing for visual learning and memory retention through spatial organization.
+ *
+ * Core Mind Map Principles:
+ * - Central Concept: Main topic at the center
+ * - Hierarchical Branches: Main branches → sub-branches → details
+ * - Visual Elements: Colors, icons, spatial relationships
+ * - Connection Types: Hierarchical, associative, causal
+ * - Memory Optimization: Chunking, visual cues, spatial memory
+ */
+async function generateMindMapNote(request: GenerateNoteRequest): Promise<MindMapNote> {
+  const prompt = buildMindMapPrompt(request);
+  const responseText = await callGemini(prompt);
+  return parseMindMapResponse(responseText, request);
+}
+
+/**
+ * Build Mind Map prompt with hierarchical structure guidance
+ */
+function buildMindMapPrompt(request: GenerateNoteRequest): string {
+  const { title, transcript, ageGroup, duration } = request;
+
+  return `You are an expert in visual learning and mind mapping, creating hierarchical knowledge structures that optimize memory and understanding.
+
+**Mind Map Core Principles:**
+1. **Central Concept**: Single main topic at the center of the map
+2. **Hierarchical Organization**: Main branches (3-7) → sub-branches → details
+3. **Visual Clarity**: Each node has clear label, color code, and icon
+4. **Meaningful Connections**: Relationships between concepts (hierarchical, associative, causal)
+5. **Memory Optimization**: Chunking information, visual cues, spatial organization
+
+**Content to Map:**
+- Title: ${title}
+- Duration: ${Math.floor(duration / 60)} minutes
+- Target Audience: ${ageGroup}
+
+**Transcript:**
+${transcript}
+
+**Your Task:**
+Create a comprehensive Mind Map structure from this content.
+
+**Step 1: Identify the Central Concept**
+What is the single main topic that encompasses all content?
+- Should be concise (1-5 words)
+- Captures the essence of the entire content
+
+**Step 2: Create Main Branches (3-7 branches)**
+What are the major themes or categories in the content?
+Each main branch should:
+- Represent a distinct major theme
+- Have a clear, descriptive label (2-4 words)
+- Have an assigned color (for visual distinction)
+- Have an icon/emoji (for visual memory)
+- Include a brief description (1-2 sentences)
+
+**Step 3: Develop Sub-Branches**
+For each main branch, create 2-5 sub-branches:
+- More specific concepts under each main branch
+- Clear hierarchical relationship to parent
+- Assigned color (can inherit or vary from parent)
+- Icon/emoji for visual cue
+- Brief description
+
+**Step 4: Add Detail Nodes**
+For important sub-branches, add specific details:
+- Examples, facts, statistics, quotes
+- Keep concise (1-2 sentences each)
+- Support the parent concept
+
+**Step 5: Define Connections**
+Identify non-hierarchical relationships:
+- **associative**: Related concepts across different branches
+- **causal**: Cause-and-effect relationships
+- **sequential**: Temporal or process flow relationships
+- Each connection needs: fromNode, toNode, type, label
+
+**Step 6: Provide Learning Insights**
+- **Key Concepts**: 3-5 most important concepts to remember
+- **Memory Hooks**: Visual or mnemonic cues for retention
+- **Practical Application**: How to use this knowledge
+- **Review Suggestions**: How to review this mind map effectively
+
+**Output Format (JSON):**
+\`\`\`json
+{
+  "method": "Mind Map",
+  "ageGroup": "${ageGroup}",
+  "centralConcept": {
+    "label": "Main Topic",
+    "color": "#4A90E2",
+    "icon": "🎯",
+    "description": "Brief description of central concept"
+  },
+  "mainBranches": [
+    {
+      "id": "branch-1",
+      "label": "Main Branch Label",
+      "color": "#E94B3C",
+      "icon": "🔥",
+      "description": "What this branch covers",
+      "subBranches": [
+        {
+          "id": "branch-1-sub-1",
+          "label": "Sub-branch Label",
+          "color": "#E94B3C",
+          "icon": "📌",
+          "description": "Sub-branch description",
+          "details": [
+            "Specific detail or example 1",
+            "Specific detail or example 2"
+          ]
+        },
+        {
+          "id": "branch-1-sub-2",
+          "label": "Another Sub-branch",
+          "color": "#E94B3C",
+          "icon": "💡",
+          "description": "Sub-branch description",
+          "details": [
+            "Detail 1",
+            "Detail 2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "branch-2",
+      "label": "Second Main Branch",
+      "color": "#50C878",
+      "icon": "🌱",
+      "description": "What this branch covers",
+      "subBranches": [
+        {
+          "id": "branch-2-sub-1",
+          "label": "Sub-branch",
+          "color": "#50C878",
+          "icon": "🔬",
+          "description": "Description",
+          "details": ["Detail 1", "Detail 2"]
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "fromNode": "branch-1-sub-1",
+      "toNode": "branch-2-sub-1",
+      "type": "associative",
+      "label": "Related because..."
+    },
+    {
+      "fromNode": "branch-1-sub-2",
+      "toNode": "branch-2-sub-1",
+      "type": "causal",
+      "label": "Leads to..."
+    }
+  ],
+  "learningInsights": {
+    "keyConcepts": [
+      "Most important concept 1",
+      "Most important concept 2",
+      "Most important concept 3"
+    ],
+    "memoryHooks": [
+      "Visual cue: Use the color red to remember...",
+      "Mnemonic: First letters spell...",
+      "Spatial cue: Items on the left side represent..."
+    ],
+    "practicalApplication": "How to apply this knowledge in real situations...",
+    "reviewSuggestion": "Best way to review this mind map for retention..."
+  },
+  "videoMetadata": {
+    "videoId": "${request.videoId}",
+    "title": "${title}",
+    "duration": ${duration},
+    "language": "${request.language}"
+  },
+  "fullSummary": "Overall synthesis of the mind map in 2-3 sentences",
+  "generatedAt": "${new Date().toISOString()}"
+}
+\`\`\`
+
+**Visual Design Guidelines:**
+- **Color Palette**: Use distinct colors for each main branch
+  - Red (#E94B3C): Important, urgent, warning
+  - Blue (#4A90E2): Information, calm, trust
+  - Green (#50C878): Growth, nature, health
+  - Yellow (#FFD700): Energy, attention, optimism
+  - Purple (#9B59B6): Creativity, wisdom, luxury
+  - Orange (#FF8C42): Enthusiasm, action, warmth
+  - Teal (#20B2AA): Balance, clarity, refresh
+
+- **Icon Selection**: Choose emojis that represent the concept
+  - 🎯 Goals, targets, focus
+  - 🔥 Important, trending, hot topic
+  - 💡 Ideas, insights, innovation
+  - 📚 Knowledge, learning, education
+  - 🔬 Science, research, analysis
+  - 🌱 Growth, development, beginning
+  - ⚡ Energy, speed, power
+  - 🎨 Creativity, design, art
+
+**Critical Requirements:**
+- Central concept must be clear and concise (1-5 words)
+- 3-7 main branches (not too few, not too many)
+- Each main branch has 2-5 sub-branches
+- Details are concise but informative
+- Connections show meaningful relationships beyond hierarchy
+- Learning insights provide practical memory and review guidance
+- Use age-appropriate language for ${ageGroup} level
+- **Clean JSON structure** for easy frontend visualization
+
+Generate the Mind Map JSON now:`;
+}
+
+/**
+ * Parse Mind Map response from Gemini API
+ */
+function parseMindMapResponse(responseText: string, request: GenerateNoteRequest): MindMapNote {
+  try {
+    // Extract JSON from markdown code block
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in AI response');
+    }
+
+    let jsonText = jsonMatch[1].trim();
+
+    // Smart JSON parsing with repair logic
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (firstError) {
+      console.warn('[Mind Map Parse Warning] Initial parse failed, attempting JSON repair...');
+
+      // Try adding missing closing braces if JSON is incomplete
+      if (!jsonText.trim().endsWith('}')) {
+        jsonText = jsonText.trim() + '\n  ]\n}';
+        console.log('[Mind Map Parse Debug] Added missing closing braces');
+      }
+
+      // Fix common AI JSON issues
+      jsonText = jsonText
+        .replace(/"\s*}\s*\n\s*{/g, '"},\n    {')  // Missing commas between objects
+        .replace(/"\s*}\s*\]/g, '"}\n  ]');         // Missing closing array
+
+      try {
+        parsed = JSON.parse(jsonText);
+        console.log('[Mind Map Parse Success] JSON repaired and parsed successfully');
+      } catch (secondError) {
+        console.error('[Mind Map Parse Error] JSON repair failed:', secondError);
+        throw new Error(`Failed to parse AI response: ${secondError instanceof Error ? secondError.message : 'Unknown error'}`);
+      }
+    }
+
+    // Build MindMapNote with type safety
+    const note: MindMapNote = {
+      method: "Mind Map",
+      ageGroup: request.ageGroup,
+      centralConcept: {
+        label: parsed.centralConcept?.label || 'Main Topic',
+        color: parsed.centralConcept?.color || '#4A90E2',
+        icon: parsed.centralConcept?.icon || '🎯',
+        description: parsed.centralConcept?.description || ''
+      },
+      mainBranches: (parsed.mainBranches || []).map((branch: any) => ({
+        id: branch.id || `branch-${Math.random().toString(36).substr(2, 9)}`,
+        label: branch.label || '',
+        color: branch.color || '#4A90E2',
+        icon: branch.icon || '📌',
+        description: branch.description || '',
+        subBranches: (branch.subBranches || []).map((sub: any) => ({
+          id: sub.id || `sub-${Math.random().toString(36).substr(2, 9)}`,
+          label: sub.label || '',
+          color: sub.color || branch.color || '#4A90E2',
+          icon: sub.icon || '💡',
+          description: sub.description || '',
+          details: Array.isArray(sub.details) ? sub.details : []
+        }))
+      })),
+      connections: (parsed.connections || []).map((conn: any) => ({
+        fromNode: conn.fromNode || '',
+        toNode: conn.toNode || '',
+        type: conn.type || 'associative',
+        label: conn.label || ''
+      })),
+      learningInsights: {
+        keyConcepts: Array.isArray(parsed.learningInsights?.keyConcepts)
+          ? parsed.learningInsights.keyConcepts
+          : [],
+        memoryHooks: Array.isArray(parsed.learningInsights?.memoryHooks)
+          ? parsed.learningInsights.memoryHooks
+          : [],
+        practicalApplication: parsed.learningInsights?.practicalApplication || '',
+        reviewSuggestion: parsed.learningInsights?.reviewSuggestion || ''
+      },
+      videoMetadata: parsed.videoMetadata || {
+        videoId: request.videoId,
+        title: request.title,
+        duration: request.duration,
+        language: request.language
+      },
+      fullSummary: parsed.fullSummary || '',
+      generatedAt: new Date(),
+      qualityScore: calculateMindMapQualityScore(parsed)
+    };
+
+    return note;
+
+  } catch (error) {
+    console.error('Error parsing Mind Map response:', error);
+    throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Calculate quality score for Mind Map notes
+ */
+function calculateMindMapQualityScore(parsed: any): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Check central concept quality (10 points)
+  if (parsed.centralConcept?.label && parsed.centralConcept?.description) {
+    score += 10;
+  } else if (parsed.centralConcept?.label) {
+    score += 5;
+  }
+
+  // Check main branches count (20 points)
+  const branchCount = parsed.mainBranches?.length || 0;
+  if (branchCount >= 3 && branchCount <= 7) {
+    score += 20;
+  } else if (branchCount >= 2) {
+    score += 10;
+  }
+
+  // Check Mind Map-specific structure (70 points total)
+  const branches = parsed.mainBranches || [];
+  let structureScore = 0;
+  let validBranches = 0;
+
+  branches.forEach((branch: any) => {
+    let branchScore = 0;
+
+    // Main branch quality (15 points)
+    if (branch.label && branch.description && branch.color && branch.icon) {
+      branchScore += 15;
+    } else if (branch.label && branch.description) {
+      branchScore += 10;
+    } else if (branch.label) {
+      branchScore += 5;
+    }
+
+    // Sub-branches quality (15 points)
+    const subCount = branch.subBranches?.length || 0;
+    if (subCount >= 2 && subCount <= 5) {
+      branchScore += 15;
+    } else if (subCount >= 1) {
+      branchScore += 8;
+    }
+
+    // Sub-branch completeness (10 points)
+    const completeSubs = branch.subBranches?.filter((sub: any) =>
+      sub.label && sub.description && sub.color && sub.icon
+    ).length || 0;
+    if (completeSubs === subCount && subCount > 0) {
+      branchScore += 10;
+    } else if (completeSubs > 0) {
+      branchScore += 5;
+    }
+
+    // Details quality (10 points)
+    const hasDetails = branch.subBranches?.some((sub: any) =>
+      Array.isArray(sub.details) && sub.details.length > 0
+    );
+    if (hasDetails) {
+      branchScore += 10;
+    }
+
+    structureScore += branchScore;
+    validBranches++;
+  });
+
+  // Average structure score across branches
+  if (validBranches > 0) {
+    score += (structureScore / validBranches);
+  }
+
+  // Check connections quality (10 points)
+  const connCount = parsed.connections?.length || 0;
+  if (connCount >= 2) {
+    const validConns = parsed.connections?.filter((conn: any) =>
+      conn.fromNode && conn.toNode && conn.type && conn.label
+    ).length || 0;
+    if (validConns === connCount) {
+      score += 10;
+    } else if (validConns > 0) {
+      score += 5;
+    }
+  }
+
+  // Check learning insights quality (10 points)
+  const insights = parsed.learningInsights || {};
+  let insightScore = 0;
+
+  if (Array.isArray(insights.keyConcepts) && insights.keyConcepts.length >= 3) {
+    insightScore += 3;
+  }
+  if (Array.isArray(insights.memoryHooks) && insights.memoryHooks.length >= 2) {
+    insightScore += 3;
+  }
+  if (insights.practicalApplication && insights.practicalApplication.length >= 20) {
+    insightScore += 2;
+  }
+  if (insights.reviewSuggestion && insights.reviewSuggestion.length >= 20) {
+    insightScore += 2;
+  }
+
+  score += insightScore;
+
+  return Math.min(Math.round(score), maxScore);
+}

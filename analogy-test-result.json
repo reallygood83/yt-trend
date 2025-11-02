@@ -1,0 +1,170 @@
+{
+  "method": "Analogy",
+  "ageGroup": "adult",
+  "fullSummary": "이 영상은 AI와 인간 지능의 핵심적인 차이를 일상적인 비유를 통해 설명합니다. AI의 학습 방식을 아이의 언어 습득에, 기억력을 하드 디스크와 도서관에, 그리고 창의성을 믹서기와 요리사에 비유하여 각자의 고유한 강점을 명확히 보여줍니다.",
+  "videoMetadata": {
+    "videoId": "test-analogy-101",
+    "title": "AI와 인간 지능 비교: 쉬운 비유로 이해하기",
+    "duration": 420,
+    "language": "ko"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 140,
+      "title": "학습 방식과 두뇌 구조: 아이와 도시 전기망",
+      "summary": "AI의 학습 과정을 아이의 언어 습득에 비유하고, 인간 두뇌의 복잡한 신경망 구조를 도시의 전기망에 빗대어 설명합니다.",
+      "targetConcept": "AI의 패턴 인식 학습 및 신경망 구조",
+      "sourceAnalogy": "아이의 언어 학습 과정과 도시의 전기망",
+      "mappingExplanation": "AI가 수백만 개의 데이터에서 패턴을 찾는 것은 아이가 수많은 대화를 들으며 언어 규칙을 터득하는 과정과 유사합니다. 또한, 860억 개 뉴런으로 구성된 인간의 뇌는 각 전구가 켜지고 꺼지며 정보를 처리하는 거대한 도시 전기망 시스템에 비유할 수 있습니다.",
+      "analogyChain": [
+        {
+          "abstract": "AI 학습 과정",
+          "concrete": "아이가 언어를 배우는 과정",
+          "correspondence": [
+            "방대한 데이터 = 수많은 대화",
+            "패턴 인식 = 문법 및 억양 습득",
+            "반복 학습 = 지속적인 노출"
+          ]
+        },
+        {
+          "abstract": "인간 두뇌의 뉴런 네트워크",
+          "concrete": "도시의 전기망",
+          "correspondence": [
+            "뉴런 = 전구",
+            "신경 신호 전달 = 전구의 점등/소등",
+            "상호 연결된 구조 = 복잡한 전선망"
+          ]
+        },
+        {
+          "abstract": "신경 신호의 매체 차이",
+          "concrete": "전기와 화학 물질",
+          "correspondence": [
+            "AI 신경망 = 전기로 작동",
+            "인간 뇌 = 화학 신호로 작동"
+          ]
+        }
+      ],
+      "analogyTypes": [
+        {
+          "type": "process",
+          "example": "AI의 학습 과정을 아이의 언어 습득 과정에 비유"
+        },
+        {
+          "type": "system",
+          "example": "인간의 뇌 신경망을 도시의 전기망 시스템에 비유"
+        }
+      ],
+      "familiarityScore": 9,
+      "correspondenceAccuracy": 8
+    },
+    {
+      "start": 140,
+      "end": 280,
+      "title": "기억의 저장 방식: 도서관과 하드 디스크",
+      "summary": "인간의 연상적이고 맥락적인 기억을 도서관에, AI의 정확하고 주소 기반인 메모리를 컴퓨터 하드 디스크에 비유하여 둘의 근본적인 차이를 설명합니다.",
+      "targetConcept": "인간 기억과 AI 메모리의 작동 방식 차이",
+      "sourceAnalogy": "도서관 vs. 컴퓨터 하드 디스크",
+      "mappingExplanation": "인간의 기억은 관련 정보가 여러 섹션에 나뉘어 저장된 '도서관'과 같습니다. 기억을 떠올리는 것은 특정 주제의 책을 찾아가는 과정과 비슷합니다. 반면, AI의 메모리는 데이터가 정확한 위치에 완벽하게 저장되고 검색되는 '하드 디스크'와 같아 정보의 손실이나 왜곡이 없습니다.",
+      "analogyChain": [
+        {
+          "abstract": "인간의 기억 시스템",
+          "concrete": "도서관",
+          "correspondence": [
+            "기억 = 책",
+            "기억의 분류 = 도서관 섹션 (예: 역사, 과학)",
+            "연상 작용 = 관련 서적 찾기"
+          ]
+        },
+        {
+          "abstract": "AI의 메모리 시스템",
+          "concrete": "컴퓨터 하드 디스크",
+          "correspondence": [
+            "데이터 = 파일",
+            "저장 위치 = 파일 주소(경로)",
+            "검색 = 완벽하고 즉각적인 파일 로딩"
+          ]
+        },
+        {
+          "abstract": "정보 인출의 정확성",
+          "concrete": "기억 되새김 vs. 파일 복사",
+          "correspondence": [
+            "인간 = 재구성되며 왜곡 가능",
+            "AI = 원본과 동일하게 완벽 복제"
+          ]
+        }
+      ],
+      "analogyTypes": [
+        {
+          "type": "object",
+          "example": "인간의 기억을 '도서관'이라는 사물에 비유"
+        },
+        {
+          "type": "object",
+          "example": "AI의 메모리를 '하드 디스크'라는 사물에 비유"
+        },
+        {
+          "type": "relationship",
+          "example": "기억과 맥락의 관계를 책과 도서관 섹션의 관계에 비유"
+        }
+      ],
+      "familiarityScore": 10,
+      "correspondenceAccuracy": 9
+    },
+    {
+      "start": 280,
+      "end": 420,
+      "title": "창의성의 원천: 요리사와 믹서기",
+      "summary": "인간의 창의성을 기존 재료로 새로운 요리를 창조하는 '요리사'에, AI의 창의성을 기존 데이터를 조합하는 '믹서기'에 비유하며, 두 지능의 상호 보완적인 강점을 강조하며 마무리합니다.",
+      "targetConcept": "인간과 AI의 창의성 메커니즘 비교",
+      "sourceAnalogy": "요리사 vs. 믹서기",
+      "mappingExplanation": "인간의 창의성은 재료의 본질을 이해하고 새로운 방식으로 조합해 완전히 새로운 레시피를 만드는 '요리사'와 같습니다. 이는 깊은 이해와 의도를 바탕으로 합니다. 반면, AI의 창의성은 주어진 재료(데이터)를 기계적으로 섞어 새로운 결과물을 만드는 '믹서기'에 가까워, 기존 요소의 재조합에 가깝습니다.",
+      "analogyChain": [
+        {
+          "abstract": "인간의 창의성",
+          "concrete": "요리사의 새로운 레시피 개발",
+          "correspondence": [
+            "기존 지식/경험 = 요리 재료",
+            "새로운 아이디어 = 새로운 레시피",
+            "의도와 통찰력 = 요리사의 손맛과 지식"
+          ]
+        },
+        {
+          "abstract": "AI의 창의성 (생성 능력)",
+          "concrete": "믹서기의 작동 방식",
+          "correspondence": [
+            "학습 데이터 = 믹서기 안의 재료",
+            "생성된 결과물 = 섞여서 나온 주스",
+            "알고리즘 = 믹서기의 칼날과 모터"
+          ]
+        },
+        {
+          "abstract": "지능의 강점 비교",
+          "concrete": "전문 도구의 역할",
+          "correspondence": [
+            "인간 = 창의성, 직관 (만능 도구)",
+            "AI = 속도, 정확성 (고성능 계산기)"
+          ]
+        }
+      ],
+      "analogyTypes": [
+        {
+          "type": "process",
+          "example": "인간의 창의적 과정을 요리사의 레시피 개발 과정에 비유"
+        },
+        {
+          "type": "object",
+          "example": "AI의 생성 기능을 '믹서기'라는 사물에 비유"
+        },
+        {
+          "type": "relationship",
+          "example": "인간과 AI의 상호 보완적 관계를 각기 다른 강점을 가진 파트너 관계에 비유"
+        }
+      ],
+      "familiarityScore": 9,
+      "correspondenceAccuracy": 8
+    }
+  ],
+  "generatedAt": "2025-11-02T07:44:49.309Z",
+  "qualityScore": 90
+}

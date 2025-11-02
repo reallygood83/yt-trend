@@ -1,0 +1,483 @@
+// ============================================================================
+// EXPERT ANALYSIS IMPLEMENTATION
+// ============================================================================
+
+/**
+ * Generate Expert Analysis Note
+ *
+ * Expert Analysis applies professional domain expertise to educational content,
+ * providing specialized insights, technical analysis, and professional recommendations.
+ *
+ * 10 Expert Domains:
+ * - economy: Economic/financial analysis
+ * - technology: Technical/IT expertise
+ * - science: Scientific principles and research
+ * - business: Business strategy and management
+ * - education: Pedagogical approaches and learning theory
+ * - law: Legal frameworks and compliance
+ * - medicine: Clinical and health implications
+ * - politics: Geopolitical context and policy analysis
+ * - psychology: Behavioral insights and cognitive processes
+ * - history: Historical context and comparative analysis
+ */
+async function generateExpertAnalysisNote(request: GenerateNoteRequest): Promise<ExpertAnalysisNote> {
+  const prompt = buildExpertAnalysisPrompt(request);
+  const responseText = await callGemini(prompt);
+  return parseExpertAnalysisResponse(responseText, request);
+}
+
+/**
+ * Build Expert Analysis prompt with domain-specific guidance
+ */
+function buildExpertAnalysisPrompt(request: GenerateNoteRequest): string {
+  const { title, transcript, ageGroup, duration } = request;
+
+  return `You are a recognized expert providing professional analysis of educational content.
+
+**Expert Analysis Core Principles:**
+1. **Professional Expertise**: Apply specialized domain knowledge and professional standards
+2. **Technical Rigor**: Use precise terminology and evidence-based analysis
+3. **Contextual Understanding**: Consider broader implications and background
+4. **Practical Applications**: Provide actionable recommendations and insights
+5. **Credibility Assessment**: Evaluate source reliability and evidence quality
+
+**Content to Analyze:**
+- Title: ${title}
+- Duration: ${Math.floor(duration / 60)} minutes
+- Target Audience: ${ageGroup}
+
+**Transcript:**
+${transcript}
+
+**Your Task:**
+Analyze this content as a domain expert and create an Expert Analysis note.
+
+**Step 1: Identify the Primary Expert Domain**
+Choose the MOST relevant domain for this content:
+- economy: Economic/financial topics, market analysis, investment
+- technology: Technical concepts, IT systems, software/hardware
+- science: Scientific principles, research, natural phenomena
+- business: Business strategy, management, entrepreneurship
+- education: Teaching methods, learning theory, curriculum
+- law: Legal frameworks, regulations, compliance
+- medicine: Health, clinical practice, medical research
+- politics: Governance, policy, international relations
+- psychology: Mental processes, behavior, therapy
+- history: Historical events, comparative analysis, cultural context
+
+**Step 2: Create Structured Analysis**
+For each time segment (4-6 segments, 2-3 minutes each):
+
+1. **Professional Insight**: Expert perspective on the content
+2. **Technical Analysis**: Detailed examination using professional knowledge
+3. **Contextual Background**: Relevant context and background information
+
+4. **Domain-Specific Analysis** (based on chosen domain):
+   - For economy: marketImplication, economicIndicators, investmentPerspective
+   - For technology: technicalArchitecture, implementationChallenges, futureImplications
+   - For science: scientificPrinciples, researchImplications, experimentalEvidence
+   - For business: strategicAnalysis, marketPosition, competitiveAdvantage
+   - For education: pedagogicalApproach, learningObjectives, assessmentStrategy
+   - For law: legalFramework, precedentAnalysis, complianceRequirements
+   - For medicine: clinicalSignificance, healthImplications, evidenceQuality
+   - For politics: geopoliticalContext, policyImplications, stakeholderAnalysis
+   - For psychology: behavioralInsights, cognitiveProcesses, therapeuticApplications
+   - For history: historicalContext, comparativeAnalysis, longTermSignificance
+
+5. **Professional Terminology** (2-4 key terms):
+   - term: The professional term
+   - definition: Clear definition
+   - context: How it applies to this content
+
+6. **Expert Recommendations**:
+   - actionItems: 2-3 practical steps (array of strings)
+   - furtherStudy: 2-3 recommended resources (array of strings)
+   - criticalQuestions: 2-3 questions for deeper understanding (array of strings)
+
+7. **Credibility Assessment**:
+   - sourceReliability: "high" | "medium" | "low"
+   - evidenceQuality: "strong" | "moderate" | "weak"
+   - expertConsensus: true | false
+
+**Output Format (JSON):**
+\`\`\`json
+{
+  "method": "Expert Analysis",
+  "ageGroup": "${ageGroup}",
+  "expertDomain": "[chosen domain from the 10 options]",
+  "fullSummary": "Professional overview of content in 2-3 sentences",
+  "videoMetadata": {
+    "videoId": "${request.videoId}",
+    "title": "${title}",
+    "duration": ${duration},
+    "language": "${request.language}"
+  },
+  "segments": [
+    {
+      "start": 0,
+      "end": 180,
+      "title": "Professional segment title",
+      "summary": "Brief professional overview",
+      "professionalInsight": "Expert perspective on this segment",
+      "technicalAnalysis": "Detailed technical/professional analysis",
+      "contextualBackground": "Relevant context and background",
+      "domainSpecificFields": {
+        "[domain-specific field 1]": "Analysis specific to the chosen domain",
+        "[domain-specific field 2]": ["Array if applicable"],
+        "[domain-specific field 3]": "Additional domain analysis"
+      },
+      "keyTerminology": [
+        {
+          "term": "Professional term 1",
+          "definition": "Clear definition",
+          "context": "How it applies here"
+        },
+        {
+          "term": "Professional term 2",
+          "definition": "Clear definition",
+          "context": "How it applies here"
+        }
+      ],
+      "expertRecommendations": {
+        "actionItems": [
+          "Practical step 1",
+          "Practical step 2",
+          "Practical step 3"
+        ],
+        "furtherStudy": [
+          "Resource or topic 1",
+          "Resource or topic 2"
+        ],
+        "criticalQuestions": [
+          "Deep question 1",
+          "Deep question 2"
+        ]
+      },
+      "credibility": {
+        "sourceReliability": "high",
+        "evidenceQuality": "strong",
+        "expertConsensus": true
+      }
+    }
+  ],
+  "generatedAt": "${new Date().toISOString()}"
+}
+\`\`\`
+
+**Domain-Specific Field Examples:**
+
+For **economy** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "marketImplication": "How this affects markets",
+  "economicIndicators": ["GDP impact", "inflation effects"],
+  "investmentPerspective": "Investment implications"
+}
+\`\`\`
+
+For **technology** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "technicalArchitecture": "System architecture analysis",
+  "implementationChallenges": ["Challenge 1", "Challenge 2"],
+  "futureImplications": "Technology trajectory"
+}
+\`\`\`
+
+For **science** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "scientificPrinciples": ["Principle 1", "Principle 2"],
+  "researchImplications": "Research significance",
+  "experimentalEvidence": "Evidence quality"
+}
+\`\`\`
+
+For **business** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "strategicAnalysis": "Strategic positioning",
+  "marketPosition": "Market dynamics",
+  "competitiveAdvantage": "Competitive strengths"
+}
+\`\`\`
+
+For **education** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "pedagogicalApproach": "Teaching methodology",
+  "learningObjectives": ["Objective 1", "Objective 2"],
+  "assessmentStrategy": "Evaluation methods"
+}
+\`\`\`
+
+For **law** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "legalFramework": "Legal structure",
+  "precedentAnalysis": "Case law relevance",
+  "complianceRequirements": ["Requirement 1", "Requirement 2"]
+}
+\`\`\`
+
+For **medicine** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "clinicalSignificance": "Clinical importance",
+  "healthImplications": ["Implication 1", "Implication 2"],
+  "evidenceQuality": "Evidence strength"
+}
+\`\`\`
+
+For **politics** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "geopoliticalContext": "Global political context",
+  "policyImplications": ["Policy impact 1", "Policy impact 2"],
+  "stakeholderAnalysis": "Key stakeholders"
+}
+\`\`\`
+
+For **psychology** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "behavioralInsights": ["Insight 1", "Insight 2"],
+  "cognitiveProcesses": "Mental mechanisms",
+  "therapeuticApplications": "Therapeutic use"
+}
+\`\`\`
+
+For **history** domain:
+\`\`\`json
+"domainSpecificFields": {
+  "historicalContext": "Historical background",
+  "comparativeAnalysis": "Historical comparisons",
+  "longTermSignificance": "Historical importance"
+}
+\`\`\`
+
+**Critical Requirements:**
+- Segments must cover entire video (0 to ${duration} seconds)
+- Each segment: 2-3 minutes (120-180 seconds)
+- Choose ONE primary expertDomain that best fits the content
+- Include 3-5 domain-specific fields appropriate to chosen domain
+- Professional Insight: 2-3 sentences of expert perspective
+- Technical Analysis: Detailed analysis using professional knowledge
+- Key Terminology: 2-4 professional terms with definitions
+- Expert Recommendations: actionItems (2-3), furtherStudy (2-3), criticalQuestions (2-3)
+- Credibility Assessment: Evaluate source and evidence quality
+- Use age-appropriate language for ${ageGroup} level
+- **Clean JSON structure** for easy frontend parsing
+
+Generate the Expert Analysis JSON now:`;
+}
+
+/**
+ * Parse Expert Analysis response from Gemini API
+ */
+function parseExpertAnalysisResponse(responseText: string, request: GenerateNoteRequest): ExpertAnalysisNote {
+  try {
+    // Extract JSON from markdown code block
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in AI response');
+    }
+
+    let jsonText = jsonMatch[1].trim();
+
+    // Smart JSON parsing with repair logic
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (firstError) {
+      console.warn('[Expert Analysis Parse Warning] Initial parse failed, attempting JSON repair...');
+
+      // Try adding missing closing braces if JSON is incomplete
+      if (!jsonText.trim().endsWith('}')) {
+        jsonText = jsonText.trim() + '\n  ]\n}';
+        console.log('[Expert Analysis Parse Debug] Added missing closing braces');
+      }
+
+      // Fix common AI JSON issues
+      jsonText = jsonText
+        .replace(/"\s*}\s*\n\s*{/g, '"},\n    {')  // Missing commas between objects
+        .replace(/"\s*}\s*\]/g, '"}\n  ]');         // Missing closing array
+
+      try {
+        parsed = JSON.parse(jsonText);
+        console.log('[Expert Analysis Parse Success] JSON repaired and parsed successfully');
+      } catch (secondError) {
+        console.error('[Expert Analysis Parse Error] JSON repair failed:', secondError);
+        throw new Error(`Failed to parse AI response: ${secondError instanceof Error ? secondError.message : 'Unknown error'}`);
+      }
+    }
+
+    // Build ExpertAnalysisNote with type safety
+    const note: ExpertAnalysisNote = {
+      method: "Expert Analysis",
+      ageGroup: request.ageGroup,
+      expertDomain: parsed.expertDomain || 'technology',
+      fullSummary: parsed.fullSummary || '',
+      videoMetadata: parsed.videoMetadata || {
+        videoId: request.videoId,
+        title: request.title,
+        duration: request.duration,
+        language: request.language
+      },
+      segments: (parsed.segments || []).map((seg: any) => ({
+        start: seg.start || 0,
+        end: seg.end || 0,
+        title: seg.title || '',
+        summary: seg.summary || '',
+        professionalInsight: seg.professionalInsight || '',
+        technicalAnalysis: seg.technicalAnalysis || '',
+        contextualBackground: seg.contextualBackground || '',
+        domainSpecificFields: seg.domainSpecificFields || {},
+        keyTerminology: (seg.keyTerminology || []).map((kt: any) => ({
+          term: kt.term || '',
+          definition: kt.definition || '',
+          context: kt.context || ''
+        })),
+        expertRecommendations: {
+          actionItems: Array.isArray(seg.expertRecommendations?.actionItems)
+            ? seg.expertRecommendations.actionItems
+            : [],
+          furtherStudy: Array.isArray(seg.expertRecommendations?.furtherStudy)
+            ? seg.expertRecommendations.furtherStudy
+            : [],
+          criticalQuestions: Array.isArray(seg.expertRecommendations?.criticalQuestions)
+            ? seg.expertRecommendations.criticalQuestions
+            : []
+        },
+        credibility: {
+          sourceReliability: seg.credibility?.sourceReliability || 'medium',
+          evidenceQuality: seg.credibility?.evidenceQuality || 'moderate',
+          expertConsensus: seg.credibility?.expertConsensus || false
+        }
+      })) || [],
+      generatedAt: new Date(),
+      qualityScore: calculateExpertAnalysisQualityScore(parsed)
+    };
+
+    // Validate segment coverage
+    validateSegmentCoverage(note.segments, request.duration);
+
+    return note;
+
+  } catch (error) {
+    console.error('Error parsing Expert Analysis response:', error);
+    throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Calculate quality score for Expert Analysis notes
+ */
+function calculateExpertAnalysisQualityScore(parsed: any): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Check summary quality (10 points)
+  if (parsed.fullSummary && parsed.fullSummary.length >= 30) {
+    score += 10;
+  }
+
+  // Check expert domain validity (10 points)
+  const validDomains = ['economy', 'technology', 'science', 'business', 'education',
+                        'law', 'medicine', 'politics', 'psychology', 'history'];
+  if (validDomains.includes(parsed.expertDomain)) {
+    score += 10;
+  }
+
+  // Check segment count (20 points)
+  const segmentCount = parsed.segments?.length || 0;
+  if (segmentCount >= 4 && segmentCount <= 6) {
+    score += 20;
+  } else if (segmentCount >= 3) {
+    score += 10;
+  }
+
+  // Check Expert Analysis-specific fields (60 points total)
+  const segments = parsed.segments || [];
+  let expertScore = 0;
+  let validSegments = 0;
+
+  segments.forEach((seg: any) => {
+    let segScore = 0;
+
+    // Professional insight quality (10 points)
+    if (seg.professionalInsight && seg.professionalInsight.length >= 50) {
+      segScore += 10;
+    } else if (seg.professionalInsight && seg.professionalInsight.length >= 20) {
+      segScore += 5;
+    }
+
+    // Technical analysis quality (10 points)
+    if (seg.technicalAnalysis && seg.technicalAnalysis.length >= 50) {
+      segScore += 10;
+    } else if (seg.technicalAnalysis && seg.technicalAnalysis.length >= 20) {
+      segScore += 5;
+    }
+
+    // Contextual background quality (5 points)
+    if (seg.contextualBackground && seg.contextualBackground.length >= 30) {
+      segScore += 5;
+    } else if (seg.contextualBackground && seg.contextualBackground.length >= 10) {
+      segScore += 3;
+    }
+
+    // Domain-specific fields quality (10 points)
+    if (seg.domainSpecificFields && Object.keys(seg.domainSpecificFields).length >= 3) {
+      segScore += 10;
+    } else if (seg.domainSpecificFields && Object.keys(seg.domainSpecificFields).length >= 2) {
+      segScore += 5;
+    }
+
+    // Key terminology quality (10 points)
+    const ktCount = seg.keyTerminology?.length || 0;
+    if (ktCount >= 2 && ktCount <= 4) {
+      const validKt = seg.keyTerminology.filter((kt: any) =>
+        kt.term && kt.definition && kt.context
+      );
+      if (validKt.length === ktCount) {
+        segScore += 10;
+      } else {
+        segScore += 5;
+      }
+    } else if (ktCount >= 1) {
+      segScore += 3;
+    }
+
+    // Expert recommendations quality (10 points)
+    const recommendations = seg.expertRecommendations || {};
+    const actionCount = recommendations.actionItems?.length || 0;
+    const studyCount = recommendations.furtherStudy?.length || 0;
+    const questionCount = recommendations.criticalQuestions?.length || 0;
+
+    if (actionCount >= 2 && studyCount >= 2 && questionCount >= 2) {
+      segScore += 10;
+    } else if (actionCount >= 1 && studyCount >= 1 && questionCount >= 1) {
+      segScore += 5;
+    }
+
+    // Credibility assessment quality (5 points)
+    if (seg.credibility &&
+        seg.credibility.sourceReliability &&
+        seg.credibility.evidenceQuality &&
+        typeof seg.credibility.expertConsensus === 'boolean') {
+      segScore += 5;
+    } else if (seg.credibility) {
+      segScore += 3;
+    }
+
+    expertScore += segScore;
+    validSegments++;
+  });
+
+  // Average expert score across segments
+  if (validSegments > 0) {
+    score += (expertScore / validSegments);
+  }
+
+  return Math.min(Math.round(score), maxScore);
+}
