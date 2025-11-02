@@ -192,18 +192,22 @@ export const useAPIKeysStore = create<APIKeysState>()(
           const data = await response.json();
 
           if (data.success && data.keys) {
-            // YouTube 키 복원
+            // YouTube 키 복원 및 검증
             if (data.keys.youtube?.apiKey) {
               set({
                 youtube: {
                   apiKey: data.keys.youtube.apiKey,
-                  validated: data.keys.youtube.validated || false,
+                  validated: false, // 🔥 로드 직후에는 false, 검증 후 업데이트
                   lastValidated: data.keys.youtube.lastValidated,
                 },
               });
+
+              // 🔥 로드 직후 즉시 검증 실행 (await로 완료 대기)
+              await get().validateYouTubeKey();
+              console.log('✅ YouTube API 키 로드 및 검증 완료');
             }
 
-            // AI 키 복원 (마지막 사용한 provider)
+            // AI 키 복원 및 검증 (마지막 사용한 provider)
             if (data.keys.ai) {
               // Gemini 우선, 없으면 xAI, 없으면 OpenRouter
               const provider =
@@ -217,14 +221,18 @@ export const useAPIKeysStore = create<APIKeysState>()(
                     provider,
                     apiKey: data.keys.ai[provider].apiKey,
                     model: data.keys.ai[provider].model,
-                    validated: data.keys.ai[provider].validated || false,
+                    validated: false, // 🔥 로드 직후에는 false, 검증 후 업데이트
                     lastValidated: data.keys.ai[provider].lastValidated,
                   },
                 });
+
+                // 🔥 로드 직후 즉시 검증 실행 (await로 완료 대기)
+                await get().validateAIKey();
+                console.log('✅ AI API 키 로드 및 검증 완료');
               }
             }
 
-            console.log('✅ API 키 Firestore 로드 완료');
+            console.log('🎉 모든 API 키 Firestore 로드 및 검증 완료');
           }
         } catch (error) {
           console.error('❌ API 키 Firestore 로드 실패:', error);
