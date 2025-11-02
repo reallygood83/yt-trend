@@ -255,15 +255,51 @@ function NotePageContent() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!generatedNote || !metadata) return;
 
     const markdownContent = generateMarkdownContent();
-    const blob = new Blob([markdownContent], { type: 'text/markdown' });
+    const fileName = `${metadata.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_학습노트.md`;
+
+    // File System Access API 지원 여부 확인
+    if ('showSaveFilePicker' in window) {
+      try {
+        // 사용자에게 저장 위치 선택 대화상자 표시
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{
+            description: 'Markdown 파일',
+            accept: { 'text/markdown': ['.md'] }
+          }]
+        });
+
+        // 선택한 파일에 내용 쓰기
+        const writable = await handle.createWritable();
+        await writable.write(markdownContent);
+        await writable.close();
+
+        console.log('✅ 파일이 선택한 위치에 저장되었습니다');
+      } catch (err) {
+        // 사용자가 취소하거나 에러 발생 시 기본 다운로드 방식 사용
+        if ((err as Error).name !== 'AbortError') {
+          console.error('파일 저장 오류:', err);
+        }
+        // 기본 다운로드 방식으로 폴백
+        downloadWithBlobUrl(markdownContent, fileName);
+      }
+    } else {
+      // File System Access API를 지원하지 않는 브라우저는 기본 다운로드 방식 사용
+      downloadWithBlobUrl(markdownContent, fileName);
+    }
+  };
+
+  // 기본 다운로드 방식 (폴백)
+  const downloadWithBlobUrl = (content: string, fileName: string) => {
+    const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${metadata.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_학습노트.md`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
