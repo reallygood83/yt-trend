@@ -216,6 +216,11 @@ export const useAPIKeysStore = create<APIKeysState>()(
                 data.keys.ai.openrouter ? 'openrouter' : null;
 
               if (provider && data.keys.ai[provider]?.apiKey) {
+                console.log('🔑 클라이언트에서 받은 API 키:', {
+                  provider,
+                  apiKeyLength: data.keys.ai[provider].apiKey.length,
+                  apiKeyPreview: data.keys.ai[provider].apiKey.substring(0, 10) + '...'
+                });
                 set({
                   ai: {
                     provider,

@@ -99,6 +99,11 @@ export async function POST(request: NextRequest) {
         if (data.ai[provider]?.encryptedKey) {
           try {
             const decryptedAIKey = decryptAPIKey(data.ai[provider].encryptedKey, userId);
+            console.log(`🔍 [${provider}] 복호화 결과:`, {
+              encryptedLength: data.ai[provider].encryptedKey.length,
+              decryptedLength: decryptedAIKey.length,
+              decryptedPreview: decryptedAIKey.substring(0, 10) + '...'
+            });
             // TypeScript에게 ai가 undefined가 아님을 보장
             if (decryptedKeys.ai) {
               decryptedKeys.ai[provider] = {
