@@ -126,12 +126,14 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ API 키 로드 성공: userId=${userId}`, {
       aiProviders: Object.keys(decryptedKeys.ai || {}),
-      hasYouTube: !!decryptedKeys.youtube
+      hasYouTube: !!decryptedKeys.youtube,
+      selectedAIProvider: data.selectedAIProvider || null
     });
 
     return NextResponse.json({
       success: true,
       keys: decryptedKeys,
+      selectedAIProvider: data.selectedAIProvider || null, // 🔑 사용자가 선택한 provider 반환
     });
   } catch (error) {
     console.error('API 키 로드 오류:', error);

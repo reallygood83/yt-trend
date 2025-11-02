@@ -84,6 +84,8 @@ export async function POST(request: NextRequest) {
           ...(existingData.ai || {}),
           [keyType]: encryptedKeyData,
         },
+        // 🔑 사용자가 선택한 AI provider 저장 (중요!)
+        selectedAIProvider: keyType,
         updatedAt: serverTimestamp(),
       };
     }

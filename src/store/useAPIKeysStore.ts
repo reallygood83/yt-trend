@@ -207,16 +207,12 @@ export const useAPIKeysStore = create<APIKeysState>()(
               console.log('✅ YouTube API 키 로드 및 검증 완료');
             }
 
-            // AI 키 복원 및 검증 (마지막 사용한 provider)
-            if (data.keys.ai) {
-              // Gemini 우선, 없으면 xAI, 없으면 OpenRouter
-              const provider =
-                data.keys.ai.gemini ? 'gemini' :
-                data.keys.ai.xai ? 'xai' :
-                data.keys.ai.openrouter ? 'openrouter' : null;
+            // AI 키 복원 및 검증 - 🔑 사용자가 선택한 provider 사용 (중요!)
+            if (data.keys.ai && data.selectedAIProvider) {
+              const provider = data.selectedAIProvider as 'gemini' | 'xai' | 'openrouter';
 
-              if (provider && data.keys.ai[provider]?.apiKey) {
-                console.log('🔑 클라이언트에서 받은 API 키:', {
+              if (data.keys.ai[provider]?.apiKey) {
+                console.log('🔑 클라이언트에서 받은 API 키 (사용자 선택 provider 사용):', {
                   provider,
                   apiKeyLength: data.keys.ai[provider].apiKey.length,
                   apiKeyPreview: data.keys.ai[provider].apiKey.substring(0, 10) + '...'
@@ -233,8 +229,12 @@ export const useAPIKeysStore = create<APIKeysState>()(
 
                 // 🔥 로드 직후 즉시 검증 실행 (await로 완료 대기)
                 await get().validateAIKey();
-                console.log('✅ AI API 키 로드 및 검증 완료');
+                console.log('✅ AI API 키 로드 및 검증 완료 (선택된 provider:', provider, ')');
+              } else {
+                console.warn(`⚠️ selectedAIProvider=${provider}인데 해당 키가 없습니다`);
               }
+            } else if (data.keys.ai && !data.selectedAIProvider) {
+              console.warn('⚠️ selectedAIProvider가 설정되지 않았습니다. 설정 페이지에서 AI provider를 선택해주세요.');
             }
 
             console.log('🎉 모든 API 키 Firestore 로드 및 검증 완료');
