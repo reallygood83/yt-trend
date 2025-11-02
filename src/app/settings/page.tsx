@@ -343,6 +343,105 @@ export default function SettingsPage() {
           <li>✅ AI API: 트렌드 인사이트 생성, 학습 노트 자동 생성</li>
         </ul>
       </div>
+
+      {/* 다운로드 설정 */}
+      <Card className="mt-8 p-6">
+        <h2 className="text-xl font-bold mb-4">💾 다운로드 설정</h2>
+
+        <div className="space-y-4">
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm font-semibold text-yellow-800 mb-2">
+              ⚠️ 브라우저 보안 제약사항
+            </p>
+            <p className="text-sm text-yellow-700">
+              웹 브라우저는 보안상 임의의 경로에 직접 파일을 저장할 수 없습니다.
+              대신 아래 방법으로 다운로드 위치를 설정할 수 있습니다.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <span className="text-lg">1️⃣</span>
+                매번 저장 위치 선택하기 (권장)
+              </h3>
+              <div className="pl-8 space-y-3">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium mb-2">🟦 Chrome / Edge</p>
+                  <ol className="text-sm space-y-1 list-decimal list-inside">
+                    <li>브라우저 설정 → 다운로드</li>
+                    <li><strong>"다운로드 전에 각 파일의 저장 위치 확인"</strong> 체크</li>
+                    <li>노트 다운로드 시 원하는 폴더 선택 가능</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium mb-2">🟧 Firefox</p>
+                  <ol className="text-sm space-y-1 list-decimal list-inside">
+                    <li>설정 → 일반 → 파일 및 프로그램</li>
+                    <li><strong>"파일 저장 위치 항상 묻기"</strong> 선택</li>
+                    <li>노트 다운로드 시 원하는 폴더 선택 가능</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium mb-2">🟦 Safari</p>
+                  <ol className="text-sm space-y-1 list-decimal list-inside">
+                    <li>Safari → 설정 → 일반</li>
+                    <li><strong>"다운로드 위치"</strong>를 원하는 폴더로 변경</li>
+                    <li>또는 "다운로드할 때마다 묻기" 선택</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <span className="text-lg">2️⃣</span>
+                기본 다운로드 폴더 변경하기
+              </h3>
+              <div className="pl-8 space-y-3">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium mb-2">🟦 Chrome / Edge</p>
+                  <ol className="text-sm space-y-1 list-decimal list-inside">
+                    <li>브라우저 설정 → 다운로드</li>
+                    <li><strong>"위치"</strong> 옆의 "변경" 버튼 클릭</li>
+                    <li>원하는 폴더 선택 (예: Documents/학습노트)</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium mb-2">🟧 Firefox</p>
+                  <ol className="text-sm space-y-1 list-decimal list-inside">
+                    <li>설정 → 일반 → 파일 및 프로그램</li>
+                    <li><strong>"다음 폴더에 저장"</strong> 선택</li>
+                    <li>"찾아보기"로 원하는 폴더 지정</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium mb-2">🟦 Safari</p>
+                  <ol className="text-sm space-y-1 list-decimal list-inside">
+                    <li>Safari → 설정 → 일반</li>
+                    <li><strong>"파일 다운로드 위치"</strong> 드롭다운 클릭</li>
+                    <li>"기타..." 선택하여 원하는 폴더 지정</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm font-semibold text-green-800 mb-2">
+                💡 추천 설정
+              </p>
+              <p className="text-sm text-green-700">
+                <strong>"다운로드 전에 저장 위치 확인"</strong>을 활성화하면 매번 다운로드 시
+                원하는 폴더를 선택할 수 있어 가장 유연합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
