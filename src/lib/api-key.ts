@@ -365,10 +365,10 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
       // Zustand 스토어에 저장 및 검증
       if (store) {
         store.setYouTubeKey(ytKey);
-        store.validateYouTubeKey(); // 🔥 검증 호출 추가!
+        await store.validateYouTubeKey(); // 🔥 검증 완료까지 대기!
       }
 
-      console.log('✅ YouTube API 키가 Firebase에서 로드되었습니다');
+      console.log('✅ YouTube API 키가 Firebase에서 로드 및 검증되었습니다');
     }
 
     // AI Provider 키 로드 (Gemini, xAI, OpenRouter)
@@ -391,10 +391,10 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
         // Zustand 스토어에 저장 및 검증
         if (store) {
           store.setAIProvider('gemini', geminiKey, geminiModel);
-          store.validateAIKey(); // 🔥 검증 호출 추가!
+          await store.validateAIKey(); // 🔥 검증 완료까지 대기!
         }
 
-        console.log('✅ Gemini API 키가 Firebase에서 로드되었습니다');
+        console.log('✅ Gemini API 키가 Firebase에서 로드 및 검증되었습니다');
       }
 
       if (aiKeys.xai?.apiKey) {
@@ -403,10 +403,10 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
 
         if (store) {
           store.setAIProvider('xai', xaiKey, xaiModel);
-          store.validateAIKey(); // 🔥 검증 호출 추가!
+          await store.validateAIKey(); // 🔥 검증 완료까지 대기!
         }
 
-        console.log('✅ xAI API 키가 Firebase에서 로드되었습니다');
+        console.log('✅ xAI API 키가 Firebase에서 로드 및 검증되었습니다');
       }
 
       if (aiKeys.openrouter?.apiKey) {
@@ -415,10 +415,10 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
 
         if (store) {
           store.setAIProvider('openrouter', orKey, orModel);
-          store.validateAIKey(); // 🔥 검증 호출 추가!
+          await store.validateAIKey(); // 🔥 검증 완료까지 대기!
         }
 
-        console.log('✅ OpenRouter API 키가 Firebase에서 로드되었습니다');
+        console.log('✅ OpenRouter API 키가 Firebase에서 로드 및 검증되었습니다');
       }
     }
 
