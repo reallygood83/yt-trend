@@ -124,7 +124,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ API 키 로드 성공: userId=${userId}`);
+    console.log(`✅ API 키 로드 성공: userId=${userId}`, {
+      aiProviders: Object.keys(decryptedKeys.ai || {}),
+      hasYouTube: !!decryptedKeys.youtube
+    });
 
     return NextResponse.json({
       success: true,
