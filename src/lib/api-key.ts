@@ -362,9 +362,10 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
         lastChecked: new Date()
       }));
 
-      // Zustand 스토어에 저장
+      // Zustand 스토어에 저장 및 검증
       if (store) {
         store.setYouTubeKey(ytKey);
+        store.validateYouTubeKey(); // 🔥 검증 호출 추가!
       }
 
       console.log('✅ YouTube API 키가 Firebase에서 로드되었습니다');
@@ -387,9 +388,10 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
           lastChecked: new Date()
         }));
 
-        // Zustand 스토어에 저장
+        // Zustand 스토어에 저장 및 검증
         if (store) {
           store.setAIProvider('gemini', geminiKey, geminiModel);
+          store.validateAIKey(); // 🔥 검증 호출 추가!
         }
 
         console.log('✅ Gemini API 키가 Firebase에서 로드되었습니다');
@@ -401,6 +403,7 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
 
         if (store) {
           store.setAIProvider('xai', xaiKey, xaiModel);
+          store.validateAIKey(); // 🔥 검증 호출 추가!
         }
 
         console.log('✅ xAI API 키가 Firebase에서 로드되었습니다');
@@ -412,6 +415,7 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
 
         if (store) {
           store.setAIProvider('openrouter', orKey, orModel);
+          store.validateAIKey(); // 🔥 검증 호출 추가!
         }
 
         console.log('✅ OpenRouter API 키가 Firebase에서 로드되었습니다');
