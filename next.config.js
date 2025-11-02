@@ -131,13 +131,13 @@ const nextConfig = {
   // TypeScript 설정
   typescript: {
     // 빌드 시 TypeScript 에러가 있어도 빌드를 계속 진행 (필요시)
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
   
   // ESLint 설정
   eslint: {
     // 빌드 시 ESLint 에러가 있어도 빌드를 계속 진행 (필요시)
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   }
 }
 

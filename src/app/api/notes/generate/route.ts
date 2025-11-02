@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import type {
   EnhancedNote,
   FeynmanNote,
+  ELI5Note,
+  CornellNote,
+  MindMapNote,
+  SocraticNote,
+  AnalogyNote,
+  StorytellingNote,
+  ExpertAnalysisNote,
+  CustomNote,
   ExplanationMethod,
   AgeGroup,
   TimeSegment
@@ -317,7 +325,7 @@ Generate a Feynman Technique learning note with the following structure:
    a) **Core Concept** (1 sentence): The fundamental idea in simplest form
 
    b) **Simple Explanation** (2-3 paragraphs):
-      - Explain as if teaching a ${ageGroup === 'child' ? 'child' : ageGroup === 'teen' ? 'teenager' : 'intelligent adult with no background'}
+      - Explain as if teaching a ${ageGroup === 'elementary' ? 'elementary school student' : ageGroup === 'middle' ? 'middle school student' : ageGroup === 'high' ? 'high school student' : 'intelligent adult with no background'}
       - Use everyday language and avoid jargon
       - Break complex ideas into bite-sized pieces
 
@@ -592,11 +600,6 @@ function parseFeynmanResponse(
         knowledgeGaps: seg.knowledgeGaps || [],
         selfExplanationTest: seg.selfExplanationTest || ''
       })) || [],
-      overallReflection: parsed.overallReflection || {
-        fundamentalConcepts: [],
-        majorGaps: [],
-        effectiveAnalogies: []
-      },
       generatedAt: new Date(),
       qualityScore: calculateQualityScore(parsed)
     };
