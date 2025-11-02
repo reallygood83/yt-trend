@@ -208,33 +208,67 @@ export const useAPIKeysStore = create<APIKeysState>()(
             }
 
             // AI 키 복원 및 검증 - 🔑 사용자가 선택한 provider 사용 (중요!)
-            if (data.keys.ai && data.selectedAIProvider) {
-              const provider = data.selectedAIProvider as 'gemini' | 'xai' | 'openrouter';
+            if (data.keys.ai) {
+              let provider: 'gemini' | 'xai' | 'openrouter' | null = null;
 
-              if (data.keys.ai[provider]?.apiKey) {
-                console.log('🔑 클라이언트에서 받은 API 키 (사용자 선택 provider 사용):', {
+              // 1순위: selectedAIProvider 필드 사용 (신규 방식)
+              if (data.selectedAIProvider) {
+                provider = data.selectedAIProvider as 'gemini' | 'xai' | 'openrouter';
+                console.log('✅ selectedAIProvider 감지:', provider);
+              }
+              // 2순위: 기존 데이터 호환성 - API 키 prefix로 provider 자동 감지
+              else {
+                console.warn('⚠️ selectedAIProvider 없음. API 키 prefix로 자동 감지 시도...');
+
+                // 각 provider의 키를 확인하여 실제 어떤 provider의 키인지 판단
+                for (const p of ['xai', 'openrouter', 'gemini'] as const) {
+                  if (data.keys.ai[p]?.apiKey) {
+                    const key = data.keys.ai[p].apiKey;
+
+                    // XAI 키는 'xai-'로 시작
+                    if (key.startsWith('xai-')) {
+                      provider = 'xai';
+                      console.log('🔍 XAI 키 감지 (prefix: xai-)');
+                      break;
+                    }
+                    // OpenRouter 키는 'sk-or-'로 시작
+                    else if (key.startsWith('sk-or-')) {
+                      provider = 'openrouter';
+                      console.log('🔍 OpenRouter 키 감지 (prefix: sk-or-)');
+                      break;
+                    }
+                    // Gemini 키는 'AIza'로 시작 (39자)
+                    else if (key.startsWith('AIza') && key.length === 39) {
+                      provider = 'gemini';
+                      console.log('🔍 Gemini 키 감지 (prefix: AIza, length: 39)');
+                      break;
+                    }
+                  }
+                }
+              }
+
+              if (provider && data.keys.ai[provider]?.apiKey) {
+                console.log('🔑 클라이언트에서 받은 API 키:', {
                   provider,
                   apiKeyLength: data.keys.ai[provider].apiKey.length,
-                  apiKeyPreview: data.keys.ai[provider].apiKey.substring(0, 10) + '...'
+                  apiKeyPreview: data.keys.ai[provider].apiKey.substring(0, 10) + '...',
+                  source: data.selectedAIProvider ? 'selectedAIProvider' : 'auto-detected'
                 });
                 set({
                   ai: {
                     provider,
                     apiKey: data.keys.ai[provider].apiKey,
                     model: data.keys.ai[provider].model,
-                    validated: false, // 🔥 로드 직후에는 false, 검증 후 업데이트
+                    validated: false,
                     lastValidated: data.keys.ai[provider].lastValidated,
                   },
                 });
 
-                // 🔥 로드 직후 즉시 검증 실행 (await로 완료 대기)
                 await get().validateAIKey();
-                console.log('✅ AI API 키 로드 및 검증 완료 (선택된 provider:', provider, ')');
+                console.log('✅ AI API 키 로드 및 검증 완료 (provider:', provider, ')');
               } else {
-                console.warn(`⚠️ selectedAIProvider=${provider}인데 해당 키가 없습니다`);
+                console.error('❌ 유효한 AI provider를 찾을 수 없습니다. 설정 페이지에서 API 키를 다시 저장해주세요.');
               }
-            } else if (data.keys.ai && !data.selectedAIProvider) {
-              console.warn('⚠️ selectedAIProvider가 설정되지 않았습니다. 설정 페이지에서 AI provider를 선택해주세요.');
             }
 
             console.log('🎉 모든 API 키 Firestore 로드 및 검증 완료');
