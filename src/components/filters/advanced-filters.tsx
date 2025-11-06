@@ -33,6 +33,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { TrendFilters } from '@/types/youtube';
 import { COUNTRIES } from '@/constants/countries';
 import { CATEGORIES } from '@/constants/categories';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AdvancedFiltersProps {
   filters: TrendFilters;
@@ -74,6 +75,7 @@ export function AdvancedFilters({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [viewCountRange, setViewCountRange] = useState<[number, number]>([0, 10000000]);
   const [durationRange, setDurationRange] = useState<[number, number]>([0, 3600]);
+  const { t } = useLanguage();
 
   // 필터 프리셋
   const filterPresets: FilterPreset[] = [
@@ -212,10 +214,10 @@ export function AdvancedFilters({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="w-5 h-5" />
-            고급 필터
+            {t('filters.title')}
             {activeFiltersCount > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {activeFiltersCount}개 적용
+                {activeFiltersCount}{t('filters.applied_suffix')}
               </Badge>
             )}
           </CardTitle>
@@ -227,7 +229,7 @@ export function AdvancedFilters({
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <Settings2 className="w-4 h-4 mr-2" />
-              {isExpanded ? '접기' : '펼치기'}
+              {isExpanded ? t('filters.collapse') : t('filters.expand')}
               <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </Button>
           </div>
@@ -239,16 +241,16 @@ export function AdvancedFilters({
         <div className="space-y-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>키워드</Label>
+              <Label>{t('filters.keyword')}</Label>
               <Input
-                placeholder="검색할 키워드..."
+                placeholder={t('filters.keyword_placeholder')}
                 value={filters.keyword || ''}
                 onChange={(e) => updateFilter('keyword', e.target.value || undefined)}
               />
             </div>
             
             <div className="space-y-2">
-              <Label>국가</Label>
+              <Label>{t('filters.country')}</Label>
               <Select value={filters.country} onValueChange={(value) => updateFilter('country', value)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -264,7 +266,7 @@ export function AdvancedFilters({
             </div>
             
             <div className="space-y-2">
-              <Label>카테고리</Label>
+              <Label>{t('filters.category')}</Label>
               <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -282,7 +284,7 @@ export function AdvancedFilters({
 
           {/* 프리셋 필터 */}
           <div className="space-y-3">
-            <Label>빠른 필터 프리셋</Label>
+            <Label>{t('filters.presets')}</Label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {filterPresets.map((preset, index) => (
                 <motion.button
@@ -318,11 +320,11 @@ export function AdvancedFilters({
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  게시 날짜
+                  {t('filters.published_date')}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>시작일</Label>
+                    <Label>{t('filters.start_date')}</Label>
                     <Input
                       type="date"
                       value={filters.publishedAfter || ''}
@@ -330,7 +332,7 @@ export function AdvancedFilters({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>종료일</Label>
+                    <Label>{t('filters.end_date')}</Label>
                     <Input
                       type="date"
                       value={filters.publishedBefore || ''}
@@ -344,7 +346,7 @@ export function AdvancedFilters({
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
                   <Eye className="w-4 h-4" />
-                  조회수 범위
+                  {t('filters.view_range')}
                 </h4>
                 <div className="space-y-3">
                   <div className="px-3">
@@ -362,7 +364,7 @@ export function AdvancedFilters({
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>{viewCountRange[0].toLocaleString()}</span>
-                    <span>{viewCountRange[1] === 10000000 ? '제한 없음' : viewCountRange[1].toLocaleString()}</span>
+                    <span>{viewCountRange[1] === 10000000 ? t('filters.no_limit') : viewCountRange[1].toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -371,7 +373,7 @@ export function AdvancedFilters({
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  영상 길이 (초)
+                  {t('filters.duration_title')}
                 </h4>
                 <div className="space-y-3">
                   <div className="px-3">
@@ -391,7 +393,7 @@ export function AdvancedFilters({
                     <span>{Math.floor(durationRange[0] / 60)}분 {durationRange[0] % 60}초</span>
                     <span>
                       {durationRange[1] === 3600 
-                        ? '제한 없음' 
+                        ? t('filters.no_limit') 
                         : `${Math.floor(durationRange[1] / 60)}분 ${durationRange[1] % 60}초`
                       }
                     </span>
@@ -403,11 +405,11 @@ export function AdvancedFilters({
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4" />
-                  정렬 및 표시
+                  {t('filters.sort_display')}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>정렬 기준</Label>
+                    <Label>{t('filters.sort_by')}</Label>
                     <Select 
                       value={filters.sortBy} 
                       onValueChange={(value) => updateFilter('sortBy', value as TrendFilters['sortBy'])}
@@ -416,17 +418,17 @@ export function AdvancedFilters({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="viewCount">조회수</SelectItem>
-                        <SelectItem value="likeCount">좋아요</SelectItem>
-                        <SelectItem value="commentCount">댓글수</SelectItem>
-                        <SelectItem value="publishedAt">게시일</SelectItem>
-                        <SelectItem value="title">제목</SelectItem>
+                        <SelectItem value="viewCount">{t('filters.sort.key.viewCount')}</SelectItem>
+                        <SelectItem value="likeCount">{t('filters.sort.key.likeCount')}</SelectItem>
+                        <SelectItem value="commentCount">{t('filters.sort.key.commentCount')}</SelectItem>
+                        <SelectItem value="publishedAt">{t('filters.sort.key.publishedAt')}</SelectItem>
+                        <SelectItem value="title">{t('filters.sort.key.title')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>정렬 순서</Label>
+                    <Label>{t('filters.sort_order')}</Label>
                     <Select 
                       value={filters.sortOrder} 
                       onValueChange={(value) => updateFilter('sortOrder', value as TrendFilters['sortOrder'])}
@@ -435,14 +437,14 @@ export function AdvancedFilters({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="desc">높은 순</SelectItem>
-                        <SelectItem value="asc">낮은 순</SelectItem>
+                        <SelectItem value="desc">{t('filters.sort.order.desc')}</SelectItem>
+                        <SelectItem value="asc">{t('filters.sort.order.asc')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>결과 수</Label>
+                    <Label>{t('filters.result_count')}</Label>
                     <Select 
                       value={String(filters.maxResults)} 
                       onValueChange={(value) => updateFilter('maxResults', parseInt(value))}
@@ -466,11 +468,11 @@ export function AdvancedFilters({
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
                   <Target className="w-4 h-4" />
-                  채널 및 콘텐츠 옵션
+                  {t('filters.channel_content')}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>채널 타입</Label>
+                    <Label>{t('filters.channel_type')}</Label>
                     <Select 
                       value={filters.channelType || 'all'} 
                       onValueChange={(value) => updateFilter('channelType', value === 'all' ? undefined : value as 'verified' | 'partner')}
@@ -479,15 +481,15 @@ export function AdvancedFilters({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">모든 채널</SelectItem>
-                        <SelectItem value="verified">인증된 채널</SelectItem>
-                        <SelectItem value="partner">파트너 채널</SelectItem>
+                        <SelectItem value="all">{t('filters.channel_type_options.all')}</SelectItem>
+                        <SelectItem value="verified">{t('filters.channel_type_options.verified')}</SelectItem>
+                        <SelectItem value="partner">{t('filters.channel_type_options.partner')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-3">
-                    <Label>추가 옵션</Label>
+                    <Label>{t('filters.additional_options')}</Label>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -495,7 +497,7 @@ export function AdvancedFilters({
                           checked={filters.hasSubtitles || false}
                           onCheckedChange={(checked) => updateFilter('hasSubtitles', checked === true ? true : undefined)}
                         />
-                        <Label htmlFor="hasSubtitles" className="text-sm">자막 있는 영상만</Label>
+                        <Label htmlFor="hasSubtitles" className="text-sm">{t('filters.subtitles_only')}</Label>
                       </div>
                     </div>
                   </div>
@@ -507,7 +509,7 @@ export function AdvancedFilters({
                 <div className="space-y-4">
                   <h4 className="font-medium text-gray-900 flex items-center gap-2">
                     <Save className="w-4 h-4" />
-                    저장된 필터
+                    {t('filters.saved_filters')}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {savedFilters.map((saved) => (
@@ -541,19 +543,19 @@ export function AdvancedFilters({
             {loading ? (
               <>
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                검색 중...
+                {t('filters.searching')}
               </>
             ) : (
               <>
                 <Search className="w-4 h-4 mr-2" />
-                검색 실행
+                {t('common.search')}
               </>
             )}
           </Button>
 
           <Button variant="outline" onClick={clearAllFilters}>
             <X className="w-4 h-4 mr-2" />
-            초기화
+            {t('common.reset')}
           </Button>
 
           {onSaveFilter && (
@@ -562,13 +564,13 @@ export function AdvancedFilters({
               onClick={() => setShowSaveDialog(true)}
             >
               <Save className="w-4 h-4 mr-2" />
-              저장
+              {t('common.save')}
             </Button>
           )}
 
           <Button variant="outline" onClick={exportFilters}>
             <Download className="w-4 h-4 mr-2" />
-            내보내기
+            {t('common.export')}
           </Button>
 
           <div className="relative">
@@ -580,7 +582,7 @@ export function AdvancedFilters({
             />
             <Button variant="outline">
               <Upload className="w-4 h-4 mr-2" />
-              가져오기
+              {t('common.import')}
             </Button>
           </div>
         </div>
@@ -602,23 +604,23 @@ export function AdvancedFilters({
                 className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="text-lg font-semibold mb-4">필터 저장</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('filters.save_dialog.title')}</h3>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="filterName">필터 이름</Label>
+                    <Label htmlFor="filterName">{t('filters.save_dialog.name')}</Label>
                     <Input
                       id="filterName"
                       value={saveFilterName}
                       onChange={(e) => setSaveFilterName(e.target.value)}
-                      placeholder="예: 내 즐겨찾는 필터"
+                      placeholder={t('filters.dialog.placeholder')}
                     />
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
-                      취소
+                      {t('common.cancel')}
                     </Button>
                     <Button onClick={handleSaveFilter} disabled={!saveFilterName.trim()}>
-                      저장
+                      {t('filters.save_dialog.save')}
                     </Button>
                   </div>
                 </div>

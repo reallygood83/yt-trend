@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Settings, FileText, AlertTriangle, BookOpen, Menu, X, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { LogoMark } from '@/components/shared/LogoMark';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function GlobalNav() {
   const pathname = usePathname();
   const { youtube, ai } = useAPIKeysStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   const isSetupComplete = youtube.validated && ai.validated;
   const isNoteEnabled = youtube.validated; // 학습 노트는 YouTube API만 있으면 사용 가능
@@ -27,9 +29,9 @@ export function GlobalNav() {
             </div>
             <div className="block">
               <h1 className="font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent text-lg sm:text-xl">
-                YouTube Bank
+                {t('brand.title')}
               </h1>
-              <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">YouTube 트렌드 분석 & 학습 노트 생성 도구</p>
+              <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">{t('brand.subtitle')}</p>
             </div>
           </Link>
 
@@ -40,7 +42,7 @@ export function GlobalNav() {
               active={pathname === '/'}
               icon={<TrendingUp className="w-4 h-4" />}
             >
-              트렌드 분석
+              {t('nav.trend')}
             </NavLink>
 
             <NavLink
@@ -49,7 +51,7 @@ export function GlobalNav() {
               icon={<FileText className="w-4 h-4" />}
               disabled={!isNoteEnabled}
             >
-              노트 생성
+              {t('nav.note')}
             </NavLink>
 
             <NavLink
@@ -58,16 +60,29 @@ export function GlobalNav() {
               icon={<BookOpen className="w-4 h-4" />}
               disabled={!isNoteEnabled}
             >
-              내 노트
+              {t('nav.notes')}
             </NavLink>
 
             <div className="ml-4">
               <Link href="/settings">
                 <Button variant="ghost" size="sm">
                   <Settings className="w-4 h-4 mr-2" />
-                  API 설정
+                  {t('nav.settings')}
                 </Button>
               </Link>
+            </div>
+
+            {/* 언어 토글 */}
+            <div className="ml-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2"
+                onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
+                aria-label={language === 'ko' ? 'Switch to English' : '한국어로 전환'}
+              >
+                {language === 'ko' ? t('toggle.en') : t('toggle.ko')}
+              </Button>
             </div>
           </div>
 
@@ -94,7 +109,7 @@ export function GlobalNav() {
                 icon={<TrendingUp className="w-5 h-5" />}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                트렌드 분석
+                {t('nav.trend')}
               </MobileNavLink>
 
               <MobileNavLink
@@ -104,7 +119,7 @@ export function GlobalNav() {
                 disabled={!isNoteEnabled}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                노트 생성
+                {t('nav.note')}
               </MobileNavLink>
 
               <MobileNavLink
@@ -114,16 +129,28 @@ export function GlobalNav() {
                 disabled={!isNoteEnabled}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                내 노트
+                {t('nav.notes')}
               </MobileNavLink>
 
               <div className="pt-3">
                 <Link href="/settings" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start">
                     <Settings className="w-4 h-4 mr-2" />
-                    API 설정
+                    {t('nav.settings')}
                   </Button>
                 </Link>
+              </div>
+
+              {/* 모바일 언어 토글 */}
+              <div className="pt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
+                >
+                  {language === 'ko' ? t('toggle.en') : t('toggle.ko')}
+                </Button>
               </div>
             </div>
           </div>
@@ -133,22 +160,18 @@ export function GlobalNav() {
         {!youtube.validated && pathname !== '/settings' && (
           <div className="py-2 px-4 bg-amber-50 border-t border-amber-200 flex items-center gap-2 text-sm text-amber-800">
             <AlertTriangle className="w-4 h-4" />
-            <span>
-              YouTube API 키를 설정해야 기능을 사용할 수 있습니다.
-            </span>
+            <span>{t('banner.youtube_missing')}</span>
             <Link href="/settings" className="underline font-semibold ml-2">
-              설정 페이지로 이동 →
+              {t('banner.goto_settings')}
             </Link>
           </div>
         )}
         {youtube.validated && !ai.validated && pathname !== '/settings' && (
           <div className="py-2 px-4 bg-blue-50 border-t border-blue-200 flex items-center gap-2 text-sm text-blue-800">
             <AlertTriangle className="w-4 h-4" />
-            <span>
-              AI API 키를 추가하면 학습 노트 생성 기능을 사용할 수 있습니다.
-            </span>
+            <span>{t('banner.ai_missing')}</span>
             <Link href="/settings" className="underline font-semibold ml-2">
-              설정 페이지로 이동 →
+              {t('banner.goto_settings')}
             </Link>
           </div>
         )}

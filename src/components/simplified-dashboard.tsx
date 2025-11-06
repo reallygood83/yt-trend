@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { VideoGrid } from '@/components/video/video-grid';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SimplifiedDashboardProps {
   onApiKeyRemoved: () => void;
@@ -68,6 +69,7 @@ const getDateRange = (filter: string, customStart?: string, customEnd?: string) 
 };
 
 export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProps) {
+  const { t } = useLanguage();
   const [currentTab, setCurrentTab] = useState<TabValue>('search');
   const [keyword, setKeyword] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -415,7 +417,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-red-600" />
               <h1 className="text-xl font-bold text-gray-900">
-                YouTube 트렌드 분석기
+                {t('dashboard.title')}
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -427,7 +429,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                 className="flex items-center gap-2"
               >
                 <Settings className="w-4 h-4" />
-                설정
+                {t('nav.settings')}
               </Button>
             </div>
           </div>
@@ -441,15 +443,15 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="search" className="flex items-center gap-2 text-base h-12">
               <Search className="w-5 h-5" />
-              1. 키워드 검색
+              {t('dashboard.steps.search')}
             </TabsTrigger>
             <TabsTrigger value="analysis" className="flex items-center gap-2 text-base h-12" disabled={!isAnalyzing && currentTab === 'search'}>
               <Sparkles className="w-5 h-5" />
-              2. 트렌드 분석
+              {t('dashboard.steps.analysis')}
             </TabsTrigger>
             <TabsTrigger value="results" className="flex items-center gap-2 text-base h-12" disabled={!results}>
               <BarChart3 className="w-5 h-5" />
-              3. 결과 보기
+              {t('dashboard.steps.results')}
             </TabsTrigger>
           </TabsList>
 
@@ -458,10 +460,10 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
             <Card className="shadow-lg">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl text-gray-900 mb-2">
-                  어떤 키워드를 분석할까요?
+                  {t('dashboard.prompt.title')}
                 </CardTitle>
                 <p className="text-gray-600">
-                  궁금한 주제나 키워드를 입력하면 YouTube 트렌드를 분석해드립니다
+                  {t('dashboard.prompt.description')}
                 </p>
               </CardHeader>
               
@@ -471,7 +473,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                   <Input
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="예: AI 교육, 메타버스, 투자 방법..."
+                    placeholder={t('dashboard.prompt.example')}
                     className="h-14 text-lg text-center"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
@@ -483,7 +485,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                     className="w-full h-12 text-base mb-4"
                   >
                     <Filter className="w-5 h-5 mr-2" />
-                    고급 필터 옵션
+                    {t('dashboard.filters.toggle')}
                     {showAdvanced ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
                   </Button>
 
@@ -492,35 +494,35 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                     <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 space-y-4">
                       <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
                         <Settings className="w-5 h-5" />
-                        상세 필터 설정
+                        {t('dashboard.filters.title')}
                       </h4>
                       
                       {/* 국가 선택 */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-blue-900 mb-2">
-                            국가별 트렌드
+                            {t('dashboard.country_trend')}
                           </label>
                           <select
                             value={country}
                             onChange={(e) => setCountry(e.target.value)}
                             className="w-full h-10 px-3 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
-                            <option value="KR">🇰🇷 한국</option>
-                            <option value="US">🇺🇸 미국</option>
-                            <option value="JP">🇯🇵 일본</option>
-                            <option value="GB">🇬🇧 영국</option>
-                            <option value="DE">🇩🇪 독일</option>
-                            <option value="FR">🇫🇷 프랑스</option>
-                            <option value="IN">🇮🇳 인도</option>
-                            <option value="BR">🇧🇷 브라질</option>
+                            <option value="KR">🇰🇷 {t('country.kr')}</option>
+                            <option value="US">🇺🇸 {t('country.us')}</option>
+                            <option value="JP">🇯🇵 {t('country.jp')}</option>
+                            <option value="GB">🇬🇧 {t('country.gb')}</option>
+                            <option value="DE">🇩🇪 {t('country.de')}</option>
+                            <option value="FR">🇫🇷 {t('country.fr')}</option>
+                            <option value="IN">🇮🇳 {t('country.in')}</option>
+                            <option value="BR">🇧🇷 {t('country.br')}</option>
                           </select>
                         </div>
                         
                         {/* 영상 개수 설정 */}
                         <div>
                           <label className="block text-sm font-medium text-blue-900 mb-2">
-                            분석할 영상 개수
+                            {t('dashboard.video_count')}
                           </label>
                           <select
                             value={maxVideos}
@@ -546,18 +548,18 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                           />
                           <label htmlFor="longFormOnly" className="text-sm font-medium text-blue-900 cursor-pointer">
-                            🎬 롱폼 영상만 검색 (60초 이상)
+                            🎬 {t('dashboard.longform')} (60초 이상)
                           </label>
                         </div>
                         <p className="text-xs text-blue-700 mt-2 ml-7">
-                          체크하면 쇼츠(60초 이하)는 제외하고 롱폼 영상만 분석합니다
+                          {t('dashboard.longform.tip')}
                         </p>
                       </div>
                       
                       {/* 정렬 옵션 */}
                       <div>
                         <label className="block text-sm font-medium text-blue-900 mb-2">
-                          결과 정렬 방식
+                          {t('dashboard.sort.title')}
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
@@ -566,10 +568,10 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                               onChange={(e) => setSortBy(e.target.value as 'viewCount' | 'likeCount' | 'commentCount' | 'publishedAt')}
                               className="w-full h-10 px-3 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                              <option value="viewCount">👁️ 조회수순</option>
-                              <option value="likeCount">👍 좋아요순</option>
-                              <option value="commentCount">💬 댓글순</option>
-                              <option value="publishedAt">📅 최신순</option>
+                              <option value="viewCount">👁️ {t('dashboard.sort.viewCount')}</option>
+                              <option value="likeCount">👍 {t('dashboard.sort.likes')}</option>
+                              <option value="commentCount">💬 {t('dashboard.sort.comments')}</option>
+                              <option value="publishedAt">📅 {t('dashboard.sort.publishedAt')}</option>
                             </select>
                           </div>
                           <div>
@@ -578,20 +580,20 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                               onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc')}
                               className="w-full h-10 px-3 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                              <option value="desc">⬇️ 높은 순</option>
-                              <option value="asc">⬆️ 낮은 순</option>
+                              <option value="desc">{t('dashboard.order.desc')}</option>
+                              <option value="asc">{t('dashboard.order.asc')}</option>
                             </select>
                           </div>
                         </div>
                         <p className="text-xs text-blue-600 mt-1">
-                          ⚡ 정렬 방식을 선택하면 가장 인기있는 콘텐츠를 먼저 볼 수 있어요
+                          {t('dashboard.sort.tip')}
                         </p>
                       </div>
                       
                       {/* 조회수 필터 */}
                       <div>
                         <label className="block text-sm font-medium text-blue-900 mb-2">
-                          조회수 범위 필터
+                          {t('dashboard.viewRange.title')}
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
@@ -614,14 +616,14 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                           </div>
                         </div>
                         <p className="text-xs text-blue-600 mt-1">
-                          💡 조회수 범위를 설정하면 더 정확한 분석이 가능합니다
+                          {t('dashboard.viewRange.tip')}
                         </p>
                       </div>
                       
                       {/* 날짜 필터 */}
                       <div>
                         <label className="block text-sm font-medium text-blue-900 mb-2">
-                          📅 영상 검색 기간
+                          {t('dashboard.date_range.title')}
                         </label>
                         <div className="space-y-3">
                           <select
@@ -629,12 +631,12 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                             onChange={(e) => setDateFilter(e.target.value)}
                             className="w-full h-10 px-3 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
-                            <option value="all">🌐 전체 기간 (YouTube 기본값)</option>
-                            <option value="today">📰 오늘 (최근 24시간)</option>
-                            <option value="3days">🔥 최근 3일</option>
-                            <option value="week">📊 최근 1주일</option>
-                            <option value="month">📈 최근 1개월</option>
-                            <option value="custom">⚙️ 사용자 지정</option>
+                            <option value="all">{t('dashboard.date_range.all')}</option>
+                            <option value="today">{t('dashboard.date_range.today')}</option>
+                            <option value="3days">{t('dashboard.date_range.3days')}</option>
+                            <option value="week">{t('dashboard.date_range.week')}</option>
+                            <option value="month">{t('dashboard.date_range.month')}</option>
+                            <option value="custom">{t('dashboard.date_range.custom')}</option>
                           </select>
                           
                           {dateFilter === 'custom' && (
@@ -663,7 +665,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                           )}
                         </div>
                         <p className="text-xs text-blue-600 mt-1">
-                          ⏰ 특정 기간의 인기 영상만 분석하여 더 정확한 트렌드를 파악할 수 있습니다
+                          {t('dashboard.date_range.tip')}
                         </p>
                       </div>
                     </div>
@@ -677,7 +679,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                       size="lg"
                     >
                       <Target className="w-6 h-6 mr-2" />
-                      키워드 분석하기
+                      {t('dashboard.actions.keyword_analyze')}
                     </Button>
                     
                     <Button
@@ -697,7 +699,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                       {/* 아이콘과 텍스트 */}
                       <div className="relative flex items-center justify-center">
                         <TrendingUp className="w-6 h-6 mr-2 animate-pulse" />
-                        <span className="font-bold">🔥 실시간 인기 트렌드</span>
+                        <span className="font-bold">{t('dashboard.actions.realtime_trend')}</span>
                         <div className="ml-2 text-xs bg-yellow-400 text-red-700 px-2 py-1 rounded-full font-bold animate-bounce">
                           HOT
                         </div>
@@ -710,7 +712,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
                     <Sparkles className="w-5 h-5" />
-                    인기 키워드 추천
+                    {t('dashboard.popular_keywords.title')}
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {popularKeywords.map((k) => (
@@ -729,23 +731,23 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
 
                 {/* 사용법 안내 */}
                 <div className="bg-gray-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-3">🎯 이런 분석이 가능해요</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('dashboard.howto.title')}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>실시간 트렌드 변화</span>
+                      <span>{t('dashboard.howto.realtime_changes')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>인기 채널 및 영상</span>
+                      <span>{t('dashboard.howto.top_channels')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>조회수 패턴 분석</span>
+                      <span>{t('dashboard.howto.view_patterns')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>콘텐츠 제작 인사이트</span>
+                      <span>{t('dashboard.howto.creator_insights')}</span>
                     </div>
                   </div>
                 </div>
@@ -761,7 +763,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                   &ldquo;{keyword}&rdquo; 트렌드 분석 중...
                 </CardTitle>
                 <p className="text-gray-600">
-                  YouTube에서 데이터를 수집하고 분석하고 있습니다
+                  {t('dashboard.analysis_subtitle')}
                 </p>
               </CardHeader>
               
@@ -769,7 +771,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                 {/* 진행률 표시 */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">분석 진행률</span>
+                    <span className="text-sm font-medium text-gray-700">{t('dashboard.progress.title')}</span>
                     <span className="text-sm text-gray-500">{analysisProgress}%</span>
                   </div>
                   <Progress value={analysisProgress} className="h-3" />
@@ -779,28 +781,28 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                 <div className="space-y-3">
                   <div className={`flex items-center gap-3 p-3 rounded-lg ${analysisProgress >= 20 ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
                     {analysisProgress >= 20 ? <CheckCircle className="w-5 h-5" /> : <Loader2 className="w-5 h-5 animate-spin" />}
-                    <span>YouTube 데이터 수집</span>
+                    <span>{t('dashboard.progress.collect')}</span>
                   </div>
                   
                   <div className={`flex items-center gap-3 p-3 rounded-lg ${analysisProgress >= 50 ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
                     {analysisProgress >= 50 ? <CheckCircle className="w-5 h-5" /> : <Loader2 className="w-5 h-5 animate-spin" />}
-                    <span>트렌드 패턴 분석</span>
+                    <span>{t('dashboard.progress.pattern')}</span>
                   </div>
                   
                   <div className={`flex items-center gap-3 p-3 rounded-lg ${analysisProgress >= 80 ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
                     {analysisProgress >= 80 ? <CheckCircle className="w-5 h-5" /> : <Loader2 className="w-5 h-5 animate-spin" />}
-                    <span>인사이트 생성</span>
+                    <span>{t('dashboard.progress.insights')}</span>
                   </div>
                   
                   <div className={`flex items-center gap-3 p-3 rounded-lg ${analysisProgress >= 100 ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
                     {analysisProgress >= 100 ? <CheckCircle className="w-5 h-5" /> : <Loader2 className="w-5 h-5 animate-spin" />}
-                    <span>분석 완료</span>
+                    <span>{t('dashboard.progress.done')}</span>
                   </div>
                 </div>
 
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <p className="text-blue-700 text-sm">
-                    💡 분석이 완료되면 자동으로 결과 페이지로 이동합니다
+                    {t('dashboard.analysis_wait_tip')}
                   </p>
                 </div>
               </CardContent>

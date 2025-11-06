@@ -10,8 +10,10 @@ import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { saveApiKey, saveGeminiApiKey, saveXAIApiKey, saveOpenRouterApiKey, loadApiKeysFromFirebase } from '@/lib/api-key';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const { youtube, ai, setYouTubeKey, setAIProvider, validateYouTubeKey, validateAIKey } = useAPIKeysStore();
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -121,19 +123,15 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-2">API 설정</h1>
-      <p className="text-gray-600 mb-8">
-        트렌드 분석과 학습 노트 생성에서 공통으로 사용되는 API 키를 설정합니다
-      </p>
+      <h1 className="text-3xl font-bold mb-2">{t('settings.title')}</h1>
+      <p className="text-gray-600 mb-8">{t('settings.description')}</p>
 
       {/* YouTube API 설정 */}
       <Card className="p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-semibold">YouTube Data API v3</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              트렌드 분석과 학습 노트 생성 모두에서 사용됩니다
-            </p>
+            <h2 className="text-2xl font-semibold">{t('settings.youtube.title_v3')}</h2>
+            <p className="text-sm text-gray-600 mt-1">{t('settings.youtube.subtitle')}</p>
           </div>
           {youtube.validated && (
             <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -142,7 +140,7 @@ export default function SettingsPage() {
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="youtube-key">API 키</Label>
+            <Label htmlFor="youtube-key">{t('settings.api_key')}</Label>
             <Input
               id="youtube-key"
               type="password"
@@ -152,7 +150,7 @@ export default function SettingsPage() {
               className="mt-1"
             />
             <p className="text-xs text-gray-500 mt-2">
-              💡 <a
+              {t('settings.youtube_hint_pre')}<a
                 href="https://console.cloud.google.com/apis/credentials"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -160,7 +158,7 @@ export default function SettingsPage() {
               >
                 Google Cloud Console
               </a>
-              에서 발급받을 수 있습니다
+              {t('settings.youtube_hint_post')}
             </p>
           </div>
 
@@ -171,17 +169,17 @@ export default function SettingsPage() {
             {validating.youtube ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                검증 중...
+                {t('common.validating')}
               </>
             ) : (
-              '저장 및 검증'
+              t('common.save_and_validate')
             )}
           </Button>
 
           {youtube.validated && (
             <div className="flex items-center gap-2 text-sm text-green-600">
               <CheckCircle2 className="w-4 h-4" />
-              API 키가 검증되었습니다
+              {t('settings.saved_and_validated')}
             </div>
           )}
         </div>
@@ -191,10 +189,8 @@ export default function SettingsPage() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-semibold">AI Provider</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              트렌드 인사이트와 학습 노트 생성에서 사용됩니다
-            </p>
+            <h2 className="text-2xl font-semibold">{t('settings.ai.title')}</h2>
+            <p className="text-sm text-gray-600 mt-1">{t('settings.ai.subtitle')}</p>
           </div>
           {ai.validated && (
             <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -204,7 +200,7 @@ export default function SettingsPage() {
         <div className="space-y-4">
           {/* Provider 선택 */}
           <div>
-            <Label>AI 제공자</Label>
+            <Label>{t('settings.ai_provider')}</Label>
             <div className="flex gap-4 mt-2 flex-wrap">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -250,9 +246,7 @@ export default function SettingsPage() {
 
           {/* API 키 */}
           <div>
-            <Label htmlFor="ai-key">
-              {aiProvider === 'gemini' ? 'Gemini API 키' : aiProvider === 'xai' ? 'xAI API 키' : 'OpenRouter API 키'}
-            </Label>
+            <Label htmlFor="ai-key">{t('settings.api_key')}</Label>
             <Input
               id="ai-key"
               type="password"
@@ -262,7 +256,7 @@ export default function SettingsPage() {
               className="mt-1"
             />
             <p className="text-xs text-gray-500 mt-2">
-              💡{' '}
+              {t('settings.ai_hint_pre')}{' '}
               {aiProvider === 'gemini' ? (
                 <a
                   href="https://aistudio.google.com/app/apikey"
@@ -291,13 +285,13 @@ export default function SettingsPage() {
                   OpenRouter Keys
                 </a>
               )}
-              에서 발급받을 수 있습니다
+              {t('settings.ai_hint_post')}
             </p>
           </div>
 
           {/* 모델 선택 */}
           <div>
-            <Label htmlFor="ai-model">모델</Label>
+            <Label htmlFor="ai-model">{t('settings.model')}</Label>
             <select
               id="ai-model"
               value={aiModel}
@@ -319,17 +313,17 @@ export default function SettingsPage() {
             {validating.ai ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                검증 중...
+                {t('common.validating')}
               </>
             ) : (
-              '저장 및 검증'
+              t('common.save_and_validate')
             )}
           </Button>
 
           {ai.validated && (
             <div className="flex items-center gap-2 text-sm text-green-600">
               <CheckCircle2 className="w-4 h-4" />
-              AI API 키가 검증되었습니다
+              {t('settings.ai_validated')}
             </div>
           )}
         </div>

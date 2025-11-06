@@ -95,6 +95,9 @@ const nextConfig = {
   
   // API 라우트 설정
   async headers() {
+    const frameSrc =
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.firebaseapp.com https://accounts.google.com https://*.google.com https://*.googleusercontent.com;";
+
     return [
       {
         source: '/api/:path*',
@@ -119,7 +122,8 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
+            // Allow Firebase/Google auth popups while still locking down other frames
+            value: frameSrc
           }
         ]
       }
