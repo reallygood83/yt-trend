@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAPIKeysStore } from '@/store/useAPIKeysStore';
 import { Button } from '@/components/ui/button';
-import { Settings, TrendingUp, FileText, AlertTriangle, BookOpen, Menu, X } from 'lucide-react';
+import { Settings, FileText, AlertTriangle, BookOpen, Menu, X, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { LogoMark } from '@/components/shared/LogoMark';
 
 export function GlobalNav() {
   const pathname = usePathname();
@@ -21,14 +22,14 @@ export function GlobalNav() {
         <div className="flex items-center justify-between h-16">
           {/* 로고 */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-2 group-hover:from-red-600 group-hover:to-red-700 transition-all">
-              <TrendingUp className="w-6 h-6 text-white" />
+            <div className="rounded-lg transition-all">
+              <LogoMark size={32} />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                YouTube Trend Explorer
+                YouTube Bank
               </h1>
-              <p className="text-xs text-gray-500">트렌드 분석 & AI 학습</p>
+              <p className="text-xs text-gray-500">금융 인사이트 & AI 학습</p>
             </div>
           </Link>
 

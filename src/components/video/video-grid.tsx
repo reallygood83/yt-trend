@@ -44,7 +44,7 @@ export function VideoGrid({
         </div>
         
         {/* 로딩 스켈레톤 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {Array.from({ length: 8 }).map((_, index) => (
             <div key={index} className="animate-pulse">
               <div className="bg-gray-200 aspect-video rounded-t-lg"></div>
@@ -110,8 +110,8 @@ export function VideoGrid({
         )}
       </div>
 
-      {/* 비디오 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      {/* 비디오 그리드: 3열(데스크톱), 2열(모바일), 간격 24px */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {videos.map((video, index) => (
           <VideoCard 
             key={`${video.id}-${index}`} 

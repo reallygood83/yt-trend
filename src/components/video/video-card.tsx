@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { YouTubeVideo } from '@/types/youtube';
 import { formatViewCount, formatDate } from '@/lib/utils';
 import { thumbnailCache } from '@/lib/thumbnail-cache';
-import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check, X, Copy } from 'lucide-react';
+import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check, X, Copy, Volume2, VolumeX, Play } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 interface VideoCardProps {
   video: YouTubeVideo;
@@ -40,6 +41,10 @@ export function VideoCard({
   const [copied, setCopied] = useState(false);
   // 상위에서 playingVideoId를 관리하지 않더라도 로컬 isPlaying이면 활성화
   const isActive = isPlaying && (!playingVideoId || playingVideoId === video.id);
+  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState<number>(60); // 0-100, 기본 0.6
+  const playerRef = React.useRef<any>(null);
+  const ytReadyRef = React.useRef<boolean>(false);
 
   const {
     id,
@@ -167,6 +172,7 @@ export function VideoCard({
   const handleInlineClose = () => {
     setIsPlaying(false);
     onClose?.();
+    try { playerRef.current?.stopVideo?.(); playerRef.current?.destroy?.(); } catch {}
   };
 
   // 링크 복사
@@ -193,6 +199,88 @@ export function VideoCard({
     return () => window.removeEventListener('keydown', onKey);
   }, [isActive]);
 
+  // YouTube IFrame API 로더
+  const ensureYouTubeAPI = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      if ((window as any).YT && (window as any).YT.Player) {
+        ytReadyRef.current = true;
+        resolve();
+        return;
+      }
+      const existing = document.getElementById('youtube-iframe-api');
+      if (existing) {
+        (window as any).onYouTubeIframeAPIReady = () => {
+          ytReadyRef.current = true;
+          resolve();
+        };
+        return;
+      }
+      const tag = document.createElement('script');
+      tag.id = 'youtube-iframe-api';
+      tag.src = 'https://www.youtube.com/iframe_api';
+      (window as any).onYouTubeIframeAPIReady = () => {
+        ytReadyRef.current = true;
+        resolve();
+      };
+      document.body.appendChild(tag);
+    });
+  }, []);
+
+  // 인라인 플레이어 활성화 시 Player 생성
+  useEffect(() => {
+    const createPlayer = async () => {
+      if (!isActive || !isValidVideoId(id)) return;
+      try {
+        await ensureYouTubeAPI();
+        const YT = (window as any).YT;
+        playerRef.current = new YT.Player(`yt-player-${id}`, {
+          videoId: id,
+          playerVars: {
+            autoplay: 1,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            // enablejsapi는 Player 생성 시 자동 활성화
+          },
+          events: {
+            onReady: (e: any) => {
+              try {
+                e.target.playVideo();
+                e.target.setVolume?.(volume);
+                if (muted) { e.target.mute?.(); } else { e.target.unMute?.(); }
+              } catch {}
+            }
+          }
+        });
+      } catch (err) {
+        console.warn('YT Player create failed, fallback to iframe.', err);
+      }
+    };
+    createPlayer();
+    return () => {
+      try { playerRef.current?.destroy?.(); } catch {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive]);
+
+  const handleMuteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMuted((prev) => {
+      const next = !prev;
+      try {
+        if (next) playerRef.current?.mute?.();
+        else playerRef.current?.unMute?.();
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleVolumeChange = (values: number[]) => {
+    const v = Math.max(0, Math.min(100, Math.round(values[0] ?? 60)));
+    setVolume(v);
+    try { playerRef.current?.setVolume?.(v); } catch {}
+  };
+
   // 채널 클릭 핸들러
   const handleChannelClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -201,20 +289,15 @@ export function VideoCard({
 
   return (
     <Card 
-      className={`group cursor-pointer hover:shadow-lg transition-all duration-200 overflow-hidden ${className}`}
+      className={`group cursor-pointer hover:shadow-md hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-red-600 transition-all duration-200 overflow-hidden ${className}`}
       style={style}
     >
       <CardContent className="p-0">
         {/* 미디어 섹션: 썸네일 또는 인라인 플레이어 */}
-        <div className="relative aspect-video bg-gray-200 overflow-hidden">
+        <div className="relative aspect-video bg-gray-200 overflow-hidden" onClick={handleThumbnailClick}>
           {!isActive ? (
             <>
-              {/* 호버시 재생 버튼 효과 */}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center" onClick={handleThumbnailClick}>
-                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-200 transform scale-75 group-hover:scale-100">
-                  <div className="w-0 h-0 border-l-[16px] border-l-white border-y-[10px] border-y-transparent ml-1"></div>
-                </div>
-              </div>
+              {/* 오버레이 제거: 썸네일은 항상 보임 */}
 
           {/* 비교 선택 버튼 */}
           {showCompareOption && (
@@ -242,7 +325,7 @@ export function VideoCard({
                 <img
                   src={currentThumbnailUrl}
                   alt={title}
-                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  className="w-full h-full object-cover"
                   onError={handleImageError}
                   onLoad={handleImageLoad}
                   loading="lazy"
@@ -280,15 +363,9 @@ export function VideoCard({
                 <X className="w-4 h-4" />
               </button>
 
-              {/* 유효한 videoId일 때만 iframe 표시 */}
+              {/* 유효한 videoId일 때만 플레이어 컨테이너 표시 */}
               {isValidVideoId(id) ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`}
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="absolute inset-0 w-full h-full"
-                />
+                <div id={`yt-player-${id}`} className="absolute inset-0 w-full h-full" aria-label="YouTube inline player"></div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-600 text-sm">
                   유효하지 않은 영상입니다
@@ -343,48 +420,72 @@ export function VideoCard({
             </div>
           </div>
 
-          {/* 액션 버튼 */}
-          <div className="pt-2 space-y-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs sm:text-sm"
-              onClick={(e) => { e.stopPropagation(); handleThumbnailClick(); }}
-            >
-              <span className="hidden sm:inline">카드에서 재생</span>
-              <span className="sm:hidden">재생</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs sm:text-sm"
-              onClick={handleCopyLink}
-            >
-              {copied ? (
+          {/* 액션 버튼 그룹 (1줄, 반응형) */}
+          <div className="pt-3">
+            <div className="flex flex-row items-center gap-2 sm:gap-3 flex-nowrap">
+              <Button
+                variant="default"
+                size="sm"
+                className="h-8 px-3 shrink-0 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                onClick={(e) => { e.stopPropagation(); handleThumbnailClick(); }}
+                aria-label="재생"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                재생
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-8 px-3 shrink-0 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                onClick={handleCopyLink}
+                aria-label="복사"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    복사됨!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    복사
+                  </>
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 shrink-0 transition-transform hover:scale-[1.05] active:scale-[0.98]"
+                onClick={(e) => { e.stopPropagation(); handleVideoClick(); }}
+                aria-label="YouTube"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+
+              {/* 인라인 재생 활성화시에만 표시되는 컨트롤 */}
+              {isActive && ytReadyRef.current && (
                 <>
-                  <Check className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
-                  복사됨!
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
-                  링크 복사
+                  {/* 음소거 토글 */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:ml-auto transition-transform hover:scale-[1.05] active:scale-[0.98]"
+                    onClick={handleMuteToggle}
+                    aria-label={muted ? '음소거 해제' : '음소거'}
+                  >
+                    {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </Button>
+
+                  {/* 볼륨 슬라이더 */}
+                  <div className="flex items-center gap-2 w-full sm:w-48" aria-label="볼륨 조절">
+                    <Slider value={[volume]} onValueChange={handleVolumeChange} max={100} step={1} className="w-full" />
+                    <span className="text-xs text-gray-500 w-10 text-right">{Math.round(volume)}%</span>
+                  </div>
                 </>
               )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full group-hover:bg-red-50 group-hover:border-red-200 group-hover:text-red-600 transition-colors text-xs sm:text-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleVideoClick();
-              }}
-            >
-              <ExternalLink className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">YouTube에서 보기</span>
-              <span className="sm:hidden">보기</span>
-            </Button>
+            </div>
           </div>
         </div>
       </CardContent>

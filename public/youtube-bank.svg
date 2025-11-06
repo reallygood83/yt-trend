@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 128 128">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <defs>
     <linearGradient id="yb-red" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#FF0000"/>
@@ -9,8 +10,12 @@
       <stop offset="100%" stop-color="#FFC107"/>
     </linearGradient>
   </defs>
+  <!-- red rounded square -->
   <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#yb-red)"/>
+  <!-- play triangle -->
   <polygon points="54,40 54,88 92,64" fill="#FFFFFF"/>
+  <!-- coin overlay bottom-left -->
   <circle cx="36" cy="88" r="16" fill="url(#coin)" stroke="#B8860B" stroke-width="3"/>
+  <!-- currency mark (₩) -->
   <text x="36" y="93" font-size="16" font-weight="700" text-anchor="middle" fill="#6B4F0B">₩</text>
 </svg>

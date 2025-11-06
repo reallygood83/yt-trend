@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'YouTube 학습노트 생성기',
-    template: '%s | YouTube 학습노트 생성기'
+    default: 'YouTube Bank',
+    template: '%s | YouTube Bank'
   },
   description: 'AI 기반 YouTube 영상 학습 최적화 도구. Google Gemini AI로 영상을 스마트한 학습노트로 자동 변환. 타임스탬프 기반 구간 정리, 영상 임베드, Firebase 클라우드 저장, ADHD 친화적 학습 지원. 3가지 난이도별 설명 제공으로 누구나 쉽게 학습할 수 있습니다.',
   keywords: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: '배움의 달인', url: 'https://www.youtube.com/@배움의달인-p5v' }],
   creator: '배움의 달인',
-  publisher: 'YouTube Trend Explorer',
+  publisher: 'YouTube Bank',
   formatDetection: {
     email: false,
     address: false,
@@ -59,9 +59,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ko_KR',
     url: 'https://yt-trend.vercel.app',
-    title: 'YouTube Intelligence Hub - 트렌드 분석 & 학습노트 생성',
+    title: 'YouTube Bank - 트렌드 분석 & 학습노트 생성',
     description: 'YouTube 트렌드 분석기와 AI 학습노트 생성기를 하나로! Google Gemini AI 기반 통합 플랫폼',
-    siteName: 'YouTube Intelligence Hub',
+    siteName: 'YouTube Bank',
     images: [
       {
         url: '/api/og?v=2',
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'YouTube Intelligence Hub',
+    title: 'YouTube Bank',
     description: 'YouTube 트렌드 분석 & AI 학습노트 생성 통합 플랫폼',
     creator: '@배움의달인',
     images: ['/api/og?v=2'],
@@ -99,12 +99,13 @@ export const metadata: Metadata = {
   classification: 'Business',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon-32x32.svg', sizes: '32x32', type: 'image/svg+xml' },
-      { url: '/favicon-16x16.svg', sizes: '16x16', type: 'image/svg+xml' }
+      { url: '/favicon.ico', type: 'image/x-icon' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' }
     ],
     apple: [
-      { url: '/apple-touch-icon.svg', sizes: '180x180', type: 'image/svg+xml' }
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
     ]
   },
   manifest: '/site.webmanifest'
