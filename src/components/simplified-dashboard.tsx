@@ -25,6 +25,7 @@ import {
   Check
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
+import { VideoGrid } from '@/components/video/video-grid';
 
 interface SimplifiedDashboardProps {
   onApiKeyRemoved: () => void;
@@ -93,7 +94,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
     insights: string[];
     videos: YouTubeVideo[];
   } | null>(null);
-  const [copiedVideoId, setCopiedVideoId] = useState<string | null>(null);
+  // VideoGrid로 인라인 재생을 사용하므로 별도 복사 상태는 제거
 
   const handleApiKeyRemove = () => {
     removeApiKey();
@@ -945,7 +946,7 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                   </Card>
                 )}
 
-                {/* 주요 영상 카드 */}
+                {/* 주요 영상 카드 - 인라인 재생 지원 */}
                 <Card className="shadow-lg">
                   <CardHeader>
                     <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
@@ -955,74 +956,10 @@ export function SimplifiedDashboard({ onApiKeyRemoved }: SimplifiedDashboardProp
                   </CardHeader>
                   
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {results.videos.map((video: YouTubeVideo) => (
-                        <div key={video.id} className="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                          <div className="relative">
-                            <img 
-                              src={video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url} 
-                              alt={video.snippet.title}
-                              className="w-full h-48 object-cover"
-                            />
-                            <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                              👁️ {parseInt(video.statistics.viewCount || '0').toLocaleString()}
-                            </div>
-                            <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                              👍 {parseInt(video.statistics.likeCount || '0').toLocaleString()}
-                            </div>
-                          </div>
-                          <div className="p-3">
-                            <h4 
-                              className="font-medium text-sm mb-2 leading-tight overflow-hidden"
-                              style={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical'
-                              }}
-                            >
-                              {video.snippet.title}
-                            </h4>
-                            <p className="text-xs text-gray-600 mb-2">
-                              📺 {video.snippet.channelTitle}
-                            </p>
-                            <p className="text-xs text-gray-500 mb-2">
-                              💬 {parseInt(video.statistics.commentCount || '0').toLocaleString()} 댓글
-                            </p>
-                            <Button
-                              onClick={async () => {
-                                await navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${video.id}`);
-                                setCopiedVideoId(video.id);
-                                setTimeout(() => setCopiedVideoId(null), 2000);
-                              }}
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-xs h-8 mb-2"
-                            >
-                              {copiedVideoId === video.id ? (
-                                <>
-                                  <Check className="w-3 h-3 mr-1" />
-                                  복사됨!
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3 h-3 mr-1" />
-                                  링크 복사
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              onClick={() => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank')}
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-xs h-8"
-                            >
-                              <Play className="w-3 h-3 mr-1" />
-                              영상 보기
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <VideoGrid 
+                      videos={results.videos}
+                      totalResults={results.totalVideos}
+                    />
                   </CardContent>
                 </Card>
 

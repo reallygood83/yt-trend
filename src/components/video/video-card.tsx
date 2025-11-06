@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { YouTubeVideo } from '@/types/youtube';
 import { formatViewCount, formatDate } from '@/lib/utils';
 import { thumbnailCache } from '@/lib/thumbnail-cache';
-import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check, X } from 'lucide-react';
+import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check, X, Copy } from 'lucide-react';
 
 interface VideoCardProps {
   video: YouTubeVideo;
@@ -37,7 +37,9 @@ export function VideoCard({
   const [retryCount, setRetryCount] = useState(0);
   const [, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const isActive = isPlaying && playingVideoId === video.id;
+  const [copied, setCopied] = useState(false);
+  // 상위에서 playingVideoId를 관리하지 않더라도 로컬 isPlaying이면 활성화
+  const isActive = isPlaying && (!playingVideoId || playingVideoId === video.id);
 
   const {
     id,
@@ -167,6 +169,18 @@ export function VideoCard({
     onClose?.();
   };
 
+  // 링크 복사
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${id}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('링크 복사 실패:', err);
+    }
+  };
+
   // ESC로 닫기
   useEffect(() => {
     if (!isActive) return;
@@ -269,7 +283,7 @@ export function VideoCard({
               {/* 유효한 videoId일 때만 iframe 표시 */}
               {isValidVideoId(id) ? (
                 <iframe
-                  src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                  src={`https://www.youtube.com/embed/${id}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`}
                   title="YouTube video player"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -330,7 +344,34 @@ export function VideoCard({
           </div>
 
           {/* 액션 버튼 */}
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs sm:text-sm"
+              onClick={(e) => { e.stopPropagation(); handleThumbnailClick(); }}
+            >
+              <span className="hidden sm:inline">카드에서 재생</span>
+              <span className="sm:hidden">재생</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs sm:text-sm"
+              onClick={handleCopyLink}
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                  복사됨!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 sm:w-4 h-3 sm:h-4 mr-1 sm:mr-2" />
+                  링크 복사
+                </>
+              )}
+            </Button>
             <Button
               variant="outline"
               size="sm"
