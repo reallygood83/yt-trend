@@ -9,20 +9,14 @@ const nextConfig = {
   // 웹팩 설정 최적화
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
-      // HMR 안정성을 위한 설정 개선
+      // 파일 감시만 미세 조정 (기본 최적화는 Next.js에 맡김)
       config.watchOptions = {
-        poll: 2000, // 폴링 간격 증가로 CPU 부하 감소
-        aggregateTimeout: 500, // 디바운스 시간 증가
-        ignored: /node_modules/, // node_modules 감시 제외
+        poll: 2000,
+        aggregateTimeout: 500,
+        ignored: /node_modules/,
       };
-      
-      // 개발 환경 최적화
-      config.optimization = {
-        ...config.optimization,
-        removeAvailableModules: false,
-        removeEmptyChunks: false,
-        splitChunks: false,
-      };
+      // NOTE: Next.js의 기본 optimization 설정을 그대로 사용해야
+      //       app 라우터용 정적 청크(/_next/static/chunks/app/*)가 올바르게 제공됩니다.
     }
     return config;
   },
@@ -116,6 +110,16 @@ const nextConfig = {
           {
             key: 'Access-Control-Allow-Headers',
             value: 'Content-Type, Authorization'
+          }
+        ]
+      },
+      // 인라인 YouTube 플레이어를 위한 CSP(frame-src) 보강
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
           }
         ]
       }

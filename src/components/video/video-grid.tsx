@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { VideoCard } from './video-card';
 import { YouTubeVideo } from '@/types/youtube';
 import { AlertCircle, Video } from 'lucide-react';
@@ -22,6 +22,17 @@ export function VideoGrid({
   onVideoSelect,
   selectedVideos = []
 }: VideoGridProps) {
+  // 그리드 내 단일 재생 보장
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+
+  const handlePlay = useCallback((videoId: string) => {
+    setPlayingVideoId(videoId);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setPlayingVideoId(null);
+  }, []);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -112,6 +123,9 @@ export function VideoGrid({
             onVideoSelect={onVideoSelect}
             isSelected={selectedVideos.some(v => v.id === video.id)}
             showCompareOption={!!onVideoSelect}
+            playingVideoId={playingVideoId ?? undefined}
+            onPlay={handlePlay}
+            onClose={handleClose}
           />
         ))}
       </div>
@@ -120,7 +134,7 @@ export function VideoGrid({
       {videos.length > 0 && (
         <div className="text-center pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500">
-            💡 영상 카드를 클릭하면 YouTube에서 바로 시청할 수 있습니다
+            💡 썸네일을 클릭하면 카드 안에서 바로 재생됩니다
           </p>
         </div>
       )}

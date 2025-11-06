@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { YouTubeVideo } from '@/types/youtube';
 import { formatViewCount, formatDate } from '@/lib/utils';
 import { thumbnailCache } from '@/lib/thumbnail-cache';
-import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check } from 'lucide-react';
+import { ExternalLink, Eye, ThumbsUp, MessageCircle, Calendar, User, Plus, Check, X } from 'lucide-react';
 
 interface VideoCardProps {
   video: YouTubeVideo;
@@ -15,6 +15,10 @@ interface VideoCardProps {
   onVideoSelect?: (video: YouTubeVideo) => void;
   isSelected?: boolean;
   showCompareOption?: boolean;
+  // 인라인 재생 제어를 위한 상위 상태
+  playingVideoId?: string;
+  onPlay?: (videoId: string) => void;
+  onClose?: () => void;
 }
 
 export function VideoCard({ 
@@ -23,12 +27,17 @@ export function VideoCard({
   style,
   onVideoSelect,
   isSelected = false,
-  showCompareOption = false
+  showCompareOption = false,
+  playingVideoId,
+  onPlay,
+  onClose
 }: VideoCardProps) {
   const [currentThumbnailUrl, setCurrentThumbnailUrl] = useState<string>('');
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [, setIsLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const isActive = isPlaying && playingVideoId === video.id;
 
   const {
     id,
@@ -51,6 +60,9 @@ export function VideoCard({
 
   // 설명 텍스트 정리
   const cleanDescription = description?.replace(/\n/g, ' ').trim();
+
+  // videoId 유효성 검증 (YouTube 11자 규칙)
+  const isValidVideoId = (val: string) => /^[a-zA-Z0-9_-]{11}$/.test(val);
 
   // 썸네일 URL 생성 함수
   const getThumbnailUrl = (quality: string): string => {
@@ -91,6 +103,13 @@ export function VideoCard({
   useEffect(() => {
     loadThumbnail();
   }, [id, retryCount, loadThumbnail]);
+
+  // 상위 playingVideoId 변경에 따른 로컬 상태 동기화
+  useEffect(() => {
+    if (playingVideoId !== id) {
+      setIsPlaying(false);
+    }
+  }, [playingVideoId, id]);
 
   // 이미지 에러 핸들러
   const handleImageError = () => {
@@ -136,6 +155,30 @@ export function VideoCard({
     window.open(`https://www.youtube.com/watch?v=${id}`, '_blank');
   };
 
+  // 썸네일 클릭 → 인라인 플레이
+  const handleThumbnailClick = () => {
+    setIsPlaying(true);
+    onPlay?.(id);
+  };
+
+  // 인라인 플레이어 닫기
+  const handleInlineClose = () => {
+    setIsPlaying(false);
+    onClose?.();
+  };
+
+  // ESC로 닫기
+  useEffect(() => {
+    if (!isActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleInlineClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isActive]);
+
   // 채널 클릭 핸들러
   const handleChannelClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -148,14 +191,16 @@ export function VideoCard({
       style={style}
     >
       <CardContent className="p-0">
-        {/* 썸네일 섹션 */}
+        {/* 미디어 섹션: 썸네일 또는 인라인 플레이어 */}
         <div className="relative aspect-video bg-gray-200 overflow-hidden">
-          {/* 호버시 재생 버튼 효과 */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-            <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-200 transform scale-75 group-hover:scale-100">
-              <div className="w-0 h-0 border-l-[16px] border-l-white border-y-[10px] border-y-transparent ml-1"></div>
-            </div>
-          </div>
+          {!isActive ? (
+            <>
+              {/* 호버시 재생 버튼 효과 */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center" onClick={handleThumbnailClick}>
+                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-200 transform scale-75 group-hover:scale-100">
+                  <div className="w-0 h-0 border-l-[16px] border-l-white border-y-[10px] border-y-transparent ml-1"></div>
+                </div>
+              </div>
 
           {/* 비교 선택 버튼 */}
           {showCompareOption && (
@@ -173,41 +218,68 @@ export function VideoCard({
               {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             </button>
           )}
-
-          {/* 조회수 배지 */}
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black bg-opacity-70 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 z-10">
-            <Eye className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
-            <span className="text-[10px] sm:text-xs">{formatViewCount(viewCount)}</span>
-          </div>
-          
-          {currentThumbnailUrl && !imageError ? (
-            <img
-              src={currentThumbnailUrl}
-              alt={title}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-300">
-              <div className="text-gray-500 text-center">
-                <div className="w-16 h-16 mx-auto mb-2 bg-gray-400 rounded-lg flex items-center justify-center">
-                  📹
-                </div>
-                <p className="text-sm">{imageError ? '썸네일 로딩 실패' : '썸네일 로딩 중...'}</p>
-                {imageError && (
-                  <>
-                    <p className="text-xs text-gray-400 mt-1">재시도 {retryCount + 1}/{thumbnailQualities.length + 4}</p>
-                    <button 
-                      onClick={handleManualRetry}
-                      className="mt-2 text-xs text-red-600 hover:underline"
-                    >
-                      다시 시도
-                    </button>
-                  </>
-                )}
+              {/* 조회수 배지 */}
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black bg-opacity-70 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 z-10">
+                <Eye className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
+                <span className="text-[10px] sm:text-xs">{formatViewCount(viewCount)}</span>
               </div>
+
+              {currentThumbnailUrl && !imageError ? (
+                <img
+                  src={currentThumbnailUrl}
+                  alt={title}
+                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                  <div className="text-gray-500 text-center">
+                    <div className="w-16 h-16 mx-auto mb-2 bg-gray-400 rounded-lg flex items-center justify-center">
+                      📹
+                    </div>
+                    <p className="text-sm">{imageError ? '썸네일 로딩 실패' : '썸네일 로딩 중...'}</p>
+                    {imageError && (
+                      <>
+                        <p className="text-xs text-gray-400 mt-1">재시도 {retryCount + 1}/{thumbnailQualities.length + 4}</p>
+                        <button 
+                          onClick={handleManualRetry}
+                          className="mt-2 text-xs text-red-600 hover:underline"
+                        >
+                          다시 시도
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="relative w-full h-full">
+              {/* 닫기 버튼 */}
+              <button
+                aria-label="닫기"
+                className="absolute top-2 right-2 z-10 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+                onClick={(e) => { e.stopPropagation(); handleInlineClose(); }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* 유효한 videoId일 때만 iframe 표시 */}
+              {isValidVideoId(id) ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-600 text-sm">
+                  유효하지 않은 영상입니다
+                </div>
+              )}
             </div>
           )}
         </div>
