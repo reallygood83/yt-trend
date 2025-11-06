@@ -25,11 +25,11 @@ export function GlobalNav() {
             <div className="rounded-lg transition-all">
               <LogoMark size={32} />
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+            <div className="block">
+              <h1 className="font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent text-lg sm:text-xl">
                 YouTube Bank
               </h1>
-  <p className="text-xs text-gray-500">YouTube 트렌드 분석 & 학습 노트 생성 도구</p>
+              <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">YouTube 트렌드 분석 & 학습 노트 생성 도구</p>
             </div>
           </Link>
 
