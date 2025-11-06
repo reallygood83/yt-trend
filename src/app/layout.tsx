@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'YouTube Bank',
     template: '%s | YouTube Bank'
   },
-  description: 'AI 기반 YouTube 영상 학습 최적화 도구. Google Gemini AI로 영상을 스마트한 학습노트로 자동 변환. 타임스탬프 기반 구간 정리, 영상 임베드, Firebase 클라우드 저장, ADHD 친화적 학습 지원. 3가지 난이도별 설명 제공으로 누구나 쉽게 학습할 수 있습니다.',
+  description: '이 도구는 YouTube 데이터를 분석하여 트렌드를 파악하고 학습 노트를 자동 생성하고 축적하는 솔루션입니다. 핵심 기능: 트렌드 분석, AI 기반 노트 생성.',
   keywords: [
     'YouTube',
     '유튜브',
@@ -59,8 +59,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ko_KR',
     url: 'https://yt-trend.vercel.app',
-    title: 'YouTube Bank - 트렌드 분석 & 학습노트 생성',
-    description: 'YouTube 트렌드 분석기와 AI 학습노트 생성기를 하나로! Google Gemini AI 기반 통합 플랫폼',
+    title: 'YouTube Bank - YouTube 트렌드 분석 & 학습 노트 생성 도구',
+    description: 'YouTube 데이터를 분석해 트렌드를 파악하고 AI로 학습 노트를 자동 생성·축적하는 솔루션',
     siteName: 'YouTube Bank',
     images: [
       {
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'YouTube Bank',
-    description: 'YouTube 트렌드 분석 & AI 학습노트 생성 통합 플랫폼',
+    description: 'YouTube 트렌드 분석 & AI 기반 학습 노트 생성 솔루션',
     creator: '@배움의달인',
     images: ['/api/og?v=2'],
   },

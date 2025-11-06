@@ -1,7 +1,7 @@
 {
   "name": "YouTube Bank",
   "short_name": "YT Bank",
-  "description": "전 세계 YouTube 트렌드를 실시간으로 분석하고 탐색할 수 있는 웹 애플리케이션",
+  "description": "이 도구는 YouTube 데이터를 분석하여 트렌드를 파악하고 학습 노트를 자동 생성하고 축적하는 솔루션입니다",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -16,6 +16,16 @@
     {
       "src": "/favicon-32x32.png",
       "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-128x128.png",
+      "sizes": "128x128",
       "type": "image/png"
     },
     {

@@ -1,4 +1,17 @@
 /* eslint-disable no-console */
+/**
+ * Favicon generator
+ *
+ * Inputs:
+ *  - public/youtube-bank.svg (base icon)
+ * Outputs:
+ *  - favicon-16x16.png, favicon-32x32.png, favicon-64x64.png, favicon-128x128.png
+ *  - apple-touch-icon.png (180x180)
+ *  - favicon.ico (128x128 PNG embedded)
+ *
+ * Usage:
+ *  node scripts/generate-favicons.js
+ */
 const fs = require('fs/promises');
 const path = require('path');
 const sharp = require('sharp');

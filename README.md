@@ -1,6 +1,8 @@
-# YouTube 학습노트 생성기 🎓
+# YouTube 트렌드 분석 & 학습 노트 생성 도구 🎓
 
-**AI 기반 YouTube 영상 학습 최적화 도구** - 영상을 스마트한 학습노트로 변환!
+**이 도구는 YouTube 데이터를 분석하여 트렌드를 파악하고 학습 노트를 자동 생성하고 축적하는 솔루션입니다.**
+
+주요 기능: **트렌드 분석**, **AI 기반 노트 생성**
 
 [![Vercel](https://img.shields.io/badge/Vercel-deployed-brightgreen)](https://yt-trend.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black)](https://nextjs.org/)
@@ -102,6 +104,12 @@ cd yt-trend
 ```bash
 npm install
 ```
+
+### 2-1. 파비콘 생성 (64x64, 128x128 포함)
+```bash
+node scripts/generate-favicons.js
+```
+위 스크립트는 `public/youtube-bank.svg`를 기반으로 `favicon-16/32/64/128`, `apple-touch-icon.png`, `favicon.ico`를 생성합니다.
 
 ### 3. 환경 변수 설정
 ```bash
