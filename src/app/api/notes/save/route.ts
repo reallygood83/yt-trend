@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
+import { adminDb, getAdminTimestamp } from '@/lib/firebaseAdmin';
 import {
   collection,
   addDoc,
@@ -12,6 +13,7 @@ import {
   Timestamp,
   orderBy
 } from 'firebase/firestore';
+import type { Firestore as AdminFirestore } from 'firebase-admin/firestore';
 
 // 노트 저장 타입
 interface SaveNoteRequest {
@@ -29,15 +31,6 @@ interface SaveNoteRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    // Firebase 초기화 확인
-    if (!db) {
-      console.error('Firebase not initialized - db is null');
-      return NextResponse.json(
-        { success: false, error: 'Firebase 설정이 올바르지 않습니다.' },
-        { status: 500 }
-      );
-    }
-
     const { userId, noteData, metadata }: SaveNoteRequest = await request.json();
 
     if (!userId) {
@@ -47,78 +40,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. 프리미엄 사용자 확인
-    // TODO: 클라이언트에서 isPremium 상태를 전달받거나 Firebase Admin SDK 사용 필요
-    // 서버 사이드에서는 request.auth가 없어서 Firestore 규칙 통과 불가
-    let isPremium = false;
-    try {
-      const premiumDocRef = doc(db, 'premiumUsers', userId);
-      const premiumDoc = await getDoc(premiumDocRef);
-      isPremium = premiumDoc.exists() && premiumDoc.data()?.isPremium === true;
-    } catch (premiumError) {
-      console.warn('프리미엄 상태 확인 실패 (무시하고 계속):', premiumError);
-      // 프리미엄 확인 실패해도 일반 사용자로 처리하고 계속 진행
-      isPremium = false;
+    if (adminDb) {
+      return await saveNoteWithAdmin(adminDb, { userId, noteData, metadata });
     }
 
-    // 2. 현재 사용자의 노트 개수 확인 (최적화: getCountFromServer 사용)
-    const notesRef = collection(db, 'learningNotes');
-    const userNotesQuery = query(
-      notesRef,
-      where('userId', '==', userId)
-    );
-
-    // getCountFromServer로 개수만 가져오기 (전체 데이터 다운로드 안 함)
-    const countSnapshot = await getCountFromServer(userNotesQuery);
-    const currentNoteCount = countSnapshot.data().count;
-
-    // 3. 일반 사용자는 3개 제한, 프리미엄 사용자는 무제한
-    if (!isPremium && currentNoteCount >= 3) {
-      // 필요한 경우에만 기존 노트 정보 조회 (제목과 생성일만)
-      const existingNotesQuery = query(
-        notesRef,
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-
-      const existingNotesSnapshot = await getDocs(existingNotesQuery);
-      const existingNotes = existingNotesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        title: doc.data().metadata?.title || '제목 없음',
-        createdAt: doc.data().createdAt?.toDate().toISOString()
-      }));
-
+    // Firebase 초기화 확인 (클라이언트 SDK fallback)
+    if (!db) {
+      console.error('Firebase not initialized - db is null');
       return NextResponse.json(
-        {
-          success: false,
-          error: '최대 3개의 노트만 저장할 수 있습니다. 기존 노트를 삭제해주세요.',
-          requiresDeletion: true,
-          existingNotes
-        },
-        { status: 400 }
+        { success: false, error: 'Firebase 설정이 올바르지 않습니다.' },
+        { status: 500 }
       );
     }
 
-    // 4. 노트 저장
-    const noteDoc = {
-      userId,
-      noteData,
-      metadata,
-      createdAt: Timestamp.now(),
-      shareId: generateShareId() // 공유용 고유 ID
-    };
-
-    const docRef = await addDoc(notesRef, noteDoc);
-
-    return NextResponse.json({
-      success: true,
-      noteId: docRef.id,
-      shareId: noteDoc.shareId,
-      isPremium, // 프리미엄 상태 반환 (UI 표시용)
-      message: isPremium
-        ? '✨ 프리미엄 노트가 성공적으로 저장되었습니다!'
-        : '노트가 성공적으로 저장되었습니다.'
-    });
+    return await saveNoteWithClient(db, { userId, noteData, metadata });
 
   } catch (error) {
     console.error('노트 저장 오류:', error);
@@ -148,4 +83,137 @@ function generateShareId(): string {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+}
+
+async function saveNoteWithAdmin(
+  firestore: AdminFirestore,
+  { userId, noteData, metadata }: SaveNoteRequest
+) {
+  let isPremium = false;
+
+  try {
+    const premiumDoc = await firestore.collection('premiumUsers').doc(userId).get();
+    isPremium = premiumDoc.exists && premiumDoc.data()?.isPremium === true;
+  } catch (premiumError) {
+    console.warn('프리미엄 상태 확인 실패 (무시하고 계속):', premiumError);
+    isPremium = false;
+  }
+
+  const notesRef = firestore.collection('learningNotes');
+  const userNotesQuery = notesRef.where('userId', '==', userId);
+
+  // Admin SDK는 Aggregation(count)을 지원하므로, 전체 문서 로드 없이 개수만 조회
+  const aggregateSnapshot = await userNotesQuery.count().get();
+  const currentNoteCount = aggregateSnapshot.data().count;
+
+  if (!isPremium && currentNoteCount >= 3) {
+    const existingNotesSnapshot = await notesRef
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const existingNotes = existingNotesSnapshot.docs.map((doc) => {
+      const data = doc.data() as Record<string, any>;
+      return {
+        id: doc.id,
+        title: data.metadata?.title || '제목 없음',
+        createdAt: data.createdAt?.toDate?.().toISOString()
+      };
+    });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '최대 3개의 노트만 저장할 수 있습니다. 기존 노트를 삭제해주세요.',
+        requiresDeletion: true,
+        existingNotes
+      },
+      { status: 400 }
+    );
+  }
+
+  const noteDoc = {
+    userId,
+    noteData,
+    metadata,
+    createdAt: getAdminTimestamp(),
+    shareId: generateShareId()
+  };
+
+  const docRef = await notesRef.add(noteDoc);
+
+  return NextResponse.json({
+    success: true,
+    noteId: docRef.id,
+    shareId: noteDoc.shareId,
+    isPremium,
+    message: isPremium
+      ? '✨ 프리미엄 노트가 성공적으로 저장되었습니다!'
+      : '노트가 성공적으로 저장되었습니다.'
+  });
+}
+
+async function saveNoteWithClient(
+  clientDb: NonNullable<typeof db>,
+  { userId, noteData, metadata }: SaveNoteRequest
+) {
+  let isPremium = false;
+  try {
+    const premiumDocRef = doc(clientDb, 'premiumUsers', userId);
+    const premiumDoc = await getDoc(premiumDocRef);
+    isPremium = premiumDoc.exists() && premiumDoc.data()?.isPremium === true;
+  } catch (premiumError) {
+    console.warn('프리미엄 상태 확인 실패 (무시하고 계속):', premiumError);
+    isPremium = false;
+  }
+
+  const notesRef = collection(clientDb, 'learningNotes');
+  const userNotesQuery = query(notesRef, where('userId', '==', userId));
+  const countSnapshot = await getCountFromServer(userNotesQuery);
+  const currentNoteCount = countSnapshot.data().count;
+
+  if (!isPremium && currentNoteCount >= 3) {
+    const existingNotesQuery = query(
+      notesRef,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+
+    const existingNotesSnapshot = await getDocs(existingNotesQuery);
+    const existingNotes = existingNotesSnapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      title: docItem.data().metadata?.title || '제목 없음',
+      createdAt: docItem.data().createdAt?.toDate().toISOString()
+    }));
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '최대 3개의 노트만 저장할 수 있습니다. 기존 노트를 삭제해주세요.',
+        requiresDeletion: true,
+        existingNotes
+      },
+      { status: 400 }
+    );
+  }
+
+  const noteDoc = {
+    userId,
+    noteData,
+    metadata,
+    createdAt: Timestamp.now(),
+    shareId: generateShareId()
+  };
+
+  const docRef = await addDoc(notesRef, noteDoc);
+
+  return NextResponse.json({
+    success: true,
+    noteId: docRef.id,
+    shareId: noteDoc.shareId,
+    isPremium,
+    message: isPremium
+      ? '✨ 프리미엄 노트가 성공적으로 저장되었습니다!'
+      : '노트가 성공적으로 저장되었습니다.'
+  });
 }

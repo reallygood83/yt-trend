@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "firebase": "^12.3.0",
+    "firebase-admin": "^13.6.0",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.544.0",
     "mermaid": "^11.12.1",
@@ -59,6 +60,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "firebase-tools": "^14.24.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "typescript": "^5"
