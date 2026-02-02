@@ -148,7 +148,7 @@ export async function validateApiKey(apiKey: string): Promise<{ valid: boolean; 
 }
 
 // Gemini API 키 관리 함수들
-export async function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.0-flash-exp', userId?: string): Promise<void> {
+export async function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.5-flash', userId?: string): Promise<void> {
   try {
     // 새로운 통합 스토어에 저장
     const store = getStoreState();
@@ -377,7 +377,7 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
 
       if (aiKeys.gemini?.apiKey) {
         const geminiKey = aiKeys.gemini.apiKey;
-        const geminiModel = aiKeys.gemini.model || 'gemini-2.0-flash-exp';
+        const geminiModel = aiKeys.gemini.model || 'gemini-2.5-flash';
 
         // localStorage에 저장
         const encoded = btoa(geminiKey);

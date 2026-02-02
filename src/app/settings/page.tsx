@@ -20,7 +20,7 @@ export default function SettingsPage() {
   const [youtubeKey, setYoutubeKeyLocal] = useState(youtube.apiKey || '');
   const [aiProvider, setAiProviderLocal] = useState<'gemini' | 'xai' | 'openrouter'>(ai.provider || 'gemini');
   const [aiKey, setAiKeyLocal] = useState(ai.apiKey || '');
-  const [aiModel, setAiModelLocal] = useState(ai.model || 'gemini-2.0-flash-exp');
+  const [aiModel, setAiModelLocal] = useState(ai.model || 'gemini-2.5-flash');
 
   const [validating, setValidating] = useState({ youtube: false, ai: false });
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setAiKeyLocal(ai.apiKey || '');
     setAiProviderLocal(ai.provider || 'gemini');
-    setAiModelLocal(ai.model || 'gemini-2.0-flash-exp');
+    setAiModelLocal(ai.model || 'gemini-2.5-flash');
   }, [ai]);
 
   const handleYouTubeSave = async () => {
@@ -84,12 +84,13 @@ export default function SettingsPage() {
   const geminiModels = [
     'gemini-2.5-flash',
     'gemini-2.5-pro',
-    'gemini-2.0-flash-exp',
+    'gemini-2.5-flash',
     'gemini-1.5-pro',
     'gemini-1.5-flash',
   ];
 
   const xaiModels = [
+    'grok-4-1-fast',
     'grok-4-fast-reasoning',
     'grok-4-fast-non-reasoning',
     'grok-4-0709',
@@ -210,7 +211,7 @@ export default function SettingsPage() {
                   checked={aiProvider === 'gemini'}
                   onChange={(e) => {
                     setAiProviderLocal('gemini');
-                    setAiModelLocal('gemini-2.0-flash-exp');
+                    setAiModelLocal('gemini-2.5-flash');
                   }}
                 />
                 <span>Google Gemini</span>

@@ -60,7 +60,7 @@ export interface UserAPIKeys {
  *     gemini: {
  *       encryptedKey: "base64_encrypted_data...",
  *       type: "gemini",
- *       model: "gemini-2.0-flash-exp",
+ *       model: "gemini-2.5-flash",
  *       validated: true,
  *       lastValidated: Timestamp,
  *       createdAt: Timestamp,

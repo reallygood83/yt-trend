@@ -21,7 +21,7 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
   const [youtubeApiKey, setYoutubeApiKey] = useState('');
   const [aiProvider, setAIProvider] = useState<AIProvider>('gemini');
   const [aiApiKey, setAIApiKey] = useState('');
-  const [aiModel, setAIModel] = useState('gemini-2.0-flash-exp');
+  const [aiModel, setAIModel] = useState('gemini-2.5-flash');
 
   const [isValidatingYouTube, setIsValidatingYouTube] = useState(false);
   const [isValidatingAI, setIsValidatingAI] = useState(false);
@@ -48,13 +48,13 @@ export function SimplifiedApiSetup({ onSuccess }: SimplifiedApiSetupProps) {
   const getDefaultModel = (provider: AIProvider): string => {
     switch (provider) {
       case 'gemini':
-        return 'gemini-2.0-flash-exp';
+        return 'gemini-2.5-flash';
       case 'xai':
         return 'grok-beta';
       case 'openrouter':
         return 'anthropic/claude-3.5-sonnet';
       default:
-        return 'gemini-2.0-flash-exp';
+        return 'gemini-2.5-flash';
     }
   };
 

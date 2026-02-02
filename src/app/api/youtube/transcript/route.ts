@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Innertube } from 'youtubei.js';
+import { fetchTranscript } from 'youtube-transcript-plus';
 
 // Force dynamic rendering for Vercel
 export const runtime = 'nodejs';
@@ -23,7 +23,7 @@ function extractVideoId(url: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
-  let videoId: string | null = null; // catch 블록에서도 접근 가능하도록 선언
+  let videoId: string | null = null;
 
   try {
     const body = await request.json();
@@ -45,61 +45,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 🎯 youtubei.js로 자막 추출
-    console.log(`youtubei.js로 자막 추출 시도: ${videoId}`);
-    const youtube = await Innertube.create({
-      lang: lang === 'ko' ? 'ko' : 'en',
-      location: lang === 'ko' ? 'KR' : 'US',
-      retrieve_player: false,
-    });
+    console.log(`youtube-transcript-plus로 자막 추출 시도: ${videoId}`);
 
-    const info = await youtube.getInfo(videoId);
-    const transcriptData = await info.getTranscript();
-
-    if (!transcriptData || !transcriptData.transcript) {
-      // Try English if Korean fails
+    // 한국어 자막 시도
+    let transcript;
+    try {
+      transcript = await fetchTranscript(videoId, { lang });
+    } catch {
+      // 한국어 실패 시 영어 시도
       if (lang === 'ko') {
-        const youtube_en = await Innertube.create({
-          lang: 'en',
-          location: 'US',
-          retrieve_player: false,
-        });
-        const info_en = await youtube_en.getInfo(videoId);
-        const transcriptData_en = await info_en.getTranscript();
-
-        if (!transcriptData_en || !transcriptData_en.transcript) {
-          return NextResponse.json(
-            {
-              error: '자막을 가져올 수 없습니다',
-              details: '한국어 및 영어 자막이 모두 제공되지 않습니다.',
-            },
-            { status: 404 }
-          );
+        console.log('한국어 자막 실패, 영어로 재시도...');
+        try {
+          transcript = await fetchTranscript(videoId, { lang: 'en' });
+        } catch {
+          // 언어 지정 없이 기본 자막 시도
+          console.log('영어 자막도 실패, 기본 자막으로 재시도...');
+          transcript = await fetchTranscript(videoId);
         }
-
-        // Process English transcript
-        const content = transcriptData_en.transcript.content;
-        const segments = content?.body?.initial_segments || [];
-
-        const fullTranscript = (segments as unknown[])
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((seg: any) => seg.snippet?.text?.toString() || '')
-          .filter((text: string) => text.length > 0)
-          .join(' ');
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const formattedSegments = (segments as unknown[]).map((seg: any) => ({
-          text: seg.snippet?.text?.toString() || '',
-          start: seg.start_ms ? seg.start_ms / 1000 : 0,
-          duration: seg.end_ms && seg.start_ms ? (seg.end_ms - seg.start_ms) / 1000 : 0,
-        }));
-
-        return NextResponse.json({
-          full: fullTranscript,
-          segments: formattedSegments,
-        });
+      } else {
+        // 언어 지정 없이 기본 자막 시도
+        transcript = await fetchTranscript(videoId);
       }
+    }
 
+    if (!transcript || transcript.length === 0) {
       return NextResponse.json(
         {
           error: '자막을 가져올 수 없습니다',
@@ -109,21 +78,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Process transcript
-    const content = transcriptData.transcript.content;
-    const segments = content?.body?.initial_segments || [];
-
-    const fullTranscript = (segments as unknown[])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((seg: any) => seg.snippet?.text?.toString() || '')
+    const fullTranscript = transcript
+      .map((item: { text: string }) => item.text)
       .filter((text: string) => text.length > 0)
       .join(' ');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedSegments = (segments as unknown[]).map((seg: any) => ({
-      text: seg.snippet?.text?.toString() || '',
-      start: seg.start_ms ? seg.start_ms / 1000 : 0,
-      duration: seg.end_ms && seg.start_ms ? (seg.end_ms - seg.start_ms) / 1000 : 0,
+    const formattedSegments = transcript.map((item: { text: string; offset: number; duration: number }) => ({
+      text: item.text || '',
+      start: item.offset || 0,
+      duration: item.duration || 0,
     }));
 
     console.log(`✅ 성공: ${formattedSegments.length}개 세그먼트`);

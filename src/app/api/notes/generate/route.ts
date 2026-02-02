@@ -30,7 +30,7 @@ async function callGemini(prompt: string, apiKey?: string): Promise<string> {
   console.log('[Gemini] API 호출 시작');
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${key}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1688,8 +1688,8 @@ function calculateStorytellingQualityScore(parsed: any): number {
 
     // Narrative quality (15 points)
     if (seg.narrative?.setting && seg.narrative?.protagonistGoal &&
-        Array.isArray(seg.narrative?.obstacles) && seg.narrative.obstacles.length >= 2 &&
-        seg.narrative?.resolution) {
+      Array.isArray(seg.narrative?.obstacles) && seg.narrative.obstacles.length >= 2 &&
+      seg.narrative?.resolution) {
       segScore += 15;
     } else if (seg.narrative?.setting || seg.narrative?.protagonistGoal) {
       segScore += 8;
@@ -1717,8 +1717,8 @@ function calculateStorytellingQualityScore(parsed: any): number {
 
     // Story arc quality (15 points)
     if (seg.storyArc?.exposition && Array.isArray(seg.storyArc?.risingAction) &&
-        seg.storyArc.risingAction.length >= 2 && seg.storyArc?.climax &&
-        seg.storyArc?.fallingAction && seg.storyArc?.resolution) {
+      seg.storyArc.risingAction.length >= 2 && seg.storyArc?.climax &&
+      seg.storyArc?.fallingAction && seg.storyArc?.resolution) {
       segScore += 15;
     } else if (seg.storyArc?.climax || seg.storyArc?.resolution) {
       segScore += 8;
@@ -2499,7 +2499,7 @@ function calculateExpertAnalysisQualityScore(parsed: any): number {
 
   // Check expert domain validity (10 points)
   const validDomains = ['economy', 'technology', 'science', 'business', 'education',
-                        'law', 'medicine', 'politics', 'psychology', 'history'];
+    'law', 'medicine', 'politics', 'psychology', 'history'];
   if (validDomains.includes(parsed.expertDomain)) {
     score += 10;
   }
@@ -2577,9 +2577,9 @@ function calculateExpertAnalysisQualityScore(parsed: any): number {
 
     // Credibility assessment quality (5 points)
     if (seg.credibility &&
-        seg.credibility.sourceReliability &&
-        seg.credibility.evidenceQuality &&
-        typeof seg.credibility.expertConsensus === 'boolean') {
+      seg.credibility.sourceReliability &&
+      seg.credibility.evidenceQuality &&
+      typeof seg.credibility.expertConsensus === 'boolean') {
       segScore += 5;
     } else if (seg.credibility) {
       segScore += 3;

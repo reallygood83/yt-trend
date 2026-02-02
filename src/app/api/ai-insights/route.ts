@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
 
     // Google Gemini API 초기화 (안정적인 1.5-flash 모델 사용)
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // 영상 데이터 상세 분석을 위한 요약 생성 (최대 15개)
     const videoSummary = videos.slice(0, Math.min(15, videos.length)).map((video: Video, index: number) => {
