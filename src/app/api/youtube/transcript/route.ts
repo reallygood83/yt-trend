@@ -107,7 +107,69 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 최종 결과 확인
+    // 3️⃣ 전략 3: innertube API 직접 호출 (Android 클라이언트 위장)
+    if (segments.length === 0) {
+      console.log('[Strategy 3] innertube Android client 직접 호출...');
+      try {
+        const playerRes = await fetch('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
+          },
+          body: JSON.stringify({
+            context: {
+              client: {
+                hl: lang === 'ko' ? 'ko' : 'en',
+                gl: lang === 'ko' ? 'KR' : 'US',
+                clientName: 'ANDROID',
+                clientVersion: '19.09.37',
+                androidSdkVersion: 30,
+              },
+            },
+            videoId,
+          }),
+        });
+
+        if (playerRes.ok) {
+          const playerData = await playerRes.json();
+          const captions = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+
+          if (captions && captions.length > 0) {
+            let track = captions.find((t: any) => t.languageCode === lang);
+            if (!track && lang === 'ko') track = captions.find((t: any) => t.languageCode === 'en');
+            if (!track) track = captions[0];
+
+            const captionRes = await fetch(track.baseUrl);
+            if (captionRes.ok) {
+              const xml = await captionRes.text();
+              const segRegex = new RegExp('<p t="(\\d+)" d="(\\d+)"[^>]*>(.*?)<\\/p>', 'gs');
+              const sRegex = /<s[^>]*>(.*?)<\/s>/g;
+              let m;
+              while ((m = segRegex.exec(xml)) !== null) {
+                const inner = m[3];
+                let text = '';
+                let sm;
+                while ((sm = sRegex.exec(inner)) !== null) { text += sm[1]; }
+                sRegex.lastIndex = 0;
+                if (!text) text = inner.replace(/<[^>]+>/g, '');
+                if (text.trim()) {
+                  segments.push({
+                    text: text.trim(),
+                    start: parseInt(m[1]) / 1000,
+                    duration: parseInt(m[2]) / 1000,
+                  });
+                }
+              }
+              if (segments.length > 0) usedMethod = 'innertube-android-direct';
+            }
+          }
+        }
+      } catch (e3: any) {
+        console.warn('[Strategy 3] 실패:', e3.message);
+      }
+    }
+
     if (segments.length === 0) {
       throw new Error('모든 방법으로 자막을 가져올 수 없습니다. 1) 자막이 없는 영상 2) 서버 IP 차단 가능성');
     }
