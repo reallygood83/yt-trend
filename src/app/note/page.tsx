@@ -17,6 +17,7 @@ import {
   Clock, PlayCircle, FileText, Lightbulb, Save, Share2, Trash2
 } from 'lucide-react';
 import { MindMap } from '@/components/MindMap';
+import { fetchTranscriptClient } from '@/lib/client-transcript';
 
 const AGE_GROUPS = [
   { value: '초등 1-2학년', label: '초등 1-2학년', icon: '🎨', color: 'bg-pink-50 border-pink-200 hover:bg-pink-100' },
@@ -180,21 +181,28 @@ function NotePageContent() {
       setMetadata(metadataData);
       setProgress(33);
 
-      // Step 2: Extract transcript (66%)
+      // Step 2: Extract transcript (66%) - 서버 실패 시 클라이언트 fallback
       setProgressMessage('자막을 분석하는 중...');
 
+      let transcriptData;
       const transcriptResponse = await fetch('/api/youtube/transcript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoId })
       });
 
-      if (!transcriptResponse.ok) {
-        const errorData = await transcriptResponse.json();
-        throw new Error(errorData.error || '자막을 가져오는데 실패했습니다');
+      if (transcriptResponse.ok) {
+        transcriptData = await transcriptResponse.json();
+      } else {
+        console.log('서버 자막 추출 실패, 클라이언트 fallback 시도...');
+        setProgressMessage('서버 추출 실패, 브라우저에서 직접 추출 중...');
+        try {
+          transcriptData = await fetchTranscriptClient(videoId);
+        } catch (clientError) {
+          throw new Error('자막을 가져올 수 없습니다. 자막이 없는 영상이거나 접근이 제한된 영상입니다.');
+        }
       }
 
-      const transcriptData = await transcriptResponse.json();
       setTranscript(transcriptData);
       setProgress(66);
 
