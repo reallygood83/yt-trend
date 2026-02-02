@@ -95,12 +95,32 @@ export async function POST(request: NextRequest) {
       segments: formattedSegments,
     });
 
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('❌ Transcript 추출 최종 실패:', error);
+
+    // 공통적인 자막 없음 에러 메시지 처리
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isNotFound =
+      errorMessage.includes('Transcript is disabled') ||
+      errorMessage.includes('not available') ||
+      errorMessage.includes('Could not retrieve') ||
+      errorMessage.includes('Video is unavailable');
+
+    if (isNotFound) {
+      return NextResponse.json(
+        {
+          error: '자막을 가져올 수 없습니다',
+          details: '이 영상에는 자막이 없거나 비활성화되어 있습니다.',
+          videoId,
+        },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: '자막 추출 중 오류가 발생했습니다',
-        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        details: errorMessage,
         videoId,
       },
       { status: 500 }
