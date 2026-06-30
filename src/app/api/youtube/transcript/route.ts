@@ -86,6 +86,197 @@ function parseTranscriptXml(xml: string) {
   return segments;
 }
 
+function extractJsonObject(text: string, marker: string) {
+  const markerIndex = text.indexOf(marker);
+  if (markerIndex === -1) return null;
+
+  const start = text.indexOf('{', markerIndex);
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+    } else if (char === '{') {
+      depth++;
+    } else if (char === '}') {
+      depth--;
+      if (depth === 0) {
+        return text.slice(start, i + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function parseTranscriptJson3(json: any) {
+  const events = json?.events?.filter((event: any) => event.segs) || [];
+
+  return events
+    .map((event: any) => {
+      const text = (event.segs || [])
+        .map((seg: any) => seg.utf8 || '')
+        .join('')
+        .replace(/\n/g, ' ')
+        .trim();
+
+      return {
+        text,
+        start: (event.tStartMs || 0) / 1000,
+        duration: (event.dDurationMs || 0) / 1000,
+      };
+    })
+    .filter((segment: { text: string }) => segment.text.length > 0);
+}
+
+function selectCaptionTrack(tracks: any[], lang: string) {
+  return (
+    tracks.find((track: any) => track.languageCode === lang) ||
+    tracks.find((track: any) => track.vssId === `.${lang}` || track.vssId === `a.${lang}`) ||
+    (lang === 'ko' ? tracks.find((track: any) => track.languageCode === 'en' && track.isTranslatable) : undefined) ||
+    tracks.find((track: any) => track.isTranslatable) ||
+    tracks[0]
+  );
+}
+
+function extractInnertubeApiKey(html: string) {
+  return (
+    html.match(/"INNERTUBE_API_KEY":"([^"]+)"/)?.[1] ||
+    html.match(/INNERTUBE_API_KEY\\":\\"([^\\"]+)\\"/)?.[1] ||
+    null
+  );
+}
+
+async function fetchTrackSegments(track: any, lang: string) {
+  const url = new URL(track.baseUrl);
+  url.searchParams.set('fmt', 'json3');
+
+  if (track.languageCode !== lang && track.isTranslatable) {
+    url.searchParams.set('tlang', lang);
+  }
+
+  const jsonResponse = await fetch(url.toString(), {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    },
+  });
+
+  if (jsonResponse.ok) {
+    const jsonText = await jsonResponse.text();
+    if (jsonText.trim()) {
+      try {
+        const segments = parseTranscriptJson3(JSON.parse(jsonText));
+        if (segments.length > 0) return segments;
+      } catch (error) {
+        console.warn(
+          '[Strategy 0] json3 파싱 실패, XML fallback 시도:',
+          error instanceof Error ? error.message : String(error)
+        );
+      }
+    }
+  }
+
+  url.searchParams.delete('fmt');
+  const xmlResponse = await fetch(url.toString());
+  if (!xmlResponse.ok) return [];
+
+  return parseTranscriptXml(await xmlResponse.text());
+}
+
+async function fetchInnertubeCaptionSegments(videoId: string, lang: string, apiKey: string) {
+  const clients = [
+    {
+      name: 'WEB',
+      context: {
+        clientName: 'WEB',
+        clientVersion: '2.20260626.01.00',
+        hl: lang === 'ko' ? 'ko' : 'en',
+        gl: lang === 'ko' ? 'KR' : 'US',
+      },
+    },
+    {
+      name: 'IOS',
+      context: {
+        clientName: 'IOS',
+        clientVersion: '20.10.4',
+        deviceMake: 'Apple',
+        deviceModel: 'iPhone16,2',
+        hl: lang === 'ko' ? 'ko' : 'en',
+        gl: lang === 'ko' ? 'KR' : 'US',
+      },
+    },
+    {
+      name: 'ANDROID',
+      context: {
+        clientName: 'ANDROID',
+        clientVersion: '20.10.38',
+        androidSdkVersion: 35,
+        hl: lang === 'ko' ? 'ko' : 'en',
+        gl: lang === 'ko' ? 'KR' : 'US',
+      },
+    },
+  ];
+
+  for (const client of clients) {
+    try {
+      const playerResponse = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${apiKey}&prettyPrint=false`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': client.name === 'ANDROID'
+            ? 'com.google.android.youtube/20.10.38 (Linux; U; Android 15) gzip'
+            : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        },
+        body: JSON.stringify({
+          context: { client: client.context },
+          videoId,
+        }),
+      });
+
+      if (!playerResponse.ok) {
+        console.warn(`[Strategy 0] ${client.name} player 실패:`, playerResponse.status);
+        continue;
+      }
+
+      const playerData = await playerResponse.json();
+      const tracks = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+      console.log(`[Strategy 0] ${client.name} captionTracks: ${tracks.length}`);
+
+      const track = selectCaptionTrack(tracks, lang);
+      if (!track?.baseUrl) continue;
+
+      const segments = await fetchTrackSegments(track, lang);
+      if (segments.length > 0) {
+        return { segments, clientName: client.name };
+      }
+    } catch (error) {
+      console.warn(
+        `[Strategy 0] ${client.name} player 실패:`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   let videoId: string | null = null;
 
@@ -113,21 +304,66 @@ export async function POST(request: NextRequest) {
     let segments: any[] = [];
     let usedMethod = '';
 
-    // 1️⃣ 전략 1: youtube-transcript-plus (가벼운 스크래핑)
+    // 1️⃣ 전략 0: watch HTML에 포함된 ytInitialPlayerResponse에서 captionTracks 직접 추출
     try {
-      console.log('[Strategy 1] youtube-transcript-plus 시도...');
-      const transcript = await fetchTranscriptWithFallback(videoId, lang);
+      console.log('[Strategy 0] watch HTML captionTracks 직접 추출 시도...');
+      const watchResponse = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+        headers: {
+          'Accept-Language': lang === 'ko' ? 'ko-KR,ko;q=0.9,en;q=0.8' : 'en-US,en;q=0.9',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        },
+      });
 
-      if (transcript && transcript.length > 0) {
-        segments = transcript.map((item: any) => ({
-          text: item.text || '',
-          start: item.offset || 0,
-          duration: item.duration || 0,
-        }));
-        usedMethod = 'youtube-transcript-plus';
+      if (watchResponse.ok) {
+        const watchHtml = await watchResponse.text();
+        const playerJson = extractJsonObject(watchHtml, 'ytInitialPlayerResponse');
+
+        if (playerJson) {
+          const playerData = JSON.parse(playerJson);
+          const tracks = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+          console.log(`[Strategy 0] captionTracks: ${tracks.length}`);
+
+          const track = selectCaptionTrack(tracks, lang);
+          if (track?.baseUrl) {
+            segments = await fetchTrackSegments(track, lang);
+            if (segments.length > 0) usedMethod = 'watch-html-captionTracks';
+          }
+        }
+
+        if (segments.length === 0) {
+          const apiKey = extractInnertubeApiKey(watchHtml);
+          if (apiKey) {
+            const innertubeResult = await fetchInnertubeCaptionSegments(videoId, lang, apiKey);
+            if (innertubeResult) {
+              segments = innertubeResult.segments;
+              usedMethod = `watch-html-innertube-${innertubeResult.clientName}`;
+            }
+          }
+        }
+      } else {
+        console.warn('[Strategy 0] watch HTML 실패:', watchResponse.status);
       }
-    } catch (e1: any) {
-      console.warn('[Strategy 1] 실패:', e1.message);
+    } catch (e0: any) {
+      console.warn('[Strategy 0] 실패:', e0.message);
+    }
+
+    // 1️⃣ 전략 1: youtube-transcript-plus (가벼운 스크래핑)
+    if (segments.length === 0) {
+      try {
+        console.log('[Strategy 1] youtube-transcript-plus 시도...');
+        const transcript = await fetchTranscriptWithFallback(videoId, lang);
+
+        if (transcript && transcript.length > 0) {
+          segments = transcript.map((item: any) => ({
+            text: item.text || '',
+            start: item.offset || 0,
+            duration: item.duration || 0,
+          }));
+          usedMethod = 'youtube-transcript-plus';
+        }
+      } catch (e1: any) {
+        console.warn('[Strategy 1] 실패:', e1.message);
+      }
     }
 
     // 2️⃣ 전략 2: youtubei.js (Innertube) - iOS 클라이언트 위장 (Fallback)
