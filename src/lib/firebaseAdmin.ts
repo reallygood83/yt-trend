@@ -23,9 +23,9 @@ if (!admin.apps.length) {
     }
   }
 } else {
-  app = admin.apps[0];
+  app = admin.apps[0] ?? undefined;
 }
 
 export const adminApp = app ?? null;
-export const adminDb = adminApp ? admin.firestore(adminApp) : null;
+export const adminDb = app ? admin.firestore(app) : null;
 export const getAdminTimestamp = () => admin.firestore.Timestamp.now();

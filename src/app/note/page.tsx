@@ -17,7 +17,6 @@ import {
   Clock, PlayCircle, FileText, Lightbulb, Save, Share2, Trash2
 } from 'lucide-react';
 import { MindMap } from '@/components/MindMap';
-import { fetchTranscriptClient } from '@/lib/client-transcript';
 
 const AGE_GROUPS = [
   { value: '초등 1-2학년', label: '초등 1-2학년', icon: '🎨', color: 'bg-pink-50 border-pink-200 hover:bg-pink-100' },
@@ -181,28 +180,21 @@ function NotePageContent() {
       setMetadata(metadataData);
       setProgress(33);
 
-      // Step 2: Extract transcript (66%) - 서버 실패 시 클라이언트 fallback
+      // Step 2: Extract transcript (66%)
       setProgressMessage('자막을 분석하는 중...');
 
-      let transcriptData;
       const transcriptResponse = await fetch('/api/youtube/transcript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoId })
       });
 
-      if (transcriptResponse.ok) {
-        transcriptData = await transcriptResponse.json();
-      } else {
-        console.log('서버 자막 추출 실패, 클라이언트 fallback 시도...');
-        setProgressMessage('서버 추출 실패, 브라우저에서 직접 추출 중...');
-        try {
-          transcriptData = await fetchTranscriptClient(videoId);
-        } catch (clientError) {
-          throw new Error('자막을 가져올 수 없습니다. 자막이 없는 영상이거나 접근이 제한된 영상입니다.');
-        }
+      if (!transcriptResponse.ok) {
+        const errorData = await transcriptResponse.json();
+        throw new Error(errorData.details || errorData.error || '자막을 가져올 수 없습니다.');
       }
 
+      const transcriptData = await transcriptResponse.json();
       setTranscript(transcriptData);
       setProgress(66);
 
@@ -240,7 +232,8 @@ function NotePageContent() {
       }
 
       const noteData = await noteResponse.json();
-      setGeneratedNote(noteData.note);
+      const newNote = noteData.note as GeneratedNote;
+      setGeneratedNote(newNote);
       setProgress(100);
       setProgressMessage('완료!');
 
@@ -250,7 +243,7 @@ function NotePageContent() {
         // saveMode에 따라 자동 처리
         if (saveMode === 'download') {
           // 자동 다운로드
-          handleDownload();
+          handleDownload(newNote, metadataData);
         }
         // firebase 모드는 result 탭에서 저장 버튼 제공
       }, 500);
@@ -263,11 +256,14 @@ function NotePageContent() {
     }
   };
 
-  const handleDownload = async () => {
-    if (!generatedNote || !metadata) return;
+  const handleDownload = async (
+    note: GeneratedNote | null = generatedNote,
+    noteMetadata: Metadata | null = metadata
+  ) => {
+    if (!note || !noteMetadata) return;
 
-    const markdownContent = generateMarkdownContent();
-    const fileName = `${metadata.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_학습노트.md`;
+    const markdownContent = generateMarkdownContent(note, noteMetadata);
+    const fileName = `${noteMetadata.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_학습노트.md`;
 
     // File System Access API 지원 여부 확인
     if ('showSaveFilePicker' in window) {
@@ -314,40 +310,43 @@ function NotePageContent() {
     URL.revokeObjectURL(url);
   };
 
-  const generateMarkdownContent = (): string => {
-    if (!metadata || !generatedNote) return '';
+  const generateMarkdownContent = (
+    note: GeneratedNote | null = generatedNote,
+    noteMetadata: Metadata | null = metadata
+  ): string => {
+    if (!noteMetadata || !note) return '';
 
     const videoId = extractVideoId(youtubeUrl);
 
     let markdown = `---
-title: ${metadata.title}
+title: ${noteMetadata.title}
 created: ${new Date().toISOString().split('T')[0]}
 category: 300-Creator/320-LectureContent
 type: YouTube분석노트
 status: 완료
 source: YouTube
 video_url: ${youtubeUrl}
-channel: ${metadata.channelTitle}
-duration: ${metadata.duration}
+channel: ${noteMetadata.channelTitle}
+duration: ${noteMetadata.duration}
 age_group: ${ageGroup}
 method: ${method}
 ---
 
-# ${metadata.title}
+# ${noteMetadata.title}
 
 ## 🎬 메타데이터 헤더
 - **학습일**: ${new Date().toISOString().split('T')[0]}
-- **핵심 주제**: ${metadata.title}
-- **영상 길이**: ${metadata.duration}
+- **핵심 주제**: ${noteMetadata.title}
+- **영상 길이**: ${noteMetadata.duration}
 - **난이도**: ${ageGroup}
 - **학습 방법**: ${method}
 
 ## 🎥 전체 영상 임베드 + 전체 요약
 
-<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" title="${metadata.title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" title="${noteMetadata.title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ### 📋 전체 요약
-${generatedNote.fullSummary}
+${note.fullSummary}
 
 ## 📑 상세 목차 테이블 (타임스탬프 기반)
 
@@ -355,7 +354,7 @@ ${generatedNote.fullSummary}
 |------|-----------|-----------|
 `;
 
-    generatedNote.segments.forEach(segment => {
+    note.segments.forEach(segment => {
       const startTime = formatTime(segment.start);
       const endTime = formatTime(segment.end);
       markdown += `| ${startTime}-${endTime} | ${segment.title} | ${segment.summary} |\n`;
@@ -364,7 +363,7 @@ ${generatedNote.fullSummary}
     markdown += '\n';
 
     // 구간별 상세 내용
-    generatedNote.segments.forEach(segment => {
+    note.segments.forEach(segment => {
       const startSec = Math.floor(segment.start);
       const endSec = Math.floor(segment.end);
 
@@ -391,13 +390,13 @@ ${segment.examples.map(ex => `- ${ex}`).join('\n')}` : ''}
     markdown += `## 🎯 핵심 인사이트
 
 ### 📝 주요 배운 점
-${generatedNote.insights.mainTakeaways.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+${note.insights.mainTakeaways.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 
 ### 🤔 생각해볼 질문
-${generatedNote.insights.thinkingQuestions.map(q => `- ${q}`).join('\n')}
+${note.insights.thinkingQuestions.map(q => `- ${q}`).join('\n')}
 
-${generatedNote.insights.furtherReading.length > 0 ? `### 📚 더 알아보기
-${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
+${note.insights.furtherReading.length > 0 ? `### 📚 더 알아보기
+${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
 
 ---
 
@@ -1126,7 +1125,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                           )}
                         </Button>
                         <Button
-                          onClick={handleDownload}
+                          onClick={() => handleDownload()}
                           size="lg"
                           variant="outline"
                           className="border-red-600 text-red-600 hover:bg-red-50"
@@ -1201,7 +1200,7 @@ ${generatedNote.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         원하시면 다시 다운로드하거나 Firebase에 저장할 수도 있습니다.
                       </p>
                       <div className="flex gap-3">
-                        <Button onClick={handleDownload} size="lg" className="bg-red-600 hover:bg-red-700">
+                        <Button onClick={() => handleDownload()} size="lg" className="bg-red-600 hover:bg-red-700">
                           <Download className="w-5 h-5 mr-2" />
                           다시 다운로드
                         </Button>

@@ -159,7 +159,40 @@ export interface CornellSegment extends TimeSegment {
  */
 export interface MindMapNote extends BaseNote {
   method: 'Mind Map';
-  segments: MindMapSegment[];
+  centralConcept: {
+    label: string;
+    color: string;
+    icon: string;
+    description: string;
+  };
+  mainBranches: Array<{
+    id: string;
+    label: string;
+    color: string;
+    icon: string;
+    description: string;
+    subBranches: Array<{
+      id: string;
+      label: string;
+      color: string;
+      icon: string;
+      description: string;
+      details: string[];
+    }>;
+  }>;
+  connections: Array<{
+    fromNode: string;
+    toNode: string;
+    type: string;
+    label: string;
+  }>;
+  learningInsights: {
+    keyConcepts: string[];
+    memoryHooks: string[];
+    practicalApplication: string;
+    reviewSuggestion: string;
+  };
+  segments?: MindMapSegment[];
   globalMindMap?: MermaidDiagram;     // Integrated mind map for entire video
 }
 
@@ -440,6 +473,7 @@ export interface PromptEnhancementRequest {
     videoId: string;
     title: string;
     duration: number;
+    language?: 'ko' | 'en' | 'other';
     transcript?: string;            // 자막 샘플 (처음 500자)
   };
   enhancementGoal?: EnhancementGoal; // 향상 목표

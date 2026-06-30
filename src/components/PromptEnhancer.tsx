@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import type {
   PromptEnhancementRequest,
   PromptEnhancementResult,
-  EnhancementGoal
+  EnhancementGoal,
+  AgeGroup
 } from '@/types/enhanced-note';
 
 interface PromptEnhancerProps {
@@ -16,7 +17,7 @@ interface PromptEnhancerProps {
     duration: number;
     transcript?: string;
   };
-  targetAudience?: string;
+  targetAudience?: AgeGroup;
   className?: string;
 }
 

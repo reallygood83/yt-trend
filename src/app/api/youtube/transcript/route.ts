@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchTranscript } from 'youtube-transcript-plus';
-import { Innertube } from 'youtubei.js';
+import { ClientType, Innertube } from 'youtubei.js';
 
 // Force dynamic rendering for Vercel
 export const runtime = 'nodejs';
@@ -21,6 +21,68 @@ function extractVideoId(url: string): string | null {
   }
 
   return null;
+}
+
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+}
+
+async function fetchTranscriptWithFallback(videoId: string, lang: string) {
+  const langs = [...new Set([lang, lang === 'ko' ? 'en' : undefined, undefined])];
+  let lastError: unknown;
+
+  for (const candidateLang of langs) {
+    try {
+      return await fetchTranscript(
+        videoId,
+        candidateLang ? { lang: candidateLang } : undefined
+      );
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        `[Strategy 1] ${candidateLang || 'default'} 자막 실패:`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
+function parseTranscriptXml(xml: string) {
+  const segments: Array<{ text: string; start: number; duration: number }> = [];
+
+  for (const match of xml.matchAll(/<text[^>]*start="([^"]+)"[^>]*dur="([^"]+)"[^>]*>([\s\S]*?)<\/text>/g)) {
+    const text = decodeEntities(match[3].replace(/<[^>]+>/g, '').replace(/\n/g, ' ')).trim();
+    if (text) {
+      segments.push({
+        text,
+        start: Number(match[1]) || 0,
+        duration: Number(match[2]) || 0,
+      });
+    }
+  }
+
+  if (segments.length > 0) return segments;
+
+  for (const match of xml.matchAll(/<p t="(\d+)" d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g)) {
+    const text = decodeEntities(match[3].replace(/<[^>]+>/g, '').replace(/\n/g, ' ')).trim();
+    if (text) {
+      segments.push({
+        text,
+        start: Number(match[1]) / 1000,
+        duration: Number(match[2]) / 1000,
+      });
+    }
+  }
+
+  return segments;
 }
 
 export async function POST(request: NextRequest) {
@@ -53,19 +115,7 @@ export async function POST(request: NextRequest) {
     // 1️⃣ 전략 1: youtube-transcript-plus (가벼운 스크래핑)
     try {
       console.log('[Strategy 1] youtube-transcript-plus 시도...');
-      let transcript = await fetchTranscript(videoId, { lang });
-
-      // 언어 실패시 재시도 로직
-      if (!transcript || transcript.length === 0) {
-        if (lang === 'ko') {
-          console.log('한국어 실패 → 영어 시도');
-          transcript = await fetchTranscript(videoId, { lang: 'en' });
-        }
-        if (!transcript || transcript.length === 0) {
-          console.log('영어 실패 → 기본 언어 시도');
-          transcript = await fetchTranscript(videoId);
-        }
-      }
+      const transcript = await fetchTranscriptWithFallback(videoId, lang);
 
       if (transcript && transcript.length > 0) {
         segments = transcript.map((item: any) => ({
@@ -87,7 +137,7 @@ export async function POST(request: NextRequest) {
           lang: lang === 'ko' ? 'ko' : 'en',
           location: lang === 'ko' ? 'KR' : 'US',
           retrieve_player: false,
-          client_type: 'IOS', // 💡 중요: iOS로 위장하여 차단 우회 시도
+          client_type: ClientType.IOS, // 💡 중요: iOS로 위장하여 차단 우회 시도
         });
 
         const info = await youtube.getInfo(videoId);
@@ -143,24 +193,7 @@ export async function POST(request: NextRequest) {
             const captionRes = await fetch(track.baseUrl);
             if (captionRes.ok) {
               const xml = await captionRes.text();
-              const segRegex = new RegExp('<p t="(\\d+)" d="(\\d+)"[^>]*>(.*?)<\\/p>', 'gs');
-              const sRegex = /<s[^>]*>(.*?)<\/s>/g;
-              let m;
-              while ((m = segRegex.exec(xml)) !== null) {
-                const inner = m[3];
-                let text = '';
-                let sm;
-                while ((sm = sRegex.exec(inner)) !== null) { text += sm[1]; }
-                sRegex.lastIndex = 0;
-                if (!text) text = inner.replace(/<[^>]+>/g, '');
-                if (text.trim()) {
-                  segments.push({
-                    text: text.trim(),
-                    start: parseInt(m[1]) / 1000,
-                    duration: parseInt(m[2]) / 1000,
-                  });
-                }
-              }
+              segments = parseTranscriptXml(xml);
               if (segments.length > 0) usedMethod = 'innertube-android-direct';
             }
           }
