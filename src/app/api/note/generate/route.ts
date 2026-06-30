@@ -47,7 +47,7 @@ function parseJsonFromText(value: unknown) {
 
 function normalizeNoteData(parsed: any, rawText: string, metadata: any, transcript: any) {
   let source = parsed?.note || parsed;
-  const embeddedJson = parseJsonFromText(source?.fullSummary || source?.summary || source?.content || source);
+  const embeddedJson = parseJsonFromText(source?.fullSummary || source?.summary || source?.content || rawText || source);
   if (embeddedJson) {
     source = embeddedJson.note || embeddedJson;
   }
@@ -112,6 +112,11 @@ function normalizeNoteData(parsed: any, rawText: string, metadata: any, transcri
   }
   if (noteData.insights.mainTakeaways.length === 0) {
     noteData.insights.mainTakeaways = [noteData.fullSummary.substring(0, 180)];
+  }
+
+  const nestedSummaryJson = parseJsonFromText(noteData.fullSummary);
+  if (nestedSummaryJson) {
+    return normalizeNoteData(nestedSummaryJson, rawText, metadata, transcript);
   }
 
   return noteData;

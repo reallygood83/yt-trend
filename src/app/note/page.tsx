@@ -93,6 +93,33 @@ interface GeneratedNote {
   };
 }
 
+function parseJsonFromText(value: unknown) {
+  if (typeof value !== 'string') return null;
+
+  const jsonText = value
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  const firstBrace = jsonText.indexOf('{');
+  const lastBrace = jsonText.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1) return null;
+
+  try {
+    return JSON.parse(jsonText.slice(firstBrace, lastBrace + 1));
+  } catch {
+    return null;
+  }
+}
+
+function unwrapGeneratedNote(note: GeneratedNote): GeneratedNote {
+  const nested = parseJsonFromText(note.fullSummary);
+  return nested?.fullSummary && nested?.segments
+    ? nested as GeneratedNote
+    : note;
+}
+
 type TabValue = 'setup' | 'generating' | 'result';
 
 function NotePageContent() {
@@ -247,7 +274,7 @@ function NotePageContent() {
       }
 
       const noteData = await noteResponse.json();
-      const newNote = noteData.note as GeneratedNote;
+      const newNote = unwrapGeneratedNote(noteData.note as GeneratedNote);
       setGeneratedNote(newNote);
       setProgress(100);
       setProgressMessage('완료!');
