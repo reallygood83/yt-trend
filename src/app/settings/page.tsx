@@ -76,6 +76,12 @@ export default function SettingsPage() {
     setAIProvider(aiProvider, aiKey, aiModel);
     setValidating({ ...validating, ai: true });
 
+    const isValid = await validateAIKey();
+    if (!isValid) {
+      setValidating({ ...validating, ai: false });
+      return;
+    }
+
     // 🔥 Firebase에 저장 (로그인된 경우)
     if (aiProvider === 'gemini') {
       await saveGeminiApiKey(aiKey, aiModel, userId || undefined);
@@ -85,7 +91,6 @@ export default function SettingsPage() {
       await saveOpenRouterApiKey(aiKey, aiModel, userId || undefined);
     }
 
-    await validateAIKey();
     setValidating({ ...validating, ai: false });
   };
 

@@ -24,10 +24,13 @@ export async function POST(request: NextRequest) {
     if (text && text.length > 0) {
       return NextResponse.json({ valid: true });
     } else {
-      return NextResponse.json({ 
-        valid: false, 
-        error: 'API 키가 유효하지 않거나 응답을 받을 수 없습니다.' 
-      });
+      return NextResponse.json(
+        {
+          valid: false,
+          error: 'API 키가 유효하지 않거나 응답을 받을 수 없습니다.'
+        },
+        { status: 400 }
+      );
     }
 
   } catch (error) {
@@ -37,20 +40,29 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
     
     if (errorMessage.includes('API_KEY_INVALID') || errorMessage.includes('invalid key')) {
-      return NextResponse.json({ 
-        valid: false, 
-        error: '유효하지 않은 Gemini API 키입니다.' 
-      });
+      return NextResponse.json(
+        {
+          valid: false,
+          error: '유효하지 않은 Gemini API 키입니다.'
+        },
+        { status: 400 }
+      );
     } else if (errorMessage.includes('quota')) {
-      return NextResponse.json({ 
-        valid: false, 
-        error: 'API 할당량이 초과되었습니다.' 
-      });
+      return NextResponse.json(
+        {
+          valid: false,
+          error: 'API 할당량이 초과되었습니다.'
+        },
+        { status: 429 }
+      );
     } else {
-      return NextResponse.json({ 
-        valid: false, 
-        error: 'Gemini API 키 검증에 실패했습니다.' 
-      });
+      return NextResponse.json(
+        {
+          valid: false,
+          error: 'Gemini API 키 검증에 실패했습니다.'
+        },
+        { status: 500 }
+      );
     }
   }
 }

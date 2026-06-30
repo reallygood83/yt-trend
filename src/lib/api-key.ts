@@ -379,11 +379,15 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
       console.log('✅ YouTube API 키가 Firebase에서 로드 및 검증되었습니다');
     }
 
-    // AI Provider 키 로드 (Gemini, xAI, OpenRouter)
+    // AI Provider 키 로드 (선택된 provider만)
     if (result.keys.ai) {
       const aiKeys = result.keys.ai;
+      const provider = result.selectedAIProvider as 'gemini' | 'xai' | 'openrouter' | undefined;
+      const selectedProvider = provider && aiKeys[provider]?.apiKey
+        ? provider
+        : (['gemini', 'xai', 'openrouter'] as const).find((candidate) => aiKeys[candidate]?.apiKey);
 
-      if (aiKeys.gemini?.apiKey) {
+      if (selectedProvider === 'gemini' && aiKeys.gemini?.apiKey) {
         const geminiKey = aiKeys.gemini.apiKey;
         const geminiModel = normalizeGeminiModel(aiKeys.gemini.model);
 
@@ -399,31 +403,43 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
         // Zustand 스토어에 저장 및 검증
         if (store) {
           store.setAIProvider('gemini', geminiKey, geminiModel);
-          await store.validateAIKey(); // 🔥 검증 완료까지 대기!
+          const isValid = await store.validateAIKey(); // 🔥 검증 완료까지 대기!
+          if (!isValid) {
+            console.error('❌ Gemini API 키 검증 실패. 설정 페이지에서 API 키를 다시 저장해주세요.');
+            return;
+          }
         }
 
         console.log('✅ Gemini API 키가 Firebase에서 로드 및 검증되었습니다');
       }
 
-      if (aiKeys.xai?.apiKey) {
+      if (selectedProvider === 'xai' && aiKeys.xai?.apiKey) {
         const xaiKey = aiKeys.xai.apiKey;
         const xaiModel = aiKeys.xai.model || 'grok-beta';
 
         if (store) {
           store.setAIProvider('xai', xaiKey, xaiModel);
-          await store.validateAIKey(); // 🔥 검증 완료까지 대기!
+          const isValid = await store.validateAIKey(); // 🔥 검증 완료까지 대기!
+          if (!isValid) {
+            console.error('❌ xAI API 키 검증 실패. 설정 페이지에서 API 키를 다시 저장해주세요.');
+            return;
+          }
         }
 
         console.log('✅ xAI API 키가 Firebase에서 로드 및 검증되었습니다');
       }
 
-      if (aiKeys.openrouter?.apiKey) {
+      if (selectedProvider === 'openrouter' && aiKeys.openrouter?.apiKey) {
         const orKey = aiKeys.openrouter.apiKey;
         const orModel = aiKeys.openrouter.model || 'anthropic/claude-3.5-sonnet';
 
         if (store) {
           store.setAIProvider('openrouter', orKey, orModel);
-          await store.validateAIKey(); // 🔥 검증 완료까지 대기!
+          const isValid = await store.validateAIKey(); // 🔥 검증 완료까지 대기!
+          if (!isValid) {
+            console.error('❌ OpenRouter API 키 검증 실패. 설정 페이지에서 API 키를 다시 저장해주세요.');
+            return;
+          }
         }
 
         console.log('✅ OpenRouter API 키가 Firebase에서 로드 및 검증되었습니다');

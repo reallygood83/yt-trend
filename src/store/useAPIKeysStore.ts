@@ -120,7 +120,8 @@ export const useAPIKeysStore = create<APIKeysState>()(
             }),
           });
 
-          const isValid = response.ok;
+          const result = await response.json().catch(() => ({ valid: false }));
+          const isValid = response.ok && result.valid === true;
 
           set({
             ai: {
