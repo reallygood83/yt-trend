@@ -582,13 +582,13 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-zinc-50">
       {/* 우측 상단 사용자 프로필 */}
       <div className="absolute top-4 right-4 z-10">
         <UserProfile />
       </div>
 
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto max-w-6xl px-4 py-6 md:px-6">
         {/* 삭제 모달 */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -651,14 +651,40 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
         )}
 
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-lg">
-              <BookOpen className="w-8 h-8 text-white" />
+        <div className="mb-6 rounded-2xl border border-zinc-200 bg-white p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.35)]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-red-600 p-3">
+                <BookOpen className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-red-600">YouTube Bank</p>
+                <h1 className="text-2xl font-bold tracking-tight text-zinc-950 md:text-3xl">
+                  YouTube 학습 노트 생성
+                </h1>
+                <p className="mt-1 text-sm text-zinc-600">
+                  영상 링크와 학습 조건만 정하면 구조화된 노트를 만듭니다
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">YouTube 학습 노트 생성</h1>
-              <p className="text-gray-600">YouTube 영상을 구조화된 학습 노트로 자동 변환합니다</p>
+            <div className="grid grid-cols-3 gap-2 text-center md:min-w-[360px]">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                <Youtube className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
+                <p className="text-xs text-zinc-500">입력</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-950">URL</p>
+              </div>
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                <Brain className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
+                <p className="text-xs text-zinc-500">분석</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-950">{ai.provider || 'AI'}</p>
+              </div>
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                <Download className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
+                <p className="text-xs text-zinc-500">저장</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-950">
+                  {saveMode === 'download' ? '파일' : '클라우드'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -676,7 +702,7 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
 
         {/* Main Tabs */}
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as TabValue)}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="mb-6 grid w-full grid-cols-3 rounded-xl border border-zinc-200 bg-white p-1">
             <TabsTrigger value="setup" disabled={currentTab === 'generating'}>
               <GraduationCap className="w-4 h-4 mr-2" />
               설정
@@ -692,12 +718,12 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
           </TabsList>
 
           {/* Setup Tab */}
-          <TabsContent value="setup" className="space-y-6">
-            <Card>
+          <TabsContent value="setup" className="space-y-5">
+            <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Youtube className="w-5 h-5 text-red-600" />
-                  YouTube URL
+                  영상 링크
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -709,18 +735,21 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     placeholder="https://www.youtube.com/watch?v=..."
                     value={youtubeUrl}
                     onChange={(e) => setYoutubeUrl(e.target.value)}
-                    className="mt-2"
+                    className="mt-2 h-12 rounded-xl border-zinc-300 bg-zinc-50 text-base focus-visible:ring-red-200"
                   />
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="mt-2 text-sm text-zinc-500">
                     분석하고 싶은 YouTube 영상의 URL을 입력하세요
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-zinc-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>🎯 학습 대상 연령</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-red-600" />
+                  학습 대상
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -728,15 +757,14 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     <button
                       key={group.value}
                       onClick={() => setAgeGroup(group.value)}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`rounded-xl border p-4 text-left transition-all ${
                         ageGroup === group.value
-                          ? 'border-red-600 bg-red-50 shadow-md scale-105'
-                          : group.color
+                          ? 'border-red-600 bg-red-50 shadow-sm'
+                          : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">{group.icon}</span>
-                        <span className="font-semibold text-sm">{group.label}</span>
+                        <span className="text-sm font-semibold text-zinc-950">{group.label}</span>
                       </div>
                     </button>
                   ))}
@@ -744,9 +772,12 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-zinc-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>📚 설명 방법</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-red-600" />
+                  설명 방법
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -754,17 +785,16 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     <button
                       key={m.value}
                       onClick={() => setMethod(m.value)}
-                      className={`p-4 rounded-lg border-2 transition-all text-left ${
+                      className={`rounded-xl border p-4 text-left transition-all ${
                         method === m.value
-                          ? 'border-red-600 bg-red-50 shadow-md'
-                          : m.color
+                          ? 'border-red-600 bg-red-50 shadow-sm'
+                          : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl">{m.icon}</span>
                         <div>
-                          <div className="font-semibold">{m.label}</div>
-                          <div className="text-sm text-gray-600 mt-1">{m.description}</div>
+                          <div className="font-semibold text-zinc-950">{m.label}</div>
+                          <div className="mt-1 text-sm text-zinc-600">{m.description}</div>
                         </div>
                       </div>
                     </button>
@@ -775,29 +805,29 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                 {method === 'Custom' && (
                   <div className="mt-6 space-y-3">
                     <Label htmlFor="custom-prompt" className="text-base font-semibold">
-                      ✏️ 커스텀 프롬프트 입력
+                      커스텀 프롬프트 입력
                     </Label>
                     <textarea
                       id="custom-prompt"
                       value={customPrompt}
                       onChange={(e) => setCustomPrompt(e.target.value)}
                       placeholder="원하는 노트 형식을 자유롭게 작성하세요. 예시:&#10;&#10;- 각 섹션마다 퀴즈 3개 포함&#10;- 실생활 예시를 많이 추가&#10;- 핵심 개념은 표로 정리&#10;- 복습을 위한 요약 카드 형식으로&#10;&#10;상세할수록 더 정확한 노트가 생성됩니다."
-                      className="w-full min-h-[200px] p-4 border-2 border-gray-300 rounded-lg resize-y focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all"
+                      className="min-h-[200px] w-full resize-y rounded-xl border border-zinc-300 bg-zinc-50 p-4 transition-all focus:border-red-500 focus:ring-2 focus:ring-red-200"
                       required={method === 'Custom'}
                     />
-                    <p className="text-sm text-gray-600">
-                      💡 <strong>팁:</strong> 구체적으로 작성할수록 원하는 형태의 노트를 얻을 수 있습니다.
+                    <p className="text-sm text-zinc-600">
+                      구체적으로 작성할수록 원하는 형태의 노트를 얻을 수 있습니다.
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-zinc-200 bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  🌐 노트 생성 언어
-                  <span className="text-sm font-normal text-red-600">* 필수 선택</span>
+                  <FileText className="h-5 w-5 text-red-600" />
+                  노트 언어
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -806,17 +836,16 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     <button
                       key={lang.value}
                       onClick={() => setNoteLanguage(lang.value as 'ko' | 'en')}
-                      className={`p-6 rounded-lg border-2 transition-all text-left ${
+                      className={`rounded-xl border p-5 text-left transition-all ${
                         noteLanguage === lang.value
-                          ? 'border-red-600 bg-red-50 shadow-md scale-105'
-                          : lang.color + ' hover:shadow-md'
+                          ? 'border-red-600 bg-red-50 shadow-sm'
+                          : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-start gap-4">
-                        <span className="text-4xl">{lang.icon}</span>
                         <div>
-                          <div className="font-bold text-lg mb-1">{lang.label}</div>
-                          <div className="text-sm text-gray-600">{lang.description}</div>
+                          <div className="mb-1 text-lg font-bold text-zinc-950">{lang.label}</div>
+                          <div className="text-sm text-zinc-600">{lang.description}</div>
                           {noteLanguage === lang.value && (
                             <div className="mt-2 text-red-600 font-semibold text-sm flex items-center gap-1">
                               <CheckCircle className="w-4 h-4" />
@@ -828,37 +857,39 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                     </button>
                   ))}
                 </div>
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    💡 <strong>자동 번역 기능:</strong> 영상의 원본 언어와 선택한 노트 언어가 다르면 자동으로 번역하여 노트를 생성합니다.
+                <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                  <p className="text-sm text-zinc-700">
+                    영상 원본 언어와 선택한 노트 언어가 다르면 자동으로 번역하여 노트를 생성합니다.
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-zinc-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>💾 저장 방식 선택</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Save className="h-5 w-5 text-red-600" />
+                  저장 방식
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     onClick={() => setSaveMode('download')}
-                    className={`p-6 rounded-lg border-2 transition-all text-left ${
+                    className={`rounded-xl border p-5 text-left transition-all ${
                       saveMode === 'download'
-                        ? 'border-red-600 bg-red-50 shadow-md'
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        ? 'border-red-600 bg-red-50 shadow-sm'
+                        : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-white'
                     }`}
                   >
                     <div className="flex items-start gap-4">
                       <Download className="w-8 h-8 text-red-600 flex-shrink-0" />
                       <div>
-                        <div className="font-bold text-lg mb-1">📥 로컬 다운로드</div>
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <p>• Markdown 파일로 다운로드</p>
-                          <p>• 제한 없이 무제한 생성</p>
-                          <p>• 내 컴퓨터에 직접 저장</p>
-                          <p className="text-red-600 font-semibold mt-2">✅ 추천: 개인 보관용</p>
+                        <div className="mb-1 text-lg font-bold text-zinc-950">로컬 다운로드</div>
+                        <div className="space-y-1 text-sm text-zinc-600">
+                          <p>Markdown 파일로 다운로드</p>
+                          <p>제한 없이 무제한 생성</p>
+                          <p className="mt-2 font-semibold text-red-600">개인 보관용 추천</p>
                         </div>
                       </div>
                     </div>
@@ -866,21 +897,20 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
 
                   <button
                     onClick={() => setSaveMode('firebase')}
-                    className={`p-6 rounded-lg border-2 transition-all text-left ${
+                    className={`rounded-xl border p-5 text-left transition-all ${
                       saveMode === 'firebase'
-                        ? 'border-red-600 bg-red-50 shadow-md'
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        ? 'border-red-600 bg-red-50 shadow-sm'
+                        : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-white'
                     }`}
                   >
                     <div className="flex items-start gap-4">
                       <Share2 className="w-8 h-8 text-green-600 flex-shrink-0" />
                       <div>
-                        <div className="font-bold text-lg mb-1">🔗 클라우드 저장 & 공유</div>
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <p>• 온라인에 저장하고 공유</p>
-                          <p>• 무료 계정 최대 3개까지</p>
-                          <p>• 링크로 다른 사람과 공유</p>
-                          <p className="text-green-600 font-semibold mt-2">✅ 추천: 팀/학급 공유용</p>
+                        <div className="mb-1 text-lg font-bold text-zinc-950">클라우드 저장 및 공유</div>
+                        <div className="space-y-1 text-sm text-zinc-600">
+                          <p>온라인에 저장하고 공유</p>
+                          <p>무료 계정 최대 3개까지</p>
+                          <p className="mt-2 font-semibold text-green-600">팀/학급 공유용 추천</p>
                         </div>
                       </div>
                     </div>
@@ -888,8 +918,8 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                 </div>
 
                 {saveMode === 'firebase' && userId && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-sm text-zinc-700">
                       {user?.isAnonymous ? (
                         <>💡 현재 익명 사용자로 로그인되어 있습니다. 노트는 이 기기에 최대 3개까지 저장됩니다.</>
                       ) : (
@@ -908,7 +938,7 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
               <Button
                 onClick={handleGenerate}
                 size="lg"
-                className="bg-red-600 hover:bg-red-700"
+                className="h-12 rounded-xl bg-red-600 px-6 text-base font-semibold hover:bg-red-700"
                 disabled={!youtubeUrl || !youtube.validated || !ai.validated}
               >
                 <Sparkles className="w-5 h-5 mr-2" />
