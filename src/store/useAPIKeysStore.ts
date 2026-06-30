@@ -30,6 +30,13 @@ interface APIKeysState {
   loadKeysFromFirestore: (userId: string) => Promise<void>;
 }
 
+function normalizeAIModel(provider: 'gemini' | 'xai' | 'openrouter', model: string | null | undefined) {
+  if (provider !== 'gemini') return model || null;
+  return model?.startsWith('gemini-2.5') || model?.startsWith('gemini-3')
+    ? model
+    : 'gemini-2.5-flash';
+}
+
 export const useAPIKeysStore = create<APIKeysState>()(
   persist(
     (set, get) => ({
@@ -58,7 +65,7 @@ export const useAPIKeysStore = create<APIKeysState>()(
           ai: {
             provider,
             apiKey: key,
-            model,
+            model: normalizeAIModel(provider, model),
             validated: false,
           },
         });
@@ -258,7 +265,7 @@ export const useAPIKeysStore = create<APIKeysState>()(
                   ai: {
                     provider,
                     apiKey: data.keys.ai[provider].apiKey,
-                    model: data.keys.ai[provider].model,
+                    model: normalizeAIModel(provider, data.keys.ai[provider].model),
                     validated: false,
                     lastValidated: data.keys.ai[provider].lastValidated,
                   },

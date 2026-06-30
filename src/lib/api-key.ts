@@ -12,6 +12,12 @@ const getStoreState = () => {
   return useAPIKeysStore.getState();
 };
 
+function normalizeGeminiModel(model: string | null | undefined) {
+  return model?.startsWith('gemini-2.5') || model?.startsWith('gemini-3')
+    ? model
+    : 'gemini-2.5-flash';
+}
+
 export async function saveApiKey(apiKey: string, userId?: string): Promise<void> {
   try {
     // 새로운 통합 스토어에 저장
@@ -150,10 +156,12 @@ export async function validateApiKey(apiKey: string): Promise<{ valid: boolean; 
 // Gemini API 키 관리 함수들
 export async function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2.5-flash', userId?: string): Promise<void> {
   try {
+    const geminiModel = normalizeGeminiModel(model);
+
     // 새로운 통합 스토어에 저장
     const store = getStoreState();
     if (store) {
-      store.setAIProvider('gemini', apiKey, model);
+      store.setAIProvider('gemini', apiKey, geminiModel);
       // 자동으로 검증도 수행
       store.validateAIKey();
     }
@@ -179,7 +187,7 @@ export async function saveGeminiApiKey(apiKey: string, model: string = 'gemini-2
             userId,
             keyType: 'gemini',
             apiKey,
-            model
+            model: geminiModel
           })
         });
 
@@ -377,7 +385,7 @@ export async function loadApiKeysFromFirebase(userId: string): Promise<void> {
 
       if (aiKeys.gemini?.apiKey) {
         const geminiKey = aiKeys.gemini.apiKey;
-        const geminiModel = aiKeys.gemini.model || 'gemini-2.5-flash';
+        const geminiModel = normalizeGeminiModel(aiKeys.gemini.model);
 
         // localStorage에 저장
         const encoded = btoa(geminiKey);

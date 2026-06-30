@@ -8,9 +8,16 @@ function getGeminiErrorMessage(errorData: any) {
   return errorData.error?.message || 'Unknown error';
 }
 
+function normalizeGeminiModel(model: string) {
+  return model.startsWith('gemini-2.5') || model.startsWith('gemini-3')
+    ? model
+    : 'gemini-2.5-flash';
+}
+
 // AI Provider Call Functions
 async function callGeminiAPI(apiKey: string, model: string, prompt: string, videoUrl?: string) {
   console.log('🚀 Gemini API 호출 시작...');
+  const geminiModel = normalizeGeminiModel(model);
 
   if (videoUrl) {
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
@@ -20,7 +27,7 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
         'x-goog-api-key': apiKey,
       },
       body: JSON.stringify({
-        model,
+        model: geminiModel,
         input: [
           { type: 'text', text: prompt },
           { type: 'video', uri: videoUrl },
@@ -53,7 +60,7 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

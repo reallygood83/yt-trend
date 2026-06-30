@@ -23,6 +23,13 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { encryptAPIKey } from '@/lib/encryption';
 
+function normalizeSavedModel(keyType: string, model: string | undefined) {
+  if (keyType !== 'gemini') return model;
+  return model?.startsWith('gemini-2.5') || model?.startsWith('gemini-3')
+    ? model
+    : 'gemini-2.5-flash';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -56,10 +63,11 @@ export async function POST(request: NextRequest) {
     const existingData = existingDoc.exists() ? existingDoc.data() : {};
 
     // 6. 암호화된 키 데이터 구조
+    const savedModel = normalizeSavedModel(keyType, model);
     const encryptedKeyData = {
       encryptedKey,
       type: keyType,
-      ...(model && { model }),
+      ...(savedModel && { model: savedModel }),
       validated: false, // 저장 시점에는 미검증
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),

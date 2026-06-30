@@ -12,6 +12,12 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { saveApiKey, saveGeminiApiKey, saveXAIApiKey, saveOpenRouterApiKey, loadApiKeysFromFirebase } from '@/lib/api-key';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+function normalizeGeminiModel(model: string | null | undefined) {
+  return model?.startsWith('gemini-2.5') || model?.startsWith('gemini-3')
+    ? model
+    : 'gemini-2.5-flash';
+}
+
 export default function SettingsPage() {
   const { t } = useLanguage();
   const { youtube, ai, setYouTubeKey, setAIProvider, validateYouTubeKey, validateAIKey } = useAPIKeysStore();
@@ -20,7 +26,9 @@ export default function SettingsPage() {
   const [youtubeKey, setYoutubeKeyLocal] = useState(youtube.apiKey || '');
   const [aiProvider, setAiProviderLocal] = useState<'gemini' | 'xai' | 'openrouter'>(ai.provider || 'gemini');
   const [aiKey, setAiKeyLocal] = useState(ai.apiKey || '');
-  const [aiModel, setAiModelLocal] = useState(ai.model || 'gemini-2.5-flash');
+  const [aiModel, setAiModelLocal] = useState(
+    ai.provider === 'gemini' ? normalizeGeminiModel(ai.model) : ai.model || 'gemini-2.5-flash'
+  );
 
   const [validating, setValidating] = useState({ youtube: false, ai: false });
   const [loading, setLoading] = useState(true);
@@ -50,7 +58,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setAiKeyLocal(ai.apiKey || '');
     setAiProviderLocal(ai.provider || 'gemini');
-    setAiModelLocal(ai.model || 'gemini-2.5-flash');
+    setAiModelLocal(ai.provider === 'gemini' ? normalizeGeminiModel(ai.model) : ai.model || 'gemini-2.5-flash');
   }, [ai]);
 
   const handleYouTubeSave = async () => {
@@ -84,9 +92,6 @@ export default function SettingsPage() {
   const geminiModels = [
     'gemini-2.5-flash',
     'gemini-2.5-pro',
-    'gemini-2.5-flash',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash',
   ];
 
   const xaiModels = [
@@ -114,8 +119,6 @@ export default function SettingsPage() {
 
     // Google Gemini Models (2025)
     'google/gemini-2.5-flash',
-    'google/gemini-2.0-flash-001',
-    'google/gemini-pro',
 
     // Other Popular Models
     'meta-llama/llama-3.1-70b-instruct',
