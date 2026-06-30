@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // AI Provider Call Functions
-async function callGeminiAPI(apiKey: string, model: string, prompt: string) {
+async function callGeminiAPI(apiKey: string, model: string, prompt: string, videoUrl?: string) {
   console.log('🚀 Gemini API 호출 시작...');
+
+  const parts: Array<Record<string, unknown>> = [{ text: prompt }];
+  if (videoUrl) {
+    parts.push({
+      file_data: {
+        file_uri: videoUrl,
+      },
+    });
+  }
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -10,7 +19,7 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: {
           temperature: 0.7,
           topK: 40,
@@ -170,7 +179,7 @@ function detectLanguage(text: string): 'ko' | 'en' | 'other' {
 
 export async function POST(request: NextRequest) {
   try {
-    const { provider, apiKey, model, metadata, transcript, ageGroup, method, customPrompt, noteLanguage, videoId } = await request.json();
+    const { provider, apiKey, model, metadata, transcript, ageGroup, method, customPrompt, noteLanguage, videoId, sourceUrl } = await request.json();
 
     if (!provider || !apiKey || !model) {
       return NextResponse.json(
@@ -179,7 +188,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!metadata || !transcript) {
+    const canUseGeminiVideoFallback = provider === 'gemini' && sourceUrl;
+
+    if (!metadata || (!transcript && !canUseGeminiVideoFallback)) {
       return NextResponse.json(
         { error: '영상 정보와 자막이 필요합니다' },
         { status: 400 }
@@ -201,7 +212,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 원본 영상 언어 감지
-    const videoLanguage = detectLanguage(transcript.full);
+    const hasTranscript = !!transcript?.full?.trim();
+    const videoLanguage = hasTranscript ? detectLanguage(transcript.full) : 'other';
     const needsTranslation = videoLanguage !== noteLanguage && videoLanguage !== 'other';
 
     // 번역 지시사항
@@ -216,6 +228,22 @@ export async function POST(request: NextRequest) {
       ? '모든 노트 내용은 한국어로 작성해주세요.'
       : 'Please write all note content in English.';
 
+    const transcriptSection = hasTranscript
+      ? `## 전체 자막 내용
+${transcript.full}
+
+## 타임스탬프별 자막 구간 정보 (전체 영상)
+${transcript.segments ? transcript.segments.map((seg: { start: number; text: string }) =>
+  `[${Math.floor(seg.start)}초] ${seg.text}`
+).join('\n') : ''}`
+      : `## 영상 입력
+자막 추출 API가 서버 환경에서 실패했습니다. 대신 이 요청에 첨부된 YouTube 영상 URL을 직접 분석하세요.
+
+## 중요
+- 영상의 음성, 화면, 제목, 흐름을 직접 이해해서 노트를 작성하세요.
+- 타임스탬프는 영상에서 파악한 흐름을 바탕으로 가능한 한 정확하게 추정하세요.
+- 영상 내용을 확인할 수 없으면 추측하지 말고 JSON의 summary에 확인 실패 이유를 명확히 적으세요.`;
+
     // Build structured prompt for AI
     const prompt = `# YouTube 학습 노트 생성 (구조화된 JSON 형식)
 
@@ -224,13 +252,7 @@ export async function POST(request: NextRequest) {
 - **채널**: ${metadata.channelTitle}
 - **길이**: ${metadata.duration}
 
-## 전체 자막 내용
-${transcript.full}
-
-## 타임스탬프별 자막 구간 정보 (전체 영상)
-${transcript.segments ? transcript.segments.map((seg: { start: number; text: string }) =>
-  `[${Math.floor(seg.start)}초] ${seg.text}`
-).join('\n') : ''}
+${transcriptSection}
 
 ## 요구사항
 
@@ -322,7 +344,7 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
 
     switch (provider) {
       case 'gemini':
-        aiResponse = await callGeminiAPI(apiKey, model, prompt);
+        aiResponse = await callGeminiAPI(apiKey, model, prompt, hasTranscript ? undefined : sourceUrl);
         break;
       case 'xai':
         aiResponse = await callXAIAPI(apiKey, model, prompt);
@@ -397,7 +419,7 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
         fullSummary: aiResponse.substring(0, 500),
         segments: [{
           start: 0,
-          end: Math.min(transcript.segments?.[transcript.segments.length - 1]?.start || 60, 600),
+          end: Math.min(transcript?.segments?.[transcript.segments.length - 1]?.start || 60, 600),
           title: metadata.title,
           summary: aiResponse.substring(0, 300),
           keyPoints: ['AI가 구조화된 응답을 생성하지 못했습니다.'],

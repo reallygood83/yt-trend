@@ -189,12 +189,26 @@ function NotePageContent() {
         body: JSON.stringify({ videoId })
       });
 
+      let transcriptData: Transcript & { method?: string; unavailable?: boolean; sourceUrl?: string };
       if (!transcriptResponse.ok) {
         const errorData = await transcriptResponse.json();
-        throw new Error(errorData.details || errorData.error || '자막을 가져올 수 없습니다.');
+        if (ai.provider !== 'gemini') {
+          throw new Error(errorData.details || errorData.error || '자막을 가져올 수 없습니다.');
+        }
+
+        console.warn('자막 추출 실패, Gemini YouTube URL 직접 분석 fallback 사용:', errorData);
+        transcriptData = {
+          full: '',
+          segments: [],
+          method: 'gemini-youtube-url',
+          unavailable: true,
+          sourceUrl: youtubeUrl
+        };
+        setProgressMessage('자막 대신 Gemini가 YouTube 영상을 직접 분석하는 중...');
+      } else {
+        transcriptData = await transcriptResponse.json();
       }
 
-      const transcriptData = await transcriptResponse.json();
       setTranscript(transcriptData);
       setProgress(66);
 
@@ -218,6 +232,7 @@ function NotePageContent() {
           model: ai.model,
           metadata: metadataData,
           transcript: transcriptData,
+          sourceUrl: transcriptData.unavailable ? youtubeUrl : undefined,
           ageGroup,
           method,
           customPrompt: method === 'Custom' ? customPrompt : undefined, // 커스텀 프롬프트 추가
