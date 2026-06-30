@@ -4,13 +4,44 @@ import { NextRequest, NextResponse } from 'next/server';
 async function callGeminiAPI(apiKey: string, model: string, prompt: string, videoUrl?: string) {
   console.log('🚀 Gemini API 호출 시작...');
 
-  const parts: Array<Record<string, unknown>> = [{ text: prompt }];
   if (videoUrl) {
-    parts.push({
-      file_data: {
-        file_uri: videoUrl,
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
       },
+      body: JSON.stringify({
+        model,
+        input: [
+          { type: 'text', text: prompt },
+          { type: 'video', uri: videoUrl },
+        ],
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ Gemini API 오류:', errorData);
+      throw new Error(`Gemini API Error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    const aiText =
+      data.output_text ||
+      data.outputText ||
+      data.steps
+        ?.flatMap((step: any) => step.content || [])
+        ?.map((part: any) => part.text || '')
+        ?.filter(Boolean)
+        ?.join('\n');
+
+    if (!aiText) {
+      throw new Error('Gemini API 응답에서 텍스트를 찾을 수 없습니다');
+    }
+
+    console.log('✅ Gemini YouTube URL 응답 길이:', aiText.length, '자');
+    return aiText;
   }
 
   const response = await fetch(
@@ -19,7 +50,7 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts }],
+        contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
           topK: 40,
