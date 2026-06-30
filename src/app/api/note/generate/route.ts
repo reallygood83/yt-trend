@@ -137,8 +137,8 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
       body: JSON.stringify({
         model: geminiModel,
         input: [
-          { type: 'text', text: prompt },
           { type: 'video', uri: videoUrl },
+          { type: 'text', text: prompt },
         ],
       }),
     });
@@ -381,10 +381,20 @@ export async function POST(request: NextRequest) {
         : `\n\n**Important: This video's subtitles are in ${videoLanguage === 'ko' ? 'Korean' : 'another language'}. Please translate all content to English when creating the notes.**`
       : '';
 
+    const targetLanguage = noteLanguage === 'ko' ? '한국어' : 'English';
+
     // 언어별 시스템 지시사항
     const languageInstruction = noteLanguage === 'ko'
-      ? '모든 노트 내용은 한국어로 작성해주세요.'
-      : 'Please write all note content in English.';
+      ? [
+        '모든 노트 내용은 반드시 한국어로 작성하세요.',
+        'JSON 키 이름은 지정된 영어 키를 유지하되, 모든 문자열 값(fullSummary, title, summary, keyPoints, examples, insights)은 한국어여야 합니다.',
+        '고유명사, 제품명, 인명, 원문 용어를 제외하고 영어 문장으로 답하지 마세요.',
+      ].join('\n')
+      : [
+        'Please write all note content in English.',
+        'Keep the JSON key names as specified, but every string value must be written in English.',
+        'Do not answer in Korean except for proper nouns or source terms that should remain unchanged.',
+      ].join('\n');
 
     const transcriptSection = hasTranscript
       ? `## 전체 자막 내용
@@ -414,7 +424,7 @@ ${transcriptSection}
 
 ## 요구사항
 
-### 0. 언어 설정: ${noteLanguage === 'ko' ? '한국어' : 'English'}
+### 0. 언어 설정: ${targetLanguage}
 ${languageInstruction}${translationInstruction}
 
 ### 1. 타겟 연령: ${ageGroup}
@@ -494,8 +504,11 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
          style A fill:#4F46E5,stroke:#312E81,stroke-width:3px,color:#fff` : ''}
 6. **실용성**: 추상적 개념보다 구체적 예시와 실천 방법 중심
 7. **JSON 형식 준수**: 반드시 위 JSON 구조 그대로 출력 (추가 설명 없이)
+8. **출력 언어 고정**: JSON의 모든 문자열 값은 반드시 ${targetLanguage}로 작성
 
-지금 바로 JSON 형식으로 학습 노트를 생성해주세요!`;
+${noteLanguage === 'ko'
+  ? '지금 바로 모든 문자열 값을 한국어로 작성한 JSON 학습 노트를 생성하세요.'
+  : 'Now generate the learning note as JSON with every string value written in English.'}`;
 
     // Call appropriate AI provider
     let aiResponse: string;
