@@ -29,8 +29,8 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
       body: JSON.stringify({
         model: geminiModel,
         input: [
-          { type: 'text', text: prompt },
           { type: 'video', uri: videoUrl },
+          { type: 'text', text: prompt },
         ],
       }),
     });
