@@ -14,6 +14,84 @@ function normalizeGeminiModel(model: string) {
     : 'gemini-2.5-flash';
 }
 
+function coerceStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => typeof item === 'string' ? item : JSON.stringify(item))
+      .filter(Boolean);
+  }
+
+  if (typeof value === 'string' && value.trim()) return [value.trim()];
+  return [];
+}
+
+function normalizeNoteData(parsed: any, rawText: string, metadata: any, transcript: any) {
+  const source = parsed?.note || parsed;
+  const rawObjectText = typeof source === 'object' ? JSON.stringify(source, null, 2) : rawText;
+  const fullSummary =
+    source?.fullSummary ||
+    source?.full_summary ||
+    source?.summary ||
+    source?.overallSummary ||
+    source?.전체요약 ||
+    source?.요약 ||
+    rawText.substring(0, 500);
+
+  const rawSegments =
+    source?.segments ||
+    source?.chapters ||
+    source?.sections ||
+    source?.timeline ||
+    source?.detailedTableOfContents ||
+    source?.상세목차 ||
+    [];
+
+  const segments = Array.isArray(rawSegments)
+    ? rawSegments.map((segment: any, index: number) => ({
+      start: Number(segment.start ?? segment.startTime ?? segment.time ?? index * 120) || 0,
+      end: Number(segment.end ?? segment.endTime ?? ((index + 1) * 120)) || ((index + 1) * 120),
+      title: segment.title || segment.heading || segment.name || segment.구간제목 || `${index + 1}구간`,
+      summary: segment.summary || segment.description || segment.content || segment.핵심내용 || JSON.stringify(segment),
+      keyPoints: coerceStringList(segment.keyPoints || segment.points || segment.takeaways || segment.핵심포인트),
+      examples: coerceStringList(segment.examples || segment.예시),
+      ...(segment.mermaidCode && { mermaidCode: segment.mermaidCode }),
+    }))
+    : [];
+
+  const insightsSource = source?.insights || source?.keyInsights || source?.핵심인사이트 || {};
+  const noteData = {
+    fullSummary,
+    segments: segments.length > 0 ? segments : [{
+      start: 0,
+      end: Math.min(transcript?.segments?.[transcript.segments.length - 1]?.start || 600, 600),
+      title: metadata.title,
+      summary: rawObjectText.substring(0, 700),
+      keyPoints: coerceStringList(source?.keyPoints || source?.mainTakeaways || source?.주요배운점).slice(0, 5),
+      examples: [],
+    }],
+    insights: {
+      mainTakeaways: coerceStringList(
+        insightsSource.mainTakeaways || source?.mainTakeaways || source?.takeaways || source?.주요배운점
+      ),
+      thinkingQuestions: coerceStringList(
+        insightsSource.thinkingQuestions || source?.thinkingQuestions || source?.questions || source?.생각해볼질문
+      ),
+      furtherReading: coerceStringList(
+        insightsSource.furtherReading || source?.furtherReading || source?.relatedTopics || source?.더알아보기
+      ),
+    },
+  };
+
+  if (!noteData.fullSummary?.trim()) {
+    noteData.fullSummary = rawObjectText.substring(0, 500);
+  }
+  if (noteData.insights.mainTakeaways.length === 0) {
+    noteData.insights.mainTakeaways = [noteData.fullSummary.substring(0, 180)];
+  }
+
+  return noteData;
+}
+
 // AI Provider Call Functions
 async function callGeminiAPI(apiKey: string, model: string, prompt: string, videoUrl?: string) {
   console.log('🚀 Gemini API 호출 시작...');
@@ -29,8 +107,8 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
       body: JSON.stringify({
         model: geminiModel,
         input: [
-          { type: 'video', uri: videoUrl },
           { type: 'text', text: prompt },
+          { type: 'video', uri: videoUrl },
         ],
       }),
     });
@@ -450,7 +528,7 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
         );
       }
 
-      noteData = JSON.parse(jsonString.trim());
+      noteData = normalizeNoteData(JSON.parse(jsonString.trim()), aiResponse, metadata, transcript);
       console.log('✅ JSON 파싱 성공!');
       console.log('📊 파싱된 데이터 구조:', {
         hasFullSummary: !!noteData.fullSummary,
