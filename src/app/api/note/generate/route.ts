@@ -234,9 +234,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const canUseGeminiVideoFallback = provider === 'gemini' && sourceUrl;
+    const hasTranscript = !!transcript?.full?.trim();
+    const fallbackVideoUrl =
+      sourceUrl ||
+      transcript?.sourceUrl ||
+      (videoId ? `https://www.youtube.com/watch?v=${videoId}` : undefined);
+    const canUseGeminiVideoFallback = provider === 'gemini' && fallbackVideoUrl;
 
-    if (!metadata || (!transcript && !canUseGeminiVideoFallback)) {
+    if (!metadata || (!hasTranscript && !canUseGeminiVideoFallback)) {
       return NextResponse.json(
         { error: '영상 정보와 자막이 필요합니다' },
         { status: 400 }
@@ -258,7 +263,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 원본 영상 언어 감지
-    const hasTranscript = !!transcript?.full?.trim();
     const videoLanguage = hasTranscript ? detectLanguage(transcript.full) : 'other';
     const needsTranslation = videoLanguage !== noteLanguage && videoLanguage !== 'other';
 
@@ -390,7 +394,7 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
 
     switch (provider) {
       case 'gemini':
-        aiResponse = await callGeminiAPI(apiKey, model, prompt, hasTranscript ? undefined : sourceUrl);
+        aiResponse = await callGeminiAPI(apiKey, model, prompt, hasTranscript ? undefined : fallbackVideoUrl);
         break;
       case 'xai':
         aiResponse = await callXAIAPI(apiKey, model, prompt);

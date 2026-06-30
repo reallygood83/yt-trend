@@ -441,7 +441,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (segments.length === 0) {
-      throw new Error('모든 방법으로 자막을 가져올 수 없습니다. 1) 자막이 없는 영상 2) 서버 IP 차단 가능성');
+      console.warn('⚠️ 자막 추출 실패, AI 영상 직접 분석 fallback으로 진행:', videoId);
+      return NextResponse.json({
+        full: '',
+        segments: [],
+        method: 'transcript-unavailable',
+        unavailable: true,
+        videoId,
+        sourceUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        details: '자막 추출이 서버 환경에서 실패했습니다. Gemini 사용 시 영상 URL 직접 분석으로 대체합니다.'
+      });
     }
 
     console.log(`✅ 성공 (${usedMethod}): ${segments.length}개 세그먼트`);
