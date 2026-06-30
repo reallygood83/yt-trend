@@ -40,7 +40,6 @@ export default function MyNotesPage() {
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false);
-  const [premiumLoading, setPremiumLoading] = useState(false);
 
   // Firebase 인증
   useEffect(() => {
@@ -61,7 +60,6 @@ export default function MyNotesPage() {
     if (!userId) return;
 
     const checkPremium = async () => {
-      setPremiumLoading(true);
       try {
         const response = await fetch(`/api/user/check-premium?userId=${userId}`);
         const data = await response.json();
@@ -69,8 +67,6 @@ export default function MyNotesPage() {
       } catch (err) {
         console.error('프리미엄 확인 오류:', err);
         setIsPremium(false);
-      } finally {
-        setPremiumLoading(false);
       }
     };
 
@@ -155,10 +151,10 @@ export default function MyNotesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-blue-600" />
-          <p className="text-gray-600">노트를 불러오는 중...</p>
+          <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-red-600" />
+          <p className="text-sm font-medium text-zinc-600">노트를 불러오는 중...</p>
         </div>
       </div>
     );
@@ -166,20 +162,20 @@ export default function MyNotesPage() {
 
   if (!userId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
+        <Card className="w-full max-w-md rounded-2xl border-zinc-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-6 h-6" />
+            <CardTitle className="flex items-center gap-2 text-zinc-950">
+              <AlertCircle className="h-5 w-5 text-red-600" />
               로그인 필요
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 mb-4">
+            <p className="mb-4 text-sm leading-6 text-zinc-600">
               저장된 노트를 보려면 먼저 노트를 생성해야 합니다.
             </p>
             <Link href="/note">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              <Button className="w-full rounded-xl bg-red-600 hover:bg-red-700">
                 <BookOpen className="w-4 h-4 mr-2" />
                 노트 생성하러 가기
               </Button>
@@ -191,27 +187,27 @@ export default function MyNotesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
+          <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between md:p-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-600 rounded-lg">
-                <BookOpen className="w-8 h-8 text-white" />
+              <div className="rounded-2xl bg-red-50 p-3 text-red-600">
+                <BookOpen className="h-7 w-7" />
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold text-gray-900">내 학습 노트</h1>
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-bold tracking-tight text-zinc-950 md:text-3xl">내 학습 노트</h1>
                   {isPremium && (
-                    <span className="px-3 py-1 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-sm font-bold rounded-full shadow-md">
-                      ✨ 프리미엄
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
+                      프리미엄
                     </span>
                   )}
                 </div>
-                <p className="text-gray-600">
+                <p className="text-sm text-zinc-600">
                   {isPremium ? (
-                    <span className="text-amber-600 font-semibold">무제한 노트 저장 가능 ✨</span>
+                    <span className="font-semibold text-amber-700">무제한 노트 저장 가능</span>
                   ) : (
                     `저장된 노트 ${notes.length}/3개`
                   )}
@@ -219,7 +215,7 @@ export default function MyNotesPage() {
               </div>
             </div>
             <Link href="/note">
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="rounded-xl bg-red-600 hover:bg-red-700">
                 <BookOpen className="w-4 h-4 mr-2" />
                 새 노트 만들기
               </Button>
@@ -227,7 +223,7 @@ export default function MyNotesPage() {
           </div>
 
           {error && (
-            <Card className="border-red-200 bg-red-50 mb-6">
+            <Card className="mb-6 rounded-2xl border-red-100 bg-red-50 shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 text-red-800">
                   <AlertCircle className="w-5 h-5" />
@@ -240,16 +236,16 @@ export default function MyNotesPage() {
 
         {/* 노트 목록 */}
         {notes.length === 0 ? (
-          <Card>
-            <CardContent className="pt-12 pb-12">
+          <Card className="rounded-2xl border-zinc-200 bg-white shadow-sm">
+            <CardContent className="pb-12 pt-12">
               <div className="text-center">
-                <FileText className="w-20 h-20 mx-auto mb-4 text-gray-400" />
-                <h2 className="text-xl font-bold mb-2 text-gray-700">저장된 노트가 없습니다</h2>
-                <p className="text-gray-600 mb-6">
+                <FileText className="mx-auto mb-4 h-16 w-16 text-zinc-300" />
+                <h2 className="mb-2 text-xl font-bold text-zinc-900">저장된 노트가 없습니다</h2>
+                <p className="mb-6 text-zinc-600">
                   YouTube 영상으로 첫 번째 학습 노트를 만들어보세요!
                 </p>
                 <Link href="/note">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="rounded-xl bg-red-600 hover:bg-red-700">
                     <BookOpen className="w-4 h-4 mr-2" />
                     노트 생성하러 가기
                   </Button>
@@ -258,19 +254,19 @@ export default function MyNotesPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             {notes.map((note) => (
-              <Card key={note.id} className="hover:shadow-lg transition-shadow">
+              <Card key={note.id} className="rounded-2xl border-zinc-200 bg-white shadow-sm transition-shadow hover:shadow-md">
                 <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* 왼쪽: 노트 정보 */}
                     <div className="lg:col-span-2 space-y-4">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-start gap-2">
-                          <Youtube className="w-5 h-5 text-red-600 mt-1 flex-shrink-0" />
+                        <h3 className="mb-2 flex items-start gap-2 text-xl font-bold text-zinc-950">
+                          <Youtube className="mt-1 h-5 w-5 flex-shrink-0 text-red-600" />
                           {note.metadata.title}
                         </h3>
-                        <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                        <div className="flex flex-wrap gap-2 text-sm text-zinc-600">
                           <span className="flex items-center gap-1">
                             <FileText className="w-4 h-4" />
                             {note.metadata.channelTitle}
@@ -279,31 +275,31 @@ export default function MyNotesPage() {
                             <Clock className="w-4 h-4" />
                             {note.metadata.duration}
                           </span>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-zinc-700">
                             {note.metadata.ageGroup}
                           </span>
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                          <span className="rounded-full border border-red-100 bg-red-50 px-2.5 py-1 text-red-700">
                             {note.metadata.method}
                           </span>
                         </div>
                       </div>
 
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <p className="text-sm text-gray-600 mb-1">📋 전체 요약</p>
-                        <p className="text-gray-800 line-clamp-3">
+                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                        <p className="mb-1 text-sm font-semibold text-zinc-700">전체 요약</p>
+                        <p className="line-clamp-3 leading-7 text-zinc-700">
                           {note.noteData.fullSummary}
                         </p>
                       </div>
 
-                      <div className="text-xs text-gray-500">
-                        💾 저장일: {new Date(note.createdAt).toLocaleString('ko-KR')}
+                      <div className="text-xs text-zinc-500">
+                        저장일: {new Date(note.createdAt).toLocaleString('ko-KR')}
                       </div>
                     </div>
 
                     {/* 오른쪽: 액션 버튼 */}
-                    <div className="flex lg:flex-col gap-3">
+                    <div className="flex gap-3 lg:flex-col">
                       <Link href={`/notes/share/${note.shareId}`} className="flex-1">
-                        <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
+                        <Button variant="outline" className="w-full rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-100">
                           <Eye className="w-4 h-4 mr-2" />
                           노트 보기
                         </Button>
@@ -312,7 +308,7 @@ export default function MyNotesPage() {
                       <Button
                         onClick={() => handleCopyShareLink(note.shareId)}
                         variant="outline"
-                        className="flex-1 border-green-600 text-green-600 hover:bg-green-50"
+                        className="flex-1 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                       >
                         {copiedShareId === note.shareId ? (
                           <>
@@ -333,7 +329,7 @@ export default function MyNotesPage() {
                         rel="noopener noreferrer"
                         className="flex-1"
                       >
-                        <Button variant="outline" className="w-full border-red-600 text-red-600 hover:bg-red-50">
+                        <Button variant="outline" className="w-full rounded-xl border-red-200 text-red-700 hover:bg-red-50">
                           <ExternalLink className="w-4 h-4 mr-2" />
                           원본 영상
                         </Button>
@@ -342,7 +338,7 @@ export default function MyNotesPage() {
                       <Button
                         onClick={() => handleDeleteNote(note.id)}
                         variant="destructive"
-                        className="flex-1"
+                        className="flex-1 rounded-xl"
                         disabled={deletingNoteId === note.id}
                       >
                         {deletingNoteId === note.id ? (
@@ -367,12 +363,12 @@ export default function MyNotesPage() {
 
         {/* 안내 메시지 */}
         {notes.length > 0 && (
-          <Card className="mt-6 bg-blue-50 border-blue-200">
+          <Card className="mt-6 rounded-2xl border-sky-100 bg-sky-50 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-1">💡 무료 계정 안내</p>
+                <AlertCircle className="mt-0.5 h-5 w-5 text-sky-700" />
+                <div className="text-sm text-sky-900">
+                  <p className="mb-1 font-semibold">무료 계정 안내</p>
                   <p>
                     무료 계정으로는 최대 3개의 노트를 클라우드에 저장할 수 있습니다.
                     더 많은 노트를 저장하려면 기존 노트를 삭제하거나, &ldquo;로컬 다운로드&rdquo; 모드를 사용하세요.

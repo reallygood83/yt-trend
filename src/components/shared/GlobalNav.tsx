@@ -15,11 +15,10 @@ export function GlobalNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
 
-  const isSetupComplete = youtube.validated && ai.validated;
   const isNoteEnabled = youtube.validated; // 학습 노트는 YouTube API만 있으면 사용 가능
 
   return (
-    <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
+    <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/95 shadow-sm backdrop-blur">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* 로고 */}
@@ -28,10 +27,10 @@ export function GlobalNav() {
               <LogoMark size={32} />
             </div>
             <div className="block">
-              <h1 className="font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent text-lg sm:text-xl">
+              <h1 className="text-lg font-bold text-zinc-950 sm:text-xl">
                 {t('brand.title')}
               </h1>
-              <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">{t('brand.subtitle')}</p>
+              <p className="text-[11px] leading-tight text-zinc-500 sm:text-xs">{t('brand.subtitle')}</p>
             </div>
           </Link>
 
@@ -65,7 +64,7 @@ export function GlobalNav() {
 
             <div className="ml-4">
               <Link href="/settings">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="rounded-xl text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950">
                   <Settings className="w-4 h-4 mr-2" />
                   {t('nav.settings')}
                 </Button>
@@ -77,7 +76,7 @@ export function GlobalNav() {
               <Button
                 variant="outline"
                 size="sm"
-                className="px-2"
+                className="rounded-xl border-zinc-200 px-2 text-zinc-700 hover:bg-zinc-100"
                 onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
                 aria-label={language === 'ko' ? 'Switch to English' : '한국어로 전환'}
               >
@@ -89,19 +88,19 @@ export function GlobalNav() {
           {/* 모바일 메뉴 버튼 */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="rounded-xl p-2 transition-colors hover:bg-zinc-100 md:hidden"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-600" />
+              <X className="h-6 w-6 text-zinc-600" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-600" />
+              <Menu className="h-6 w-6 text-zinc-600" />
             )}
           </button>
         </div>
 
         {/* 모바일 메뉴 */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white pb-4">
+          <div className="border-t border-zinc-200 bg-white pb-4 md:hidden">
             <div className="px-2 py-3 space-y-1">
               <MobileNavLink
                 href="/"
@@ -134,7 +133,7 @@ export function GlobalNav() {
 
               <div className="pt-3">
                 <Link href="/settings" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                  <Button variant="ghost" size="sm" className="w-full justify-start rounded-xl text-zinc-600 hover:bg-zinc-100">
                     <Settings className="w-4 h-4 mr-2" />
                     {t('nav.settings')}
                   </Button>
@@ -146,7 +145,7 @@ export function GlobalNav() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full rounded-xl border-zinc-200"
                   onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
                 >
                   {language === 'ko' ? t('toggle.en') : t('toggle.ko')}
@@ -158,7 +157,7 @@ export function GlobalNav() {
 
         {/* API 키 미설정 경고 */}
         {!youtube.validated && pathname !== '/settings' && (
-          <div className="py-2 px-4 bg-amber-50 border-t border-amber-200 flex items-center gap-2 text-sm text-amber-800">
+          <div className="flex items-center gap-2 border-t border-amber-100 bg-amber-50 px-4 py-2 text-sm text-amber-800">
             <AlertTriangle className="w-4 h-4" />
             <span>{t('banner.youtube_missing')}</span>
             <Link href="/settings" className="underline font-semibold ml-2">
@@ -167,7 +166,7 @@ export function GlobalNav() {
           </div>
         )}
         {youtube.validated && !ai.validated && pathname !== '/settings' && (
-          <div className="py-2 px-4 bg-blue-50 border-t border-blue-200 flex items-center gap-2 text-sm text-blue-800">
+          <div className="flex items-center gap-2 border-t border-sky-100 bg-sky-50 px-4 py-2 text-sm text-sky-800">
             <AlertTriangle className="w-4 h-4" />
             <span>{t('banner.ai_missing')}</span>
             <Link href="/settings" className="underline font-semibold ml-2">
@@ -193,7 +192,7 @@ function NavLink({ href, active, icon, children, disabled }: NavLinkProps) {
     return (
       <button
         disabled
-        className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-400 cursor-not-allowed"
+        className="flex cursor-not-allowed items-center gap-2 rounded-xl px-4 py-2 text-zinc-400"
       >
         {icon}
         {children}
@@ -204,10 +203,10 @@ function NavLink({ href, active, icon, children, disabled }: NavLinkProps) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+      className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
         active
-          ? 'bg-red-50 text-red-600 border border-red-200'
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          ? 'border border-red-100 bg-red-50 text-red-700'
+          : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950'
       }`}
     >
       {icon}
@@ -225,7 +224,7 @@ function MobileNavLink({ href, active, icon, children, disabled, onClick }: Mobi
     return (
       <button
         disabled
-        className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 cursor-not-allowed w-full"
+        className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-4 py-3 text-zinc-400"
       >
         {icon}
         <span>{children}</span>
@@ -237,10 +236,10 @@ function MobileNavLink({ href, active, icon, children, disabled, onClick }: Mobi
     <Link
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
         active
-          ? 'bg-red-50 text-red-600 border border-red-200'
-          : 'text-gray-600 hover:bg-gray-50'
+          ? 'border border-red-100 bg-red-50 text-red-700'
+          : 'text-zinc-600 hover:bg-zinc-100'
       }`}
     >
       {icon}
