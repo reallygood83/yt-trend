@@ -5,6 +5,7 @@ import { ClientType, Innertube } from 'youtubei.js';
 // Force dynamic rendering for Vercel
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const preferredRegion = ['icn1', 'hnd1', 'sin1'];
 
 // YouTube Video ID 추출 함수
 function extractVideoId(url: string): string | null {
