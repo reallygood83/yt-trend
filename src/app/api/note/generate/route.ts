@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function getGeminiErrorMessage(errorData: any) {
+  if (Array.isArray(errorData)) {
+    return errorData[0]?.error?.message || 'Unknown error';
+  }
+
+  return errorData.error?.message || 'Unknown error';
+}
+
 // AI Provider Call Functions
 async function callGeminiAPI(apiKey: string, model: string, prompt: string, videoUrl?: string) {
   console.log('🚀 Gemini API 호출 시작...');
@@ -23,7 +31,7 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
     if (!response.ok) {
       const errorData = await response.json();
       console.error('❌ Gemini API 오류:', errorData);
-      throw new Error(`Gemini API Error: ${errorData.error?.message || 'Unknown error'}`);
+      throw new Error(`Gemini API Error: ${getGeminiErrorMessage(errorData)}`);
     }
 
     const data = await response.json();
@@ -65,7 +73,7 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
   if (!response.ok) {
     const errorData = await response.json();
     console.error('❌ Gemini API 오류:', errorData);
-    throw new Error(`Gemini API Error: ${errorData.error?.message || 'Unknown error'}`);
+    throw new Error(`Gemini API Error: ${getGeminiErrorMessage(errorData)}`);
   }
 
   const data = await response.json();
