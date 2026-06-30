@@ -14,7 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Loader2, Download, Youtube, BookOpen, Sparkles,
   CheckCircle, GraduationCap, Brain, AlertCircle,
-  Clock, PlayCircle, FileText, Lightbulb, Save, Share2, Trash2
+  Clock, FileText, Lightbulb, Save, Share2, Trash2
 } from 'lucide-react';
 import { MindMap } from '@/components/MindMap';
 
@@ -93,6 +93,25 @@ interface GeneratedNote {
   };
 }
 
+type SaveFilePickerOptions = {
+  suggestedName: string;
+  types: Array<{
+    description: string;
+    accept: Record<string, string[]>;
+  }>;
+};
+
+type SaveFileHandle = {
+  createWritable: () => Promise<{
+    write: (content: string) => Promise<void>;
+    close: () => Promise<void>;
+  }>;
+};
+
+type WindowWithSaveFilePicker = Window & {
+  showSaveFilePicker?: (options: SaveFilePickerOptions) => Promise<SaveFileHandle>;
+};
+
 function parseJsonFromText(value: unknown) {
   if (typeof value !== 'string') return null;
 
@@ -139,7 +158,6 @@ function NotePageContent() {
 
   // Result state
   const [metadata, setMetadata] = useState<Metadata | null>(null);
-  const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [generatedNote, setGeneratedNote] = useState<GeneratedNote | null>(null);
   const [error, setError] = useState('');
 
@@ -236,7 +254,6 @@ function NotePageContent() {
         transcriptData = await transcriptResponse.json();
       }
 
-      setTranscript(transcriptData);
       setProgress(66);
 
       // Step 3: Generate structured note with AI (100%)
@@ -308,10 +325,12 @@ function NotePageContent() {
     const fileName = `${noteMetadata.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_학습노트.md`;
 
     // File System Access API 지원 여부 확인
-    if ('showSaveFilePicker' in window) {
+    const showSaveFilePicker = (window as WindowWithSaveFilePicker).showSaveFilePicker;
+
+    if (showSaveFilePicker) {
       try {
         // 사용자에게 저장 위치 선택 대화상자 표시
-        const handle = await (window as any).showSaveFilePicker({
+        const handle = await showSaveFilePicker({
           suggestedName: fileName,
           types: [{
             description: 'Markdown 파일',
@@ -538,6 +557,28 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const cleanDisplayText = (value: unknown, fallback: string): string => {
+    if (typeof value !== 'string') return fallback;
+
+    const cleaned = value
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+
+    return cleaned || fallback;
+  };
+
+  const safeList = (items: unknown, fallback: string[]): string[] => {
+    if (!Array.isArray(items)) return fallback;
+    const cleaned = items
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    return cleaned.length > 0 ? cleaned : fallback;
   };
 
   return (
@@ -895,48 +936,41 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
           <TabsContent value="result" className="space-y-6">
             {metadata && generatedNote && (
               <>
-                {/* 영상 정보 카드 */}
-                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Youtube className="w-4 h-4" /> 영상
-                        </p>
-                        <p className="font-bold text-sm mt-1">{metadata.title}</p>
+                <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.35)]">
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                    <div className="min-w-0">
+                      <p className="mb-2 flex items-center gap-2 text-sm font-medium text-red-600">
+                        <Youtube className="h-4 w-4" />
+                        생성된 학습 노트
+                      </p>
+                      <h2 className="break-keep text-2xl font-bold leading-tight text-zinc-950">
+                        {cleanDisplayText(metadata.title, 'YouTube 영상 학습 노트')}
+                      </h2>
+                      <p className="mt-2 text-sm text-zinc-600">{metadata.channelTitle}</p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center md:min-w-[360px]">
+                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                        <Clock className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
+                        <p className="text-xs text-zinc-500">길이</p>
+                        <p className="mt-1 text-sm font-semibold text-zinc-950">{metadata.duration}</p>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Clock className="w-4 h-4" /> 길이
-                        </p>
-                        <p className="font-bold mt-1">{metadata.duration}</p>
+                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                        <GraduationCap className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
+                        <p className="text-xs text-zinc-500">대상</p>
+                        <p className="mt-1 text-sm font-semibold text-zinc-950">{ageGroup}</p>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <GraduationCap className="w-4 h-4" /> 대상
-                        </p>
-                        <p className="font-bold mt-1">{ageGroup}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Brain className="w-4 h-4" /> 방법
-                        </p>
-                        <p className="font-bold text-sm mt-1">{method}</p>
+                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                        <Brain className="mx-auto mb-1 h-4 w-4 text-zinc-500" />
+                        <p className="text-xs text-zinc-500">방식</p>
+                        <p className="mt-1 truncate text-sm font-semibold text-zinc-950">{method}</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </section>
 
-                {/* 전체 영상 + 요약 */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <PlayCircle className="w-5 h-5 text-red-600" />
-                      전체 영상 + 전체 요약
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <section className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-950 shadow-sm">
+                    <div className="aspect-video">
                       <iframe
                         width="100%"
                         height="100%"
@@ -947,191 +981,180 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                         allowFullScreen
                       />
                     </div>
-                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                      <h3 className="font-semibold mb-2 flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        📋 전체 요약
-                      </h3>
-                      <p className="text-gray-700 leading-relaxed">{generatedNote.fullSummary}</p>
+                  </div>
+
+                  <aside className="rounded-2xl border border-red-100 bg-white p-6 shadow-sm lg:self-start">
+                    <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-red-600">
+                      <FileText className="h-4 w-4" />
+                      전체 요약
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* 타임스탬프 목차 테이블 */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
-                      📑 상세 목차 (타임스탬프 기반)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-gray-100 border-b-2 border-gray-300">
-                            <th className="p-3 text-left font-semibold">시간</th>
-                            <th className="p-3 text-left font-semibold">구간 제목</th>
-                            <th className="p-3 text-left font-semibold">핵심 내용</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {generatedNote.segments?.map((segment, idx) => (
-                            <tr key={idx} className="border-b border-gray-200 hover:bg-red-50">
-                              <td className="p-3 font-mono text-sm">
-                                {formatTime(segment.start)}-{formatTime(segment.end)}
-                              </td>
-                              <td className="p-3 font-semibold">{segment.title}</td>
-                              <td className="p-3 text-sm text-gray-700">{segment.summary}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 구간별 상세 내용 */}
-                {generatedNote.segments?.map((segment, idx) => (
-                  <Card key={idx}>
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                      <CardTitle className="flex items-center gap-2">
-                        📍 [{formatTime(segment.start)}-{formatTime(segment.end)}] {segment.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-4">
-                      {/* 구간 영상 임베드 */}
-                      <div>
-                        <h4 className="font-semibold mb-2 flex items-center gap-2">
-                          <PlayCircle className="w-4 h-4 text-red-600" />
-                          🎬 구간 영상 링크
-                        </h4>
-                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube.com/embed/${extractVideoId(youtubeUrl)}?start=${Math.floor(segment.start)}&end=${Math.floor(segment.end)}`}
-                            title={segment.title}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-
-                      {/* 핵심 내용 */}
-                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <h4 className="font-semibold mb-2">📝 핵심 내용</h4>
-                        <p className="text-gray-700 leading-relaxed">{segment.summary}</p>
-                      </div>
-
-                      {/* 주요 포인트 */}
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <h4 className="font-semibold mb-2 flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" />
-                          🔑 주요 포인트
-                        </h4>
-                        <ul className="space-y-1">
-                          {segment.keyPoints.map((point, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-green-600 mt-1">•</span>
-                              <span className="text-gray-700">{point}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* 쉬운 예시 */}
-                      {segment.examples.length > 0 && (
-                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                          <h4 className="font-semibold mb-2 flex items-center gap-2">
-                            <Lightbulb className="w-4 h-4" />
-                            💡 쉬운 예시
-                          </h4>
-                          <ul className="space-y-1">
-                            {segment.examples.map((example, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-purple-600 mt-1">•</span>
-                                <span className="text-gray-700">{example}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                    <p className="break-keep text-base leading-8 text-zinc-800">
+                      {cleanDisplayText(
+                        generatedNote.fullSummary,
+                        '영상 내용을 바탕으로 생성된 요약을 준비하지 못했습니다.'
                       )}
+                    </p>
+                  </aside>
+                </section>
 
-                      {/* 마인드맵 시각화 */}
-                      {segment.mermaidCode && (
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                          <h4 className="font-semibold mb-4 flex items-center gap-2">
-                            🗺️ 마인드맵 시각화
-                          </h4>
-                          <MindMap mermaidCode={segment.mermaidCode} id={`segment-${idx}`} />
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {/* 핵심 인사이트 */}
-                <Card>
-                  <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-yellow-600" />
-                      🎯 핵심 인사이트
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-6">
-                    {/* 주요 배운 점 */}
+                <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+                  <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
-                        📝 주요 배운 점
-                      </h3>
-                      <ol className="space-y-2">
-                        {generatedNote.insights?.mainTakeaways?.map((takeaway, i) => (
-                          <li key={i} className="flex gap-3">
-                            <span className="font-bold text-red-600">{i + 1}.</span>
-                            <span className="text-gray-800">{takeaway}</span>
+                      <p className="flex items-center gap-2 text-sm font-semibold text-red-600">
+                        <Clock className="h-4 w-4" />
+                        챕터 타임라인
+                      </p>
+                      <h3 className="mt-1 text-xl font-bold text-zinc-950">영상 흐름을 따라 읽는 학습 목차</h3>
+                    </div>
+                    <span className="rounded-full border border-zinc-200 px-3 py-1 text-sm text-zinc-600">
+                      {generatedNote.segments?.length || 0}개 구간
+                    </span>
+                  </div>
+
+                  {generatedNote.segments?.length ? (
+                    <div className="space-y-8 border-l border-zinc-200 pl-5 md:pl-8">
+                      {generatedNote.segments.map((segment, idx) => {
+                        const keyPoints = safeList(segment.keyPoints, ['이 구간의 핵심 포인트가 아직 정리되지 않았습니다.']);
+                        const examples = safeList(segment.examples, []);
+                        const segmentTitle = cleanDisplayText(segment.title, `구간 ${idx + 1}`);
+                        const segmentSummary = cleanDisplayText(segment.summary, '이 구간의 요약이 준비되지 않았습니다.');
+
+                        return (
+                          <article key={idx} className="relative">
+                            <span className="absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-red-600 shadow md:-left-[39px]" />
+                            <div className="mb-3 flex flex-wrap items-center gap-3">
+                              <span className="rounded-full bg-red-50 px-3 py-1 font-mono text-sm font-semibold text-red-700">
+                                {formatTime(segment.start)}-{formatTime(segment.end)}
+                              </span>
+                              <h4 className="text-lg font-bold text-zinc-950">{segmentTitle}</h4>
+                            </div>
+
+                            <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.75fr)]">
+                              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                                <p className="break-keep leading-7 text-zinc-800">{segmentSummary}</p>
+                                <div className="mt-4">
+                                  <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-700">
+                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                                    주요 포인트
+                                  </p>
+                                  <ul className="space-y-2">
+                                    {keyPoints.map((point, i) => (
+                                      <li key={i} className="flex gap-2 text-sm leading-6 text-zinc-700">
+                                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                        <span>{point}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+
+                                {examples.length > 0 && (
+                                  <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                    <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-800">
+                                      <Lightbulb className="h-4 w-4" />
+                                      쉬운 예시
+                                    </p>
+                                    <ul className="space-y-2">
+                                      {examples.map((example, i) => (
+                                        <li key={i} className="text-sm leading-6 text-amber-950">
+                                          {example}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="space-y-4">
+                                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-950">
+                                  <div className="aspect-video">
+                                    <iframe
+                                      width="100%"
+                                      height="100%"
+                                      src={`https://www.youtube.com/embed/${extractVideoId(youtubeUrl)}?start=${Math.floor(segment.start)}&end=${Math.floor(segment.end)}`}
+                                      title={segmentTitle}
+                                      frameBorder="0"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                      allowFullScreen
+                                    />
+                                  </div>
+                                </div>
+
+                                {segment.mermaidCode && (
+                                  <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                                    <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-900">
+                                      <BookOpen className="h-4 w-4" />
+                                      마인드맵
+                                    </p>
+                                    <MindMap mermaidCode={segment.mermaidCode} id={`segment-${idx}`} />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center text-zinc-600">
+                      구간별 목차가 생성되지 않았습니다. 전체 요약을 먼저 확인해주세요.
+                    </div>
+                  )}
+                </section>
+
+                <section className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                  <div className="border-b border-zinc-100 p-6">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-red-600">
+                      <Sparkles className="h-4 w-4" />
+                      핵심 인사이트
+                    </p>
+                    <h3 className="mt-1 text-xl font-bold text-zinc-950">노트 이후의 학습 행동</h3>
+                  </div>
+                  <div className="grid divide-y divide-zinc-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+                    <div className="p-6">
+                      <h4 className="mb-4 flex items-center gap-2 font-bold text-zinc-950">
+                        <FileText className="h-5 w-5 text-red-600" />
+                        주요 배운 점
+                      </h4>
+                      <ol className="space-y-3">
+                        {safeList(generatedNote.insights?.mainTakeaways, ['핵심 배운 점이 아직 정리되지 않았습니다.']).map((takeaway, i) => (
+                          <li key={i} className="flex gap-3 text-sm leading-6 text-zinc-700">
+                            <span className="font-semibold text-red-600">{i + 1}</span>
+                            <span>{takeaway}</span>
                           </li>
                         ))}
                       </ol>
                     </div>
 
-                    {/* 생각해볼 질문 */}
-                    <div>
-                      <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                        <Brain className="w-5 h-5" />
-                        🤔 생각해볼 질문
-                      </h3>
-                      <ul className="space-y-2">
-                        {generatedNote.insights?.thinkingQuestions?.map((question, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="text-indigo-600 mt-1">❓</span>
-                            <span className="text-gray-800">{question}</span>
+                    <div className="p-6">
+                      <h4 className="mb-4 flex items-center gap-2 font-bold text-zinc-950">
+                        <Brain className="h-5 w-5 text-indigo-600" />
+                        생각해볼 질문
+                      </h4>
+                      <ul className="space-y-3">
+                        {safeList(generatedNote.insights?.thinkingQuestions, ['영상 내용을 내 상황에 어떻게 적용할지 질문해보세요.']).map((question, i) => (
+                          <li key={i} className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-sm leading-6 text-indigo-950">
+                            {question}
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    {/* 더 알아보기 */}
-                    {generatedNote.insights?.furtherReading && generatedNote.insights.furtherReading.length > 0 && (
-                      <div>
-                        <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                          <BookOpen className="w-5 h-5" />
-                          📚 더 알아보기
-                        </h3>
-                        <ul className="space-y-2">
-                          {generatedNote.insights.furtherReading.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-green-600 mt-1">📖</span>
-                              <span className="text-gray-800">{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    <div className="p-6">
+                      <h4 className="mb-4 flex items-center gap-2 font-bold text-zinc-950">
+                        <BookOpen className="h-5 w-5 text-emerald-600" />
+                        더 알아보기
+                      </h4>
+                      <ul className="space-y-3">
+                        {safeList(generatedNote.insights?.furtherReading, ['관련 개념을 추가로 찾아보며 노트를 확장해보세요.']).map((item, i) => (
+                          <li key={i} className="flex gap-2 text-sm leading-6 text-zinc-700">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </section>
 
                 {/* 저장/공유 영역 */}
                 {saveMode === 'firebase' && !savedNoteId && (
