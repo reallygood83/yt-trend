@@ -92,6 +92,7 @@ export default function SettingsPage() {
   const geminiModels = [
     'gemini-2.5-flash',
     'gemini-2.5-pro',
+    'gemini-3.1-flash-lite',
   ];
 
   const xaiModels = [

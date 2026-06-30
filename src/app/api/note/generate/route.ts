@@ -25,8 +25,33 @@ function coerceStringList(value: unknown): string[] {
   return [];
 }
 
+function parseJsonFromText(value: unknown) {
+  if (typeof value !== 'string') return null;
+
+  const jsonText = value
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  const firstBrace = jsonText.indexOf('{');
+  const lastBrace = jsonText.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1) return null;
+
+  try {
+    return JSON.parse(jsonText.slice(firstBrace, lastBrace + 1));
+  } catch {
+    return null;
+  }
+}
+
 function normalizeNoteData(parsed: any, rawText: string, metadata: any, transcript: any) {
-  const source = parsed?.note || parsed;
+  let source = parsed?.note || parsed;
+  const embeddedJson = parseJsonFromText(source?.fullSummary || source?.summary || source?.content || source);
+  if (embeddedJson) {
+    source = embeddedJson.note || embeddedJson;
+  }
+
   const rawObjectText = typeof source === 'object' ? JSON.stringify(source, null, 2) : rawText;
   const fullSummary =
     source?.fullSummary ||
