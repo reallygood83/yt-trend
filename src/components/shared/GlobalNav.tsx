@@ -27,9 +27,9 @@ export function GlobalNav() {
               <LogoMark size={32} />
             </div>
             <div className="block">
-              <h1 className="text-lg font-bold text-zinc-950 sm:text-xl">
+              <p className="text-lg font-bold text-zinc-950 sm:text-xl">
                 {t('brand.title')}
-              </h1>
+              </p>
               <p className="text-[11px] leading-tight text-zinc-500 sm:text-xs">{t('brand.subtitle')}</p>
             </div>
           </Link>
@@ -157,19 +157,19 @@ export function GlobalNav() {
 
         {/* API 키 미설정 경고 */}
         {!youtube.validated && pathname !== '/settings' && (
-          <div className="flex items-center gap-2 border-t border-amber-100 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-            <AlertTriangle className="w-4 h-4" />
-            <span>{t('banner.youtube_missing')}</span>
-            <Link href="/settings" className="underline font-semibold ml-2">
+          <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 border-t border-amber-100 bg-amber-50 px-4 py-2 text-sm leading-5 text-amber-800 sm:flex sm:items-start">
+            <AlertTriangle className="mt-0.5 h-4 w-4" />
+            <span className="min-w-0 flex-1">{t('banner.youtube_missing')}</span>
+            <Link href="/settings" className="col-start-2 font-semibold underline sm:col-start-auto">
               {t('banner.goto_settings')}
             </Link>
           </div>
         )}
         {youtube.validated && !ai.validated && pathname !== '/settings' && (
-          <div className="flex items-center gap-2 border-t border-sky-100 bg-sky-50 px-4 py-2 text-sm text-sky-800">
-            <AlertTriangle className="w-4 h-4" />
-            <span>{t('banner.ai_missing')}</span>
-            <Link href="/settings" className="underline font-semibold ml-2">
+          <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 border-t border-sky-100 bg-sky-50 px-4 py-2 text-sm leading-5 text-sky-800 sm:flex sm:items-start">
+            <AlertTriangle className="mt-0.5 h-4 w-4" />
+            <span className="min-w-0 flex-1">{t('banner.ai_missing')}</span>
+            <Link href="/settings" className="col-start-2 font-semibold underline sm:col-start-auto">
               {t('banner.goto_settings')}
             </Link>
           </div>

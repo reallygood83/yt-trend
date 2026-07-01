@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Youtube, Sparkles, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
@@ -31,27 +31,27 @@ export default function RegisterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-blue-600" />
-          <p className="text-gray-600">로딩 중...</p>
+          <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-red-600" />
+          <p className="text-sm font-medium text-zinc-600">로딩 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
-      <Card className="max-w-md w-full">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
+      <Card className="w-full max-w-md border-zinc-200 shadow-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl">
-              <Youtube className="w-12 h-12 text-white" />
+            <div className="rounded-2xl bg-red-50 p-4 ring-1 ring-red-100">
+              <Youtube className="h-10 w-10 text-red-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold">
             YouTube 학습노트 무료 회원가입
-          </CardTitle>
+          </h1>
           <CardDescription className="text-base mt-2">
             Google 계정으로 간편하게 시작하세요
           </CardDescription>
@@ -61,28 +61,28 @@ export default function RegisterPage() {
           {/* 주요 기능 소개 */}
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
               <div>
-                <p className="font-semibold text-gray-900">AI 기반 학습노트 자동 생성</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-semibold text-zinc-900">AI 기반 학습노트 자동 생성</p>
+                <p className="text-sm text-zinc-600">
                   YouTube 영상을 분석하여 맞춤형 학습 자료 생성
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
               <div>
-                <p className="font-semibold text-gray-900">타임스탬프 기반 구간 학습</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-semibold text-zinc-900">타임스탬프 기반 구간 학습</p>
+                <p className="text-sm text-zinc-600">
                   중요한 부분만 골라서 반복 학습 가능
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
               <div>
-                <p className="font-semibold text-gray-900">클라우드 저장 및 공유</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-semibold text-zinc-900">클라우드 저장 및 공유</p>
+                <p className="text-sm text-zinc-600">
                   언제 어디서나 접근하고 다른 사람과 공유
                 </p>
               </div>
@@ -92,7 +92,7 @@ export default function RegisterPage() {
           {/* Google 로그인 버튼 */}
           <Button
             onClick={handleGoogleSignIn}
-            className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 h-12 text-base font-semibold"
+            className="h-12 w-full border border-zinc-300 bg-white text-base font-semibold text-zinc-900 hover:bg-zinc-50"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
@@ -116,19 +116,19 @@ export default function RegisterPage() {
           </Button>
 
           {/* 추가 정보 */}
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
+          <div className="border-t border-zinc-200 pt-4">
+            <p className="text-center text-sm text-zinc-600">
               이미 계정이 있으신가요?{' '}
-              <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link href="/auth/login" className="font-semibold text-red-700 hover:text-red-800">
                 로그인하기
               </Link>
             </p>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="rounded-lg border border-red-100 bg-red-50 p-4">
             <div className="flex items-start gap-2">
-              <Sparkles className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
+              <Sparkles className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+              <p className="text-sm text-zinc-700">
                 <span className="font-semibold">100% 무료</span>로 모든 기능을 이용하실 수 있습니다.
                 Google 계정만 있으면 바로 시작할 수 있어요!
               </p>

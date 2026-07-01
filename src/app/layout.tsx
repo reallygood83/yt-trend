@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://yt-trend.vercel.app'),
+  metadataBase: new URL('https://youtube.teaboard.link'),
   alternates: {
     canonical: '/',
     languages: {
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://yt-trend.vercel.app',
+    url: 'https://youtube.teaboard.link',
     title: 'YouTube Bank - YouTube 트렌드 분석 & 학습 노트 생성 도구',
     description: 'YouTube 데이터를 분석해 트렌드를 파악하고 AI로 학습 노트를 자동 생성·축적하는 솔루션',
     siteName: 'YouTube Bank',
@@ -117,11 +117,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' }
-  ],
-  colorScheme: 'light dark',
+  themeColor: '#ffffff',
+  colorScheme: 'light',
   viewportFit: 'cover'
 };
 
@@ -137,8 +134,13 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <AuthProvider>
+            <a href="#main-content" className="skip-link">
+              본문으로 바로가기
+            </a>
             <GlobalNav />
-            {children}
+            <main id="main-content" tabIndex={-1}>
+              {children}
+            </main>
           </AuthProvider>
         </LanguageProvider>
       </body>

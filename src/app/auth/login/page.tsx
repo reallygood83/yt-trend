@@ -3,9 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Youtube, LogIn } from 'lucide-react';
+import { Loader2, LogIn } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -31,27 +31,27 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-blue-600" />
-          <p className="text-gray-600">로딩 중...</p>
+          <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-red-600" />
+          <p className="text-sm font-medium text-zinc-600">로딩 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
-      <Card className="max-w-md w-full">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
+      <Card className="w-full max-w-md border-zinc-200 shadow-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl">
-              <LogIn className="w-12 h-12 text-white" />
+            <div className="rounded-2xl bg-red-50 p-4 ring-1 ring-red-100">
+              <LogIn className="h-10 w-10 text-red-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold">
             YouTube 학습노트 로그인
-          </CardTitle>
+          </h1>
           <CardDescription className="text-base mt-2">
             Google 계정으로 로그인하세요
           </CardDescription>
@@ -61,7 +61,7 @@ export default function LoginPage() {
           {/* Google 로그인 버튼 */}
           <Button
             onClick={handleGoogleSignIn}
-            className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 h-12 text-base font-semibold"
+            className="h-12 w-full border border-zinc-300 bg-white text-base font-semibold text-zinc-900 hover:bg-zinc-50"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
@@ -85,10 +85,10 @@ export default function LoginPage() {
           </Button>
 
           {/* 회원가입 링크 */}
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
+          <div className="border-t border-zinc-200 pt-4">
+            <p className="text-center text-sm text-zinc-600">
               계정이 없으신가요?{' '}
-              <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link href="/auth/register" className="font-semibold text-red-700 hover:text-red-800">
                 무료 회원가입하기
               </Link>
             </p>
@@ -98,7 +98,7 @@ export default function LoginPage() {
           <div className="text-center">
             <Link
               href="/"
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm text-zinc-500 transition-colors hover:text-zinc-700"
             >
               ← 홈으로 돌아가기
             </Link>

@@ -14,10 +14,10 @@ export function RequireAuth({ children }: RequireAuthProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-red-600" />
-          <p className="text-gray-600">로딩 중...</p>
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-red-600" />
+          <p className="text-sm font-medium text-zinc-600">로딩 중...</p>
         </div>
       </div>
     );

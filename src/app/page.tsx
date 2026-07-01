@@ -22,13 +22,12 @@ function MainApp() {
     setHasApiKey(false);
   };
 
-  // 로딩 상태
   if (hasApiKey === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-6"></div>
-          <p className="text-gray-600 text-lg">로딩 중...</p>
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-red-600" />
+          <p className="text-sm font-medium text-zinc-600">로딩 중...</p>
         </div>
       </div>
     );
