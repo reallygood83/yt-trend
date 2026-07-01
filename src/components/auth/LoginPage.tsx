@@ -128,6 +128,20 @@ export function LoginPage() {
                 </div>
               ))}
             </div>
+            <div className="mt-5 rounded-xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+              <p className="text-sm font-semibold text-emerald-100">{t('landing.quality_label')}</p>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs text-emerald-50">
+                {[t('landing.quality_1'), t('landing.quality_2'), t('landing.quality_3')].map((label) => (
+                  <span key={label} className="rounded-lg bg-white/10 px-2 py-2">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <p className="text-sm font-semibold text-white">{t('landing.result_label')}</p>
+              <p className="mt-2 text-sm leading-6 text-zinc-300">{t('landing.result_body')}</p>
+            </div>
           </div>
         </div>
       </section>
