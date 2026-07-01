@@ -1,11 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-function getGeminiErrorMessage(errorData: any) {
+type JsonRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function getField(value: unknown, key: string): unknown {
+  return isRecord(value) ? value[key] : undefined;
+}
+
+function firstField(value: unknown, keys: string[]): unknown {
+  for (const key of keys) {
+    const candidate = getField(value, key);
+    if (candidate !== undefined && candidate !== null && candidate !== '') return candidate;
+  }
+  return undefined;
+}
+
+function getGeminiErrorMessage(errorData: unknown) {
   if (Array.isArray(errorData)) {
-    return errorData[0]?.error?.message || 'Unknown error';
+    const firstError = getField(getField(errorData[0], 'error'), 'message');
+    return typeof firstError === 'string' ? firstError : 'Unknown error';
   }
 
-  return errorData.error?.message || 'Unknown error';
+  const message = getField(getField(errorData, 'error'), 'message');
+  return typeof message === 'string' ? message : 'Unknown error';
 }
 
 function normalizeGeminiModel(model: string) {
@@ -23,6 +43,14 @@ function coerceStringList(value: unknown): string[] {
 
   if (typeof value === 'string' && value.trim()) return [value.trim()];
   return [];
+}
+
+function firstString(value: unknown): string | undefined {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (Array.isArray(value)) {
+    return value.find((item): item is string => typeof item === 'string' && item.trim().length > 0)?.trim();
+  }
+  return undefined;
 }
 
 function parseJsonFromText(value: unknown) {
@@ -45,45 +73,100 @@ function parseJsonFromText(value: unknown) {
   }
 }
 
-function normalizeNoteData(parsed: any, rawText: string, metadata: any, transcript: any) {
-  let source = parsed?.note || parsed;
-  const embeddedJson = parseJsonFromText(source?.fullSummary || source?.summary || source?.content || rawText || source);
+function normalizeNoteData(
+  parsed: unknown,
+  rawText: string,
+  metadata: { title: string },
+  transcript: { segments?: Array<{ start?: number }> } | null
+) {
+  let source = firstField(parsed, ['note']) || parsed;
+  const embeddedJson = parseJsonFromText(
+    firstField(source, ['fullSummary', 'summary', 'content']) || rawText || source
+  );
   if (embeddedJson) {
-    source = embeddedJson.note || embeddedJson;
+    source = firstField(embeddedJson, ['note']) || embeddedJson;
   }
 
   const rawObjectText = typeof source === 'object' ? JSON.stringify(source, null, 2) : rawText;
   const fullSummary =
-    source?.fullSummary ||
-    source?.full_summary ||
-    source?.summary ||
-    source?.overallSummary ||
-    source?.전체요약 ||
-    source?.요약 ||
+    firstString(firstField(source, ['fullSummary', 'full_summary', 'summary', 'overallSummary', '전체요약', '요약'])) ||
     rawText.substring(0, 500);
 
   const rawSegments =
-    source?.segments ||
-    source?.chapters ||
-    source?.sections ||
-    source?.timeline ||
-    source?.detailedTableOfContents ||
-    source?.상세목차 ||
+    firstField(source, ['segments', 'chapters', 'sections', 'timeline', 'detailedTableOfContents', '상세목차']) ||
     [];
 
   const segments = Array.isArray(rawSegments)
-    ? rawSegments.map((segment: any, index: number) => ({
-      start: Number(segment.start ?? segment.startTime ?? segment.time ?? index * 120) || 0,
-      end: Number(segment.end ?? segment.endTime ?? ((index + 1) * 120)) || ((index + 1) * 120),
-      title: segment.title || segment.heading || segment.name || segment.구간제목 || `${index + 1}구간`,
-      summary: segment.summary || segment.description || segment.content || segment.핵심내용 || JSON.stringify(segment),
-      keyPoints: coerceStringList(segment.keyPoints || segment.points || segment.takeaways || segment.핵심포인트),
-      examples: coerceStringList(segment.examples || segment.예시),
-      ...(segment.mermaidCode && { mermaidCode: segment.mermaidCode }),
-    }))
+    ? rawSegments.map((segment: unknown, index: number) => {
+      const knowledgeGaps = coerceStringList(
+        firstField(segment, ['knowledgeGaps', 'difficultParts', 'gapQuestions', '이해점검질문', '이해빈틈'])
+      );
+      const coreConcept = firstString(firstField(segment, ['coreConcept', 'core_concept', 'fundamentalIdea', '핵심개념']));
+      const simpleExplanation = firstString(firstField(segment, ['simpleExplanation', 'simplifiedExplanation', 'simple_explanation', '쉬운설명']));
+      const everydayAnalogy = firstString(firstField(segment, ['everydayAnalogy', 'analogies', 'analogy', '일상비유']));
+      const selfExplanationTest = firstString(firstField(segment, ['selfExplanationTest', 'self_explanation_test', 'oneLineSummary', '자기설명테스트']));
+      const mermaidCode = firstString(getField(segment, 'mermaidCode'));
+      const learningObjective = firstString(firstField(segment, ['learningObjective', 'learningGoal', '학습목표']));
+      const methodExplanation = firstString(firstField(segment, ['methodExplanation', 'methodNote', '방법별설명']));
+      const checkQuestion = firstString(firstField(segment, ['checkQuestion', 'understandingCheck', '점검질문']));
+      const practiceTask = firstString(firstField(segment, ['practiceTask', 'reviewAction', '실천과제', '복습행동']));
+      const kidFriendlyExplanation = firstString(firstField(segment, ['kidFriendlyExplanation', 'eli5Explanation', '어린이설명']));
+      const familiarExample = firstString(firstField(segment, ['familiarExample', 'friendlyExample', '친숙한예시']));
+      const sayItBack = firstString(firstField(segment, ['sayItBack', 'repeatBackTask', '말해보기']));
+      const cueQuestion = firstString(firstField(segment, ['cueQuestion', 'cornellCue', '핵심질문']));
+      const noteBody = firstString(firstField(segment, ['noteBody', 'cornellNotes', '노트영역']));
+      const summarySentence = firstString(firstField(segment, ['summarySentence', 'cornellSummary', '요약문장']));
+      const centerConcept = firstString(firstField(segment, ['centerConcept', 'centralConcept', '중심개념']));
+      const branches = coerceStringList(firstField(segment, ['branches', 'mindMapBranches', '가지개념']));
+      const guidingQuestion = firstString(firstField(segment, ['guidingQuestion', 'socraticQuestion', '유도질문']));
+      const followUpQuestions = coerceStringList(firstField(segment, ['followUpQuestions', 'socraticFollowUps', '후속질문']));
+      const tentativeAnswer = firstString(firstField(segment, ['tentativeAnswer', 'possibleAnswer', '잠정답변']));
+      const analogySource = firstString(firstField(segment, ['analogySource', 'sourceAnalogy', '비유대상']));
+      const analogyMapping = coerceStringList(firstField(segment, ['analogyMapping', 'mapping', '비유대응']));
+      const analogyLimit = firstString(firstField(segment, ['analogyLimit', 'limitOfAnalogy', '비유한계']));
+      const storyScene = firstString(firstField(segment, ['storyScene', 'scene', '이야기장면']));
+      const storyConflict = firstString(firstField(segment, ['storyConflict', 'conflict', '문제상황']));
+      const storyLesson = firstString(firstField(segment, ['storyLesson', 'lesson', '교훈']));
+      const normalized = {
+        start: Number(firstField(segment, ['start', 'startTime', 'time']) ?? index * 120) || 0,
+        end: Number(firstField(segment, ['end', 'endTime']) ?? ((index + 1) * 120)) || ((index + 1) * 120),
+        title: firstString(firstField(segment, ['title', 'heading', 'name', '구간제목'])) || `${index + 1}구간`,
+        summary: firstString(firstField(segment, ['summary', 'description', 'content', '핵심내용'])) || JSON.stringify(segment),
+        keyPoints: coerceStringList(firstField(segment, ['keyPoints', 'points', 'takeaways', '핵심포인트'])),
+        examples: coerceStringList(firstField(segment, ['examples', '예시'])),
+        ...(learningObjective && { learningObjective }),
+        ...(methodExplanation && { methodExplanation }),
+        ...(checkQuestion && { checkQuestion }),
+        ...(practiceTask && { practiceTask }),
+        ...(mermaidCode && { mermaidCode }),
+        ...(coreConcept && { coreConcept }),
+        ...(simpleExplanation && { simpleExplanation }),
+        ...(everydayAnalogy && { everydayAnalogy }),
+        ...(knowledgeGaps.length > 0 && { knowledgeGaps }),
+        ...(selfExplanationTest && { selfExplanationTest }),
+        ...(kidFriendlyExplanation && { kidFriendlyExplanation }),
+        ...(familiarExample && { familiarExample }),
+        ...(sayItBack && { sayItBack }),
+        ...(cueQuestion && { cueQuestion }),
+        ...(noteBody && { noteBody }),
+        ...(summarySentence && { summarySentence }),
+        ...(centerConcept && { centerConcept }),
+        ...(branches.length > 0 && { branches }),
+        ...(guidingQuestion && { guidingQuestion }),
+        ...(followUpQuestions.length > 0 && { followUpQuestions }),
+        ...(tentativeAnswer && { tentativeAnswer }),
+        ...(analogySource && { analogySource }),
+        ...(analogyMapping.length > 0 && { analogyMapping }),
+        ...(analogyLimit && { analogyLimit }),
+        ...(storyScene && { storyScene }),
+        ...(storyConflict && { storyConflict }),
+        ...(storyLesson && { storyLesson }),
+      };
+      return normalized;
+    })
     : [];
 
-  const insightsSource = source?.insights || source?.keyInsights || source?.핵심인사이트 || {};
+  const insightsSource = firstField(source, ['insights', 'keyInsights', '핵심인사이트']) || {};
   const noteData = {
     fullSummary,
     segments: segments.length > 0 ? segments : [{
@@ -91,18 +174,18 @@ function normalizeNoteData(parsed: any, rawText: string, metadata: any, transcri
       end: Math.min(transcript?.segments?.[transcript.segments.length - 1]?.start || 600, 600),
       title: metadata.title,
       summary: rawObjectText.substring(0, 700),
-      keyPoints: coerceStringList(source?.keyPoints || source?.mainTakeaways || source?.주요배운점).slice(0, 5),
+      keyPoints: coerceStringList(firstField(source, ['keyPoints', 'mainTakeaways', '주요배운점'])).slice(0, 5),
       examples: [],
     }],
     insights: {
       mainTakeaways: coerceStringList(
-        insightsSource.mainTakeaways || source?.mainTakeaways || source?.takeaways || source?.주요배운점
+        firstField(insightsSource, ['mainTakeaways']) || firstField(source, ['mainTakeaways', 'takeaways', '주요배운점'])
       ),
       thinkingQuestions: coerceStringList(
-        insightsSource.thinkingQuestions || source?.thinkingQuestions || source?.questions || source?.생각해볼질문
+        firstField(insightsSource, ['thinkingQuestions']) || firstField(source, ['thinkingQuestions', 'questions', '생각해볼질문'])
       ),
       furtherReading: coerceStringList(
-        insightsSource.furtherReading || source?.furtherReading || source?.relatedTopics || source?.더알아보기
+        firstField(insightsSource, ['furtherReading']) || firstField(source, ['furtherReading', 'relatedTopics', '더알아보기'])
       ),
     },
   };
@@ -154,8 +237,11 @@ async function callGeminiAPI(apiKey: string, model: string, prompt: string, vide
       data.output_text ||
       data.outputText ||
       data.steps
-        ?.flatMap((step: any) => step.content || [])
-        ?.map((part: any) => part.text || '')
+        ?.flatMap((step: unknown) => {
+          const content = getField(step, 'content');
+          return Array.isArray(content) ? content : [];
+        })
+        ?.map((part: unknown) => firstString(getField(part, 'text')) || '')
         ?.filter(Boolean)
         ?.join('\n');
 
@@ -315,6 +401,91 @@ const explanationMethods: Record<string, string> = {
 4. 교훈과 인사이트 도출`
 };
 
+function getExplanationMethodPrompt(method: string) {
+  return explanationMethods[method] || `${method} 방식의 목적에 맞게 설명 구조, 예시, 점검 질문을 다르게 설계해주세요.`;
+}
+
+function getMethodSpecificJsonFields(method: string) {
+  switch (method) {
+    case 'Feynman Technique':
+      return `"coreConcept": "이 구간에서 반드시 이해해야 할 가장 단순한 핵심 개념 1문장",
+      "simpleExplanation": "전문 용어 없이 친구에게 설명하듯 2-4문장으로 풀어쓰기",
+      "everydayAnalogy": "일상에서 바로 떠올릴 수 있는 구체적인 비유",
+      "knowledgeGaps": [
+        "내가 정말 이해했는지 확인하는 왜/어떻게 질문 1",
+        "설명하다 막힐 수 있는 빈틈 질문 2",
+        "다음 복습에서 먼저 확인해야 할 질문 3"
+      ],
+      "selfExplanationTest": "노트를 보지 않고 자기 말로 설명하고 다음 복습 행동을 정하는 과제"`;
+    case "ELI5 (Explain Like I'm 5)":
+      return `"kidFriendlyExplanation": "어린이도 이해할 수 있는 매우 쉬운 설명 2-3문장",
+      "familiarExample": "놀이, 간식, 가족, 학교생활처럼 친숙한 예시",
+      "sayItBack": "학습자가 한 문장으로 다시 말해보는 과제"`;
+    case 'Cornell Method':
+      return `"cueQuestion": "왼쪽 단서 영역에 들어갈 핵심 질문",
+      "noteBody": "오른쪽 노트 영역에 들어갈 핵심 설명과 근거",
+      "summarySentence": "아래 요약 영역에 들어갈 한 문장 정리"`;
+    case 'Mind Map':
+      return `"centerConcept": "마인드맵 중앙에 놓을 중심 개념",
+      "branches": [
+        "중심 개념에서 뻗는 첫 번째 가지",
+        "두 번째 가지",
+        "세 번째 가지"
+      ],
+      "mermaidCode": "graph TD\\n  A[중심주제]-->B[핵심개념1]\\n  A-->C[핵심개념2]\\n  B-->D[세부내용1]\\n  C-->E[세부내용2]"`;
+    case 'Socratic Method':
+      return `"guidingQuestion": "스스로 생각을 시작하게 하는 핵심 질문",
+      "followUpQuestions": [
+        "근거를 묻는 후속 질문",
+        "반례를 떠올리게 하는 질문",
+        "실천으로 연결하는 질문"
+      ],
+      "tentativeAnswer": "질문을 따라가면 도달할 수 있는 잠정 답변"`;
+    case 'Analogy':
+      return `"analogySource": "비교에 사용할 친숙한 대상",
+      "analogyMapping": [
+        "원래 개념의 요소 A = 비유 대상의 요소 A",
+        "원래 개념의 요소 B = 비유 대상의 요소 B"
+      ],
+      "analogyLimit": "이 비유가 더 이상 맞지 않는 지점"`;
+    case 'Storytelling':
+      return `"storyScene": "학습 내용을 이해시키는 짧은 장면 설정",
+      "storyConflict": "주인공이 마주한 문제 또는 갈등",
+      "storyLesson": "이야기 끝에서 남는 학습 교훈"`;
+    default:
+      return `"customMethodNote": "사용자가 입력한 방식에 맞춘 추가 학습 안내"`;
+  }
+}
+
+function getMethodSpecificInstructions(method: string) {
+  switch (method) {
+    case 'Feynman Technique':
+      return `   - coreConcept, simpleExplanation, everydayAnalogy, knowledgeGaps, selfExplanationTest를 모든 구간에 포함
+   - 모르는 사람에게 가르치듯 단순화하고, 설명하다 막히는 지점을 knowledgeGaps로 드러낼 것`;
+    case "ELI5 (Explain Like I'm 5)":
+      return `   - kidFriendlyExplanation, familiarExample, sayItBack을 모든 구간에 포함
+   - 추상어를 피하고, 짧은 문장과 친숙한 상황으로 설명할 것`;
+    case 'Cornell Method':
+      return `   - cueQuestion, noteBody, summarySentence를 모든 구간에 포함
+   - 질문-노트-요약 구조가 분명해야 하며, 복습할 때 질문만 보고 답을 떠올릴 수 있게 작성할 것`;
+    case 'Mind Map':
+      return `   - centerConcept, branches, mermaidCode를 모든 구간에 포함
+   - 중심 개념에서 하위 개념이 뻗는 관계가 보여야 하며 Mermaid는 graph TD 또는 graph LR로 작성할 것`;
+    case 'Socratic Method':
+      return `   - guidingQuestion, followUpQuestions, tentativeAnswer를 모든 구간에 포함
+   - 바로 답을 주기보다 근거, 반례, 적용을 묻는 질문 흐름으로 이해를 유도할 것`;
+    case 'Analogy':
+      return `   - analogySource, analogyMapping, analogyLimit을 모든 구간에 포함
+   - 친숙한 비유로 연결하되, 비유가 틀어지는 한계도 알려 오개념을 막을 것`;
+    case 'Storytelling':
+      return `   - storyScene, storyConflict, storyLesson을 모든 구간에 포함
+   - 장면, 문제, 해결, 교훈이 이어져 학습자가 내용을 기억할 수 있게 작성할 것`;
+    default:
+      return `   - methodExplanation, checkQuestion, practiceTask를 모든 구간에 포함
+   - 사용자가 입력한 설명 방식의 목적에 맞게 구간별 스타일을 분명히 다르게 적용할 것`;
+  }
+}
+
 // 언어 감지 함수 (간단한 휴리스틱)
 function detectLanguage(text: string): 'ko' | 'en' | 'other' {
   const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
@@ -382,12 +553,15 @@ export async function POST(request: NextRequest) {
       : '';
 
     const targetLanguage = noteLanguage === 'ko' ? '한국어' : 'English';
+    const explanationPrompt = method === 'Custom' ? customPrompt : getExplanationMethodPrompt(method);
+    const methodSpecificJsonFields = getMethodSpecificJsonFields(method);
+    const methodSpecificInstructions = getMethodSpecificInstructions(method);
 
     // 언어별 시스템 지시사항
     const languageInstruction = noteLanguage === 'ko'
       ? [
         '모든 노트 내용은 반드시 한국어로 작성하세요.',
-        'JSON 키 이름은 지정된 영어 키를 유지하되, 모든 문자열 값(fullSummary, title, summary, keyPoints, examples, insights)은 한국어여야 합니다.',
+        'JSON 키 이름은 지정된 영어 키를 유지하되, 모든 문자열 값은 한국어여야 합니다.',
         '고유명사, 제품명, 인명, 원문 용어를 제외하고 영어 문장으로 답하지 마세요.',
       ].join('\n')
       : [
@@ -431,7 +605,7 @@ ${languageInstruction}${translationInstruction}
 ${ageGroupStyles[ageGroup]}
 
 ### 2. 설명 방법: ${method === 'Custom' ? '커스텀 프롬프트' : method}
-${method === 'Custom' ? customPrompt : explanationMethods[method]}
+${explanationPrompt}
 
 ## 🎯 생성해야 할 JSON 구조
 
@@ -455,7 +629,11 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
         "${method}에 맞는 쉬운 예시 1",
         "실생활 비유 예시 2"
       ],
-      ${method === '마인드맵' ? `"mermaidCode": "graph TD\\n  A[중심주제]-->B[핵심개념1]\\n  A-->C[핵심개념2]\\n  B-->D[세부내용1-1]\\n  B-->E[세부내용1-2]\\n  C-->F[세부내용2-1]\\n  C-->G[세부내용2-2]\\n\\n  style A fill:#4F46E5,stroke:#312E81,stroke-width:3px,color:#fff\\n  style B fill:#10B981,stroke:#065F46,stroke-width:2px,color:#fff\\n  style C fill:#10B981,stroke:#065F46,stroke-width:2px,color:#fff\\n  style D fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff\\n  style E fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff\\n  style F fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff\\n  style G fill:#60A5FA,stroke:#1E40AF,stroke-width:1px,color:#fff",` : ''}
+      "learningObjective": "이 구간을 보고 최소한 무엇을 이해해야 하는지 1문장",
+      "methodExplanation": "${method} 방식에 맞춘 구간 설명",
+      "checkQuestion": "이해 여부를 확인하는 질문 1개",
+      "practiceTask": "다음 복습 또는 실천 행동 1개",
+      ${methodSpecificJsonFields}
     }
   ],
   "insights": {
@@ -487,24 +665,12 @@ ${method === 'Custom' ? customPrompt : explanationMethods[method]}
    - 예: 도입부 → 핵심 개념 1 → 핵심 개념 2 → 실전 예시 → 정리 (5개 구간)
 3. **타임스탬프 정확성**: start/end는 실제 자막 타임스탬프 기반으로 정확하게 (마지막 구간은 영상 끝까지)
 4. **연령 맞춤**: ${ageGroup}이 이해할 수 있는 어휘와 문장 길이
-5. **${method} 적용**: 모든 설명에 ${method} 방식 반영${method === '마인드맵' ? `
-   - **Mermaid 마인드맵 생성 규칙**:
-     * graph TD 또는 graph LR 구조 사용
-     * 노드는 [텍스트] 형식으로 작성
-     * 화살표로 연결: A-->B, A-->C
-     * 스타일링: style 노드명 fill:#색상코드,stroke:#테두리색,stroke-width:2px,color:#fff
-     * 중심주제 → 핵심개념 → 세부내용 3단계 구조
-     * 한국어로 명확하고 간결하게 작성
-     * 이스케이프 문자 사용 금지 (백슬래시는 \\\\n만 사용)
-     * 예시:
-       graph TD
-         A[중심주제]-->B[개념1]
-         A-->C[개념2]
-         B-->D[세부1]
-         style A fill:#4F46E5,stroke:#312E81,stroke-width:3px,color:#fff` : ''}
-6. **실용성**: 추상적 개념보다 구체적 예시와 실천 방법 중심
-7. **JSON 형식 준수**: 반드시 위 JSON 구조 그대로 출력 (추가 설명 없이)
-8. **출력 언어 고정**: JSON의 모든 문자열 값은 반드시 ${targetLanguage}로 작성
+5. **최소 완전학습 기준**: 각 구간은 학습자가 핵심 내용을 이해하고, 이해 빈틈을 질문으로 확인하고, 자기 말로 설명하거나 적용하고, 다음 복습 행동을 알 수 있게 작성
+6. **${method} 적용**: 모든 구간에 learningObjective, methodExplanation, checkQuestion, practiceTask를 포함하고 ${method} 방식의 고유 필드도 반드시 포함
+${methodSpecificInstructions}
+7. **실용성**: 추상적 개념보다 구체적 예시와 실천 방법 중심
+8. **JSON 형식 준수**: 반드시 위 JSON 구조 그대로 출력 (추가 설명 없이)
+9. **출력 언어 고정**: JSON의 모든 문자열 값은 반드시 ${targetLanguage}로 작성
 
 ${noteLanguage === 'ko'
   ? '지금 바로 모든 문자열 값을 한국어로 작성한 JSON 학습 노트를 생성하세요.'
@@ -585,7 +751,24 @@ ${noteLanguage === 'ko'
       console.error('AI 응답 (처음 500자):', aiResponse.substring(0, 500));
       console.error('JSON 문자열 (처음 500자):', jsonString.substring(0, 500));
 
-      // Fallback: create basic structure from raw text
+      const fallbackTexts = noteLanguage === 'ko'
+        ? {
+          keyPoint: 'AI 응답을 구조화하지 못해 원문 응답을 기준으로 임시 노트를 만들었습니다.',
+          learningObjective: '영상의 핵심 내용을 확인하고 다시 생성이 필요한지 판단합니다.',
+          methodExplanation: `${method} 방식으로 완성된 노트를 만들지 못했습니다. 아래 요약을 바탕으로 핵심을 먼저 파악하세요.`,
+          checkQuestion: '이 요약만 보고 영상의 핵심 주제를 한 문장으로 말할 수 있나요?',
+          practiceTask: 'API 응답이 안정되면 같은 영상으로 노트를 다시 생성하고, 부족한 구간을 직접 보완하세요.',
+          takeaway: '구조화된 노트를 생성하는 중 오류가 발생했습니다.',
+        }
+        : {
+          keyPoint: 'The AI response could not be structured, so a temporary note was created from the raw response.',
+          learningObjective: 'Identify the core idea of the video and decide whether the note should be regenerated.',
+          methodExplanation: `A complete ${method} note could not be produced. Use the summary below to capture the core idea first.`,
+          checkQuestion: 'Can you explain the main topic of the video in one sentence from this summary?',
+          practiceTask: 'Regenerate the note when the API response is stable, then fill any missing sections manually.',
+          takeaway: 'An error occurred while creating the structured note.',
+        };
+
       noteData = {
         fullSummary: aiResponse.substring(0, 500),
         segments: [{
@@ -593,12 +776,16 @@ ${noteLanguage === 'ko'
           end: Math.min(transcript?.segments?.[transcript.segments.length - 1]?.start || 60, 600),
           title: metadata.title,
           summary: aiResponse.substring(0, 300),
-          keyPoints: ['AI가 구조화된 응답을 생성하지 못했습니다.'],
-          examples: []
+          keyPoints: [fallbackTexts.keyPoint],
+          examples: [],
+          learningObjective: fallbackTexts.learningObjective,
+          methodExplanation: fallbackTexts.methodExplanation,
+          checkQuestion: fallbackTexts.checkQuestion,
+          practiceTask: fallbackTexts.practiceTask,
         }],
         insights: {
-          mainTakeaways: ['구조화된 노트를 생성하는 중 오류가 발생했습니다.'],
-          thinkingQuestions: [],
+          mainTakeaways: [fallbackTexts.takeaway],
+          thinkingQuestions: [fallbackTexts.checkQuestion],
           furtherReading: []
         }
       };

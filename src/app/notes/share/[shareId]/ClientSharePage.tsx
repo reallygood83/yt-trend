@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { MindMap } from '@/components/MindMap';
 
 interface NoteSegment {
   title: string;
@@ -19,12 +20,47 @@ interface NoteSegment {
   endTimestamp?: string;
   keyPoints?: string[];
   examples?: string[];
+  mermaidCode?: string;
+  learningObjective?: string;
+  methodExplanation?: string;
+  checkQuestion?: string;
+  practiceTask?: string;
+  coreConcept?: string;
+  simpleExplanation?: string;
+  everydayAnalogy?: string;
+  knowledgeGaps?: string[];
+  selfExplanationTest?: string;
+  kidFriendlyExplanation?: string;
+  familiarExample?: string;
+  sayItBack?: string;
+  cueQuestion?: string;
+  noteBody?: string;
+  summarySentence?: string;
+  centerConcept?: string;
+  branches?: string[];
+  guidingQuestion?: string;
+  followUpQuestions?: string[];
+  tentativeAnswer?: string;
+  analogySource?: string;
+  analogyMapping?: string[];
+  analogyLimit?: string;
+  storyScene?: string;
+  storyConflict?: string;
+  storyLesson?: string;
 }
+
+type NoteInsights =
+  | string[]
+  | {
+      mainTakeaways?: string[];
+      thinkingQuestions?: string[];
+      furtherReading?: string[];
+    };
 
 interface NoteData {
   fullSummary: string;
   segments: NoteSegment[];
-  insights?: string[];
+  insights?: NoteInsights;
   keyTakeaways?: string[];
 }
 
@@ -107,6 +143,40 @@ export default function ClientSharePage({ shareId }: { shareId: string }) {
     return `https://www.youtube.com/watch?v=${videoId}&t=${timeInSeconds}s`;
   };
 
+  const safeList = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      : [];
+
+  const getLearningAidSections = (segment: NoteSegment) => [
+    { label: '학습 목표', value: segment.learningObjective },
+    { label: '방법별 설명', value: segment.methodExplanation },
+    { label: '이해 점검', value: segment.checkQuestion },
+    { label: '다음 학습 행동', value: segment.practiceTask },
+    { label: '핵심 개념', value: segment.coreConcept },
+    { label: '쉬운 설명', value: segment.simpleExplanation },
+    { label: '일상 비유', value: segment.everydayAnalogy },
+    { label: '이해 빈틈 점검', items: safeList(segment.knowledgeGaps) },
+    { label: '자기 설명 테스트', value: segment.selfExplanationTest },
+    { label: '어린이 설명', value: segment.kidFriendlyExplanation },
+    { label: '친숙한 예시', value: segment.familiarExample },
+    { label: '다시 말해보기', value: segment.sayItBack },
+    { label: '코넬 핵심 질문', value: segment.cueQuestion },
+    { label: '코넬 노트', value: segment.noteBody },
+    { label: '코넬 요약', value: segment.summarySentence },
+    { label: '중심 개념', value: segment.centerConcept },
+    { label: '가지 개념', items: safeList(segment.branches) },
+    { label: '유도 질문', value: segment.guidingQuestion },
+    { label: '후속 질문', items: safeList(segment.followUpQuestions) },
+    { label: '잠정 답변', value: segment.tentativeAnswer },
+    { label: '비유 대상', value: segment.analogySource },
+    { label: '비유 대응', items: safeList(segment.analogyMapping) },
+    { label: '비유의 한계', value: segment.analogyLimit },
+    { label: '이야기 장면', value: segment.storyScene },
+    { label: '문제 상황', value: segment.storyConflict },
+    { label: '이야기 교훈', value: segment.storyLesson },
+  ].filter((section) => Boolean(section.value) || Boolean(section.items?.length));
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
@@ -146,6 +216,22 @@ export default function ClientSharePage({ shareId }: { shareId: string }) {
 
   const { noteData, metadata, createdAt } = note;
   const videoId = getYoutubeVideoId(metadata.youtubeUrl);
+  const objectInsights = !Array.isArray(noteData.insights) && noteData.insights
+    ? {
+      mainTakeaways: safeList(noteData.insights.mainTakeaways),
+      thinkingQuestions: safeList(noteData.insights.thinkingQuestions),
+      furtherReading: safeList(noteData.insights.furtherReading),
+    }
+    : null;
+  const hasObjectInsights = Boolean(
+    objectInsights &&
+    (
+      objectInsights.mainTakeaways.length > 0 ||
+      objectInsights.thinkingQuestions.length > 0 ||
+      objectInsights.furtherReading.length > 0
+    )
+  );
+  const legacyInsights = Array.isArray(noteData.insights) ? safeList(noteData.insights) : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -374,6 +460,39 @@ export default function ClientSharePage({ shareId }: { shareId: string }) {
                     {segment.summary}
                   </p>
 
+                  {getLearningAidSections(segment).length > 0 && (
+                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                      <h4 className="mb-3 font-semibold text-gray-900">🧠 {metadata.method} 학습 도구</h4>
+                      <div className="space-y-3 text-sm text-gray-800">
+                        {getLearningAidSections(segment).map((section) => (
+                          <div key={section.label}>
+                            <p className="font-semibold text-yellow-800">{section.label}</p>
+                            {section.value && (
+                              <p className="mt-1 whitespace-pre-wrap leading-relaxed">{section.value}</p>
+                            )}
+                            {section.items && section.items.length > 0 && (
+                              <ul className="mt-1 space-y-1">
+                                {section.items.map((item, idx) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="text-yellow-700">•</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {segment.mermaidCode && (
+                    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+                      <h4 className="mb-3 font-semibold text-blue-900">마인드맵</h4>
+                      <MindMap mermaidCode={segment.mermaidCode} id={`share-${shareId}-${index}`} />
+                    </div>
+                  )}
+
                   {/* 핵심 포인트 */}
                   {segment.keyPoints && segment.keyPoints.length > 0 && (
                     <div className="mt-4">
@@ -410,22 +529,63 @@ export default function ClientSharePage({ shareId }: { shareId: string }) {
         </div>
 
         {/* Insights */}
-        {noteData.insights && noteData.insights.length > 0 && (
+        {(legacyInsights.length > 0 || hasObjectInsights) && (
           <Card className="mt-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 🎯 인사이트
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {noteData.insights.map((insight, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-purple-600 font-bold">•</span>
-                    <span className="text-gray-800">{insight}</span>
-                  </li>
-                ))}
-              </ul>
+            <CardContent className="space-y-4">
+              {legacyInsights.length > 0 && (
+                <ul className="space-y-2">
+                  {legacyInsights.map((insight, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-purple-600 font-bold">•</span>
+                      <span className="text-gray-800">{insight}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {objectInsights && objectInsights.mainTakeaways.length > 0 && (
+                <div>
+                  <h4 className="mb-2 font-semibold text-gray-900">주요 배운 점</h4>
+                  <ul className="space-y-2">
+                    {objectInsights.mainTakeaways.map((takeaway, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold">•</span>
+                        <span className="text-gray-800">{takeaway}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {objectInsights && objectInsights.thinkingQuestions.length > 0 && (
+                <div>
+                  <h4 className="mb-2 font-semibold text-gray-900">생각해볼 질문</h4>
+                  <ul className="space-y-2">
+                    {objectInsights.thinkingQuestions.map((question, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold">•</span>
+                        <span className="text-gray-800">{question}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {objectInsights && objectInsights.furtherReading.length > 0 && (
+                <div>
+                  <h4 className="mb-2 font-semibold text-gray-900">더 알아보기</h4>
+                  <ul className="space-y-2">
+                    {objectInsights.furtherReading.map((topic, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold">•</span>
+                        <span className="text-gray-800">{topic}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

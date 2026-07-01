@@ -13,14 +13,16 @@ export function MindMap({ mermaidCode, id }: MindMapProps) {
 
   useEffect(() => {
     if (!containerRef.current || !mermaidCode) return;
+    const safeMermaidCode = mermaidCode.trim();
+    const isSupportedGraph = /^graph\s+(TD|LR)\b/i.test(safeMermaidCode);
+    const hasUnsafeMarkup = /<script|<iframe|javascript:|on\w+=/i.test(safeMermaidCode);
 
-    // Initialize mermaid
     mermaid.initialize({
       startOnLoad: true,
       theme: 'default',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
       flowchart: {
-        htmlLabels: true,
+        htmlLabels: false,
         curve: 'basis',
         padding: 20
       }
@@ -28,7 +30,11 @@ export function MindMap({ mermaidCode, id }: MindMapProps) {
 
     const renderMindmap = async () => {
       try {
-        const { svg } = await mermaid.render(`mindmap-${id}`, mermaidCode);
+        if (!isSupportedGraph || hasUnsafeMarkup) {
+          throw new Error('Unsupported or unsafe Mermaid graph');
+        }
+
+        const { svg } = await mermaid.render(`mindmap-${id}`, safeMermaidCode);
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
         }
@@ -41,7 +47,7 @@ export function MindMap({ mermaidCode, id }: MindMapProps) {
               <div class="text-red-800 font-semibold mb-2">
                 ⚠️ 마인드맵 렌더링 오류
               </div>
-              <pre class="text-sm text-gray-700 overflow-x-auto"><code>${mermaidCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+              <pre class="text-sm text-gray-700 overflow-x-auto"><code>${safeMermaidCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
             </div>
           `;
         }

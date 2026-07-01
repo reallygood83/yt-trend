@@ -22,6 +22,7 @@ interface SaveNoteRequest {
   metadata: {
     title: string;
     youtubeUrl: string;
+    videoId?: string;
     duration: string;
     channelTitle: string;
     ageGroup: string;
@@ -113,7 +114,10 @@ async function saveNoteWithAdmin(
       .get();
 
     const existingNotes = existingNotesSnapshot.docs.map((doc) => {
-      const data = doc.data() as Record<string, any>;
+      const data = doc.data() as {
+        metadata?: { title?: string };
+        createdAt?: { toDate?: () => Date };
+      };
       return {
         id: doc.id,
         title: data.metadata?.title || '제목 없음',

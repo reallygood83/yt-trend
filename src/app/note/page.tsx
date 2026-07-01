@@ -81,6 +81,32 @@ interface TimeSegment {
   keyPoints: string[];
   examples: string[];
   mermaidCode?: string;
+  learningObjective?: string;
+  methodExplanation?: string;
+  checkQuestion?: string;
+  practiceTask?: string;
+  coreConcept?: string;
+  simpleExplanation?: string;
+  everydayAnalogy?: string;
+  knowledgeGaps?: string[];
+  selfExplanationTest?: string;
+  kidFriendlyExplanation?: string;
+  familiarExample?: string;
+  sayItBack?: string;
+  cueQuestion?: string;
+  noteBody?: string;
+  summarySentence?: string;
+  centerConcept?: string;
+  branches?: string[];
+  guidingQuestion?: string;
+  followUpQuestions?: string[];
+  tentativeAnswer?: string;
+  analogySource?: string;
+  analogyMapping?: string[];
+  analogyLimit?: string;
+  storyScene?: string;
+  storyConflict?: string;
+  storyLesson?: string;
 }
 
 interface GeneratedNote {
@@ -436,6 +462,33 @@ ${note.fullSummary}
 #### 📝 핵심 내용
 ${segment.summary}
 
+${segment.coreConcept ? `**🧠 핵심 개념:** ${segment.coreConcept}\n` : ''}
+${segment.simpleExplanation ? `**🪄 쉬운 설명:**\n${segment.simpleExplanation}\n` : ''}
+${segment.everydayAnalogy ? `**🌉 일상 비유:** ${segment.everydayAnalogy}\n` : ''}
+${segment.knowledgeGaps?.length ? `**🕳️ 이해 빈틈 점검:**\n${segment.knowledgeGaps.map(q => `- ${q}`).join('\n')}\n` : ''}
+${segment.selfExplanationTest ? `**🗣️ 자기 설명 테스트:** ${segment.selfExplanationTest}\n` : ''}
+${segment.learningObjective ? `**🎯 학습 목표:** ${segment.learningObjective}\n` : ''}
+${segment.methodExplanation ? `**🧩 방법별 설명:**\n${segment.methodExplanation}\n` : ''}
+${segment.checkQuestion ? `**✅ 이해 점검:** ${segment.checkQuestion}\n` : ''}
+${segment.practiceTask ? `**🔁 다음 학습 행동:** ${segment.practiceTask}\n` : ''}
+${segment.kidFriendlyExplanation ? `**🧒 어린이 설명:**\n${segment.kidFriendlyExplanation}\n` : ''}
+${segment.familiarExample ? `**🏠 친숙한 예시:** ${segment.familiarExample}\n` : ''}
+${segment.sayItBack ? `**🗣️ 다시 말해보기:** ${segment.sayItBack}\n` : ''}
+${segment.cueQuestion ? `**❔ 코넬 핵심 질문:** ${segment.cueQuestion}\n` : ''}
+${segment.noteBody ? `**📝 코넬 노트:**\n${segment.noteBody}\n` : ''}
+${segment.summarySentence ? `**📌 코넬 요약:** ${segment.summarySentence}\n` : ''}
+${segment.centerConcept ? `**🗺️ 중심 개념:** ${segment.centerConcept}\n` : ''}
+${segment.branches?.length ? `**🌿 가지 개념:**\n${segment.branches.map(item => `- ${item}`).join('\n')}\n` : ''}
+${segment.guidingQuestion ? `**❓ 유도 질문:** ${segment.guidingQuestion}\n` : ''}
+${segment.followUpQuestions?.length ? `**🔎 후속 질문:**\n${segment.followUpQuestions.map(q => `- ${q}`).join('\n')}\n` : ''}
+${segment.tentativeAnswer ? `**💭 잠정 답변:** ${segment.tentativeAnswer}\n` : ''}
+${segment.analogySource ? `**🌉 비유 대상:** ${segment.analogySource}\n` : ''}
+${segment.analogyMapping?.length ? `**🔗 비유 대응:**\n${segment.analogyMapping.map(item => `- ${item}`).join('\n')}\n` : ''}
+${segment.analogyLimit ? `**⚠️ 비유의 한계:** ${segment.analogyLimit}\n` : ''}
+${segment.storyScene ? `**🎬 이야기 장면:** ${segment.storyScene}\n` : ''}
+${segment.storyConflict ? `**⚡ 문제 상황:** ${segment.storyConflict}\n` : ''}
+${segment.storyLesson ? `**💡 이야기 교훈:** ${segment.storyLesson}\n` : ''}
+
 **🔑 주요 포인트:**
 ${segment.keyPoints.map(point => `- ${point}`).join('\n')}
 
@@ -580,6 +633,35 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
 
     return cleaned.length > 0 ? cleaned : fallback;
   };
+
+  const getLearningAidSections = (segment: TimeSegment) => [
+    { label: '학습 목표', value: segment.learningObjective },
+    { label: '방법별 설명', value: segment.methodExplanation },
+    { label: '이해 점검', value: segment.checkQuestion },
+    { label: '다음 학습 행동', value: segment.practiceTask },
+    { label: '핵심 개념', value: segment.coreConcept },
+    { label: '쉬운 설명', value: segment.simpleExplanation },
+    { label: '일상 비유', value: segment.everydayAnalogy },
+    { label: '이해 빈틈 점검', items: safeList(segment.knowledgeGaps, []) },
+    { label: '자기 설명 테스트', value: segment.selfExplanationTest },
+    { label: '어린이 설명', value: segment.kidFriendlyExplanation },
+    { label: '친숙한 예시', value: segment.familiarExample },
+    { label: '다시 말해보기', value: segment.sayItBack },
+    { label: '코넬 핵심 질문', value: segment.cueQuestion },
+    { label: '코넬 노트', value: segment.noteBody },
+    { label: '코넬 요약', value: segment.summarySentence },
+    { label: '중심 개념', value: segment.centerConcept },
+    { label: '가지 개념', items: safeList(segment.branches, []) },
+    { label: '유도 질문', value: segment.guidingQuestion },
+    { label: '후속 질문', items: safeList(segment.followUpQuestions, []) },
+    { label: '잠정 답변', value: segment.tentativeAnswer },
+    { label: '비유 대상', value: segment.analogySource },
+    { label: '비유 대응', items: safeList(segment.analogyMapping, []) },
+    { label: '비유의 한계', value: segment.analogyLimit },
+    { label: '이야기 장면', value: segment.storyScene },
+    { label: '문제 상황', value: segment.storyConflict },
+    { label: '이야기 교훈', value: segment.storyLesson },
+  ].filter((section) => Boolean(section.value) || Boolean(section.items?.length));
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -1060,12 +1142,42 @@ ${note.insights.furtherReading.map(r => `- ${r}`).join('\n')}` : ''}
                             </div>
 
                             <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.75fr)]">
-                              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-                                <p className="break-keep leading-7 text-zinc-800">{segmentSummary}</p>
-                                <div className="mt-4">
-                                  <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-700">
-                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                    주요 포인트
+	                              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+	                                <p className="break-keep leading-7 text-zinc-800">{segmentSummary}</p>
+	                                {getLearningAidSections(segment).length > 0 && (
+	                                  <div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
+	                                    <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-yellow-900">
+	                                      <Brain className="h-4 w-4" />
+	                                      {method} 학습 도구
+	                                    </p>
+	                                    <div className="space-y-3">
+	                                      {getLearningAidSections(segment).map((section) => (
+	                                        <div key={section.label}>
+	                                          <p className="text-sm font-semibold text-yellow-800">{section.label}</p>
+	                                          {section.value && (
+	                                            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-yellow-950">
+	                                              {section.value}
+	                                            </p>
+	                                          )}
+	                                          {section.items && section.items.length > 0 && (
+	                                            <ul className="mt-1 space-y-1">
+	                                              {section.items.map((item, i) => (
+	                                                <li key={i} className="flex gap-2 text-sm leading-6 text-yellow-950">
+	                                                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-600" />
+	                                                  <span>{item}</span>
+	                                                </li>
+	                                              ))}
+	                                            </ul>
+	                                          )}
+	                                        </div>
+	                                      ))}
+	                                    </div>
+	                                  </div>
+	                                )}
+	                                <div className="mt-4">
+	                                  <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-700">
+	                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+	                                    주요 포인트
                                   </p>
                                   <ul className="space-y-2">
                                     {keyPoints.map((point, i) => (
